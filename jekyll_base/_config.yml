@@ -1,0 +1,44 @@
+title: Rat TWAS hub
+name: Rat TWAS hub
+description: ""
+meta_description: ""
+
+aboutPage: false
+
+markdown: kramdown
+highlighter: rouge
+
+plugins: [jekyll-paginate]
+paginate: 20
+domain_name: 'twas.ratgtex.org'
+google_analytics: ''
+disqus: false
+disqus_shortname: 'your-disqus-shortname'
+baseurl: '/'
+
+# Details for the RSS feed generator
+url:            ''
+author:         ''
+authorTwitter:  false
+
+permalink:       /:year/:title/
+
+defaults:
+    -
+        scope:
+            path: "" # empty string for all files
+            type: pages
+        values:
+            layout: default
+    -
+        scope:
+            path: "" # empty string for all files
+            type: posts
+        values:
+            layout: post
+    -
+        scope:
+            path: ""
+            type: drafts
+        values:
+            layout: post
