@@ -51,8 +51,6 @@ Rscript scripts/REPORT_GENES.R
 Rscript scripts/REPORT_INDEX.R
 
 ## Compress TWAS data for site download links
-cat data/trait_list.par | cut -f1 | while read line; do
-    cd data/tmp && tar -cjf ../../jekyll/data/${line}.tar.bz2 ${line}/ ${line}.dat ${line}.dat.post.report && cd ..
+cat data/traits.par | tail -n+2 | cut -f2 | while read trait; do
+    cd data/tmp && tar -cjf ../../jekyll/data/${trait}.tar.bz2 ${trait}/ ${trait}.dat ${trait}.dat.post.report && cd ../..
 done
-
-mv -i data/traits data/genes data/data data/genes.md data/models.md data/traits.md data/genes.json jekyll/

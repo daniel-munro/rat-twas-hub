@@ -2,10 +2,10 @@
 gene_names <- read.table("data/genes.par", as.is = TRUE, head = TRUE, sep = '\t')
 gene_names <- setNames(gene_names$NAME, gene_names$ID)
 
-tbl.panels = read.table("data/panels.par",as.is=T,head=T,sep='\t')
+tbl.panels <- read.table("data/panels.par",as.is=T,head=T,sep='\t')
 N.models = nrow(tbl.panels)
 # df.panels = data.frame( "n"=tbl.panels$N , "study"=tbl.panels$STUDY , "tissue"=tbl.panels$TISSUE , "num.hits" = rep(0,N.models) , "num.traits" = rep(0,N.models) , row.names=tbl.panels$ID )
-df.panels = data.frame("n"=tbl.panels$N, "tissue"=tbl.panels$TISSUE, "modality"=tbl.panels$MODALITY, "num.hits" = rep(0,N.models), "num.traits" = rep(0,N.models), row.names=tbl.panels$ID)
+df.panels = data.frame("n" = tbl.panels$N, "tissue" = tbl.panels$TISSUE, "modality" = tbl.panels$MODALITY, "num.hits" = rep(0, N.models), "num.traits" = rep(0, N.models), row.names = tbl.panels$ID)
 
 tbl.models.pos = read.table("data/all.models.par",as.is=T,head=T)
 m = match( tbl.models.pos$PANEL , tbl.panels$PANEL )
@@ -25,21 +25,6 @@ traits.nfo = traits.nfo[m,]
 df.traits$num.loci = traits.nfo$NUM.LOCI
 df.traits$num.joint.genes = traits.nfo$NUM.JOINT.GENES
 df.traits$num.total.genes = traits.nfo$NUM.GENES
-
-## These are also written in REPORT_INDEX.R, which seems more recent (e.g. adds data column)
-# fout = "traits.md"
-# cat( "---","title: Traits","permalink: traits/","layout: traits","---\n",sep='\n',file=fout)
-# cat( "# *",nrow(df.traits),"* traits &middot; *",formatC(sum(df.traits$num.loci), format = "f", big.mark = ",", drop0trailing = TRUE),"* associated loci &middot; *", formatC(sum(df.traits$num.total.genes), format = "f", big.mark = ",", drop0trailing = TRUE),"*  associated genes\n\n",sep='',file=fout,append=T)
-# cat( "| Type | Trait | N | # loci | # indep genes | # total genes | Ref. | Year |","| --- |",sep='\n',file=fout,append=T)
-# write.table(df.traits[,c("type","link","n","num.loci","num.joint.genes","num.total.genes","ref","year")],quote=F,row.names=F,col.names=F,sep=' | ',file=fout,append=T)
-
-# fout = "models.md"
-# cat( "---","title: Models","permalink: models/","layout: about","---\n",sep='\n',file=fout)
-# cat( "# Models \n\n",sep='',file=fout,append=T)
-
-# cat( "| Study | Tissue | N |","| --- |",sep='\n',file=fout,append=T)
-# write.table(df.panels[,c("study","tissue","n")],quote=F,row.names=F,col.names=F,sep=' | ',file=fout,append=T)
-# ----
 
 # iterate and make each gene file
 uni.genes = sort(unique( tbl.models.pos$ID ))
@@ -83,15 +68,3 @@ for ( i in 1:N.traits ) {
 for ( i in 1:length(uni.genes) ) {
 	cat("{: #assoc}\n", file=paste("jekyll/genes/",uni.genes[i],".md",sep='') , append=T )	
 }
-
-## This was overwritten by REPORT_INDEX.R
-# # ---- PRINT GENE INDEX
-# fout = "genes.md"
-# cat( "---","title: Genes","permalink: genes/","layout: genes","---\n",sep='\n',file=fout)
-# cat( "# *",formatC(nrow(df.genes), format = "f", big.mark = ",", drop0trailing = TRUE),"* genes &middot; *",formatC(sum(df.genes$n.models), format = "f", big.mark = ",", drop0trailing = TRUE),"* models\n\n",sep='',file=fout,append=T)
-
-# cat( '### Analyzed genes\n\n' ,sep='',file=fout,append=T)
-# cat( "| Gene | # models | # associations |\n","| --- |\n",sep='',file=fout,append=T)
-# write.table(df.genes[,c("link","n.models","n.assoc")],quote=F,row.names=F,col.names=F,sep=' | ',file=fout,append=T)
-# cat( '{: #genes}\n' ,file=fout,append=T)
-# # ----
