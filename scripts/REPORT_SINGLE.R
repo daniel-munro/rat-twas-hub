@@ -76,13 +76,13 @@ for (m in 1:N.models) {
 	df.cur.models$pct.hits[m] <- 100 * mean(as.numeric(cur$TWAS.P[keep]) < 0.05 / n, na.rm = TRUE)
 }
 
-# ---- PRINT DISEASE PAGE
+# ---- PRINT TRAIT PAGE
 
 fout <- paste("jekyll/traits/", tbl.traits$ID[i], ".md", sep = '')
 system(paste("mkdir -p jekyll/traits/", tbl.traits$ID[i], sep = ''))
 
 cat("---\n", "title: \"", tbl.traits$NAME[i], "\"\npermalink: traits/", tbl.traits$ID[i], "/\nlayout: trait\n", "---\n\n", sep = '', file = fout)
-cat("## [Hub]({{ site.baseurl }}) : [Traits]({{ site.baseurl }}traits/) : \n\n", file = fout, append = TRUE)
+cat("## [Hub]({{ site.baseurl }}) : [Traits]({{ site.baseurl }}traits/)\n\n", file = fout, append = TRUE)
 cat('# ', tbl.traits$NAME[i], '\n', sep = '', file = fout, append = TRUE)
 cat('`' , df.traits$num.models[i], " significantly associated models · ", df.traits$num.genes[i], " unique genes`.\n\n", sep = '', file = fout, append = TRUE)
 
@@ -119,10 +119,20 @@ if (file.info(paste(tbl.traits$OUTPUT[i], ".post.report", sep = ''))$size != 0) 
         fout.clump <- paste("jekyll/traits/", tbl.traits$ID[i], "/", ii, ".md", sep = '')
         cat("---\n", "title: \"", tbl.traits$NAME[i], "\"\npermalink: traits/", tbl.traits$ID[i], "/", ii, "/ \nlayout: locus\n", "---\n\n", sep='', file = fout.clump)
         cat("## [Hub]({{ site.baseurl }}) : [Traits]({{ site.baseurl }}traits) : ", df.traits$link[i], ' : ', sep = '', file = fout.clump, append = TRUE)
-        if (ii > 1) cat(" [ ← ]({{ site.baseurl }}traits/", tbl.traits$ID[i], "/", (ii-1), ") ", sep = '', file = fout.clump, append = TRUE)
-        if (ii < nrow(cur.clumps)) cat(" [ → ]({{ site.baseurl }}traits/", tbl.traits$ID[i], "/", (ii+1), ")", sep = '', file = fout.clump, append = TRUE)
+        if (ii > 1) {
+            cat(" [ ← ]({{ site.baseurl }}traits/", tbl.traits$ID[i], "/", (ii-1), ") ", sep = '', file = fout.clump, append = TRUE)
+        }
+        if (ii < nrow(cur.clumps)) {
+            cat(" [ → ]({{ site.baseurl }}traits/", tbl.traits$ID[i], "/", (ii+1), ")", sep = '', file = fout.clump, append = TRUE)
+        }
         
-        cat('\n\n# chr', cur.clumps$CHR[ii], ":", formatC(cur.clumps$P0[ii], format = "f", big.mark = ",", drop0trailing = TRUE), "-", formatC(cur.clumps$P1[ii], format = "f", big.mark = ",", drop0trailing = TRUE), '\n\n', sep = '', file = fout.clump, append = TRUE)
+        cat('\n\n# chr',
+            cur.clumps$CHR[ii],
+            ":",
+            formatC(cur.clumps$P0[ii], format = "f", big.mark = ",", drop0trailing = TRUE),
+            "-",
+            formatC(cur.clumps$P1[ii], format = "f", big.mark = ",", drop0trailing = TRUE),
+            '\n\n', sep = '', file = fout.clump, append = TRUE)
         cat('`Best TWAS P=', cur.clumps$BEST.TWAS.P[ii], ' · Best GWAS P=', cur.clumps$BEST.SNP.P[ii], ' conditioned to ', cur.clumps$COND.SNP.P[ii], "`\n\n", sep = '', file = fout.clump, append = TRUE)
         
         system(paste("cp ", cur.clumps.files[ii], ".cond.csv jekyll/traits/", tbl.traits$ID[i], "/", ii, ".cond.csv", sep = ''))
@@ -140,7 +150,10 @@ if (file.info(paste(tbl.traits$OUTPUT[i], ".post.report", sep = ''))$size != 0) 
         cur.genes.tbl$EQTL.R2 <- round(cur.genes.tbl$EQTL.R2, 2)
         
         # write.table(format(cur.genes.tbl[,c("NUM","STUDY","TISSUE","GENE","HSQ","EQTL.R2","MODEL","NWGT","MODELCV.R2","MODELCV.PV","EQTL.GWAS.Z","TWAS.Z","TWAS.P","TOP.SNP.COR","COLOC.PP3","COLOC.PP4","JOINT")],digits=2),quote=F,row.names=F,col.names=F,sep=' | ',file=fout.clump,append=T)
-        write.table(format(cur.genes.tbl[, c("NUM", "TISSUE", "MODALITY", "GENE", "HSQ", "EQTL.R2", "MODEL", "NWGT", "MODELCV.R2", "MODELCV.PV", "EQTL.GWAS.Z", "TWAS.Z", "TWAS.P", "TOP.SNP.COR", "COLOC.PP3", "COLOC.PP4", "JOINT")], digits = 2), quote = FALSE, row.names = FALSE, col.names = FALSE, sep = ' | ', file = fout.clump, append = TRUE)
+        write.table(
+            format(cur.genes.tbl[, c("NUM", "TISSUE", "MODALITY", "GENE", "HSQ", "EQTL.R2", "MODEL", "NWGT", "MODELCV.R2", "MODELCV.PV", "EQTL.GWAS.Z", "TWAS.Z", "TWAS.P", "TOP.SNP.COR", "COLOC.PP3", "COLOC.PP4", "JOINT")], digits = 2),
+            quote = FALSE, row.names = FALSE, col.names = FALSE, sep = ' | ', file = fout.clump, append = TRUE
+        )
         cat('{: #models}\n\n', file = fout.clump, append = TRUE)
     }
     write.table(format(cur.clumps, digits = 2), quote = FALSE, row.names = FALSE, col.names = FALSE, sep = ' | ', file = fout, append = TRUE)
