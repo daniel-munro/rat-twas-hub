@@ -1,3 +1,15 @@
+# Generate gene pages
+
+# Inputs:
+# data/genes.par
+# data/panels.par
+# data/all.models.par
+# data/traits.par
+# data/traits.par.nfo
+
+# Outputs:
+# jekyll/genes/{gene}.md
+
 # Load gene names since Ensembl IDs were used for TWAS
 gene_names <- read.table("data/genes.par", as.is = TRUE, head = TRUE, sep = '\t')
 gene_names <- setNames(gene_names$NAME, gene_names$ID)
@@ -56,40 +68,40 @@ df.genes$link <- paste('*',
 # cat( toJSON(unname(split(df.json, 1:nrow(df.json)))) , file="genes.json" )
 
 for (i in 1:length(uni.genes)) {
-	fout <- paste("jekyll/genes/", uni.genes[i], ".md", sep = '')
-	cat("---\n", "title: ", gene_names[uni.genes[i]], "\npermalink: genes/", uni.genes[i], "/ \nlayout: gene\n", "---\n\n", sep = '', file = fout)
-	cat("## [Hub]({{ site.baseurl }}) : [Genes]({{ site.baseurl }}genes)\n\n", file = fout, append = TRUE)
-	cat('# ', gene_names[uni.genes[i]], '\n', sep = '', file = fout, append = TRUE)
-	
-	# WGT	ID	CHR	P0	P1	ID	NSNPS	HSQ	HSQ.SE	HSQ.PV	TOP1.R2	BLUP.R2	ENET.R2	BSLMM.R2	LASSO.R2	TOP1.PV	BLUP.PV	ENET.PV	BSLMM.PV	LASSO.PV
-	cat('\n### Models\n\n', sep = '', file = fout, append = TRUE)
-	# cat( '| # | panel | tissue | h2 | h2 se | h2 P | eQTL R2 | BLUP R2 | ENET R2 | BSLMM R2 | LASSO R2 | eQTL P | BLUP P | ENET P | BSLMM P | LASSO P |\n| --- |\n' , sep='',file=fout,append=T)
-	cat('| # | tissue | modality | h2 | h2 se | h2 P | eQTL R2 | BLUP R2 | ENET R2 | BSLMM R2 | LASSO R2 | eQTL P | BLUP P | ENET P | BSLMM P | LASSO P |\n| --- |\n', sep = '', file = fout, append = TRUE)
-	cur.models <- tbl.models.pos[tbl.models.pos$ID == uni.genes[i], ]
-	cur.models$NUM <- 1:nrow(cur.models)
-	df.genes$n.models[i] <- df.genes$n.models[i] + nrow(cur.models)
-	write.table(
-	    format(cur.models[, c("NUM", "PANEL", "HSQ", "HSQ.SE", "HSQ.PV", "TOP1.R2", "BLUP.R2", "ENET.R2", "BSLMM.R2", "LASSO.R2", "TOP1.PV", "BLUP.PV", "ENET.PV", "BSLMM.PV", "LASSO.PV")], digits = 3),
-	    quote = FALSE, row.names = FALSE, col.names = FALSE, sep = ' | ', file = fout, append = TRUE
-	)
-	cat('{: #models}\n\n', file = fout, append = TRUE)
+    fout <- paste("jekyll/genes/", uni.genes[i], ".md", sep = '')
+    cat("---\n", "title: ", gene_names[uni.genes[i]], "\npermalink: genes/", uni.genes[i], "/ \nlayout: gene\n", "---\n\n", sep = '', file = fout)
+    cat("## [Hub]({{ site.baseurl }}) : [Genes]({{ site.baseurl }}genes)\n\n", file = fout, append = TRUE)
+    cat('# ', gene_names[uni.genes[i]], '\n', sep = '', file = fout, append = TRUE)
+    
+    # WGT	ID	CHR	P0	P1	ID	NSNPS	HSQ	HSQ.SE	HSQ.PV	TOP1.R2	BLUP.R2	ENET.R2	BSLMM.R2	LASSO.R2	TOP1.PV	BLUP.PV	ENET.PV	BSLMM.PV	LASSO.PV
+    cat('\n### Models\n\n', sep = '', file = fout, append = TRUE)
+    # cat( '| # | panel | tissue | h2 | h2 se | h2 P | eQTL R2 | BLUP R2 | ENET R2 | BSLMM R2 | LASSO R2 | eQTL P | BLUP P | ENET P | BSLMM P | LASSO P |\n| --- |\n' , sep='',file=fout,append=T)
+    cat('| # | tissue | modality | h2 | h2 se | h2 P | eQTL R2 | BLUP R2 | ENET R2 | BSLMM R2 | LASSO R2 | eQTL P | BLUP P | ENET P | BSLMM P | LASSO P |\n| --- |\n', sep = '', file = fout, append = TRUE)
+    cur.models <- tbl.models.pos[tbl.models.pos$ID == uni.genes[i], ]
+    cur.models$NUM <- 1:nrow(cur.models)
+    df.genes$n.models[i] <- df.genes$n.models[i] + nrow(cur.models)
+    write.table(
+        format(cur.models[, c("NUM", "PANEL", "HSQ", "HSQ.SE", "HSQ.PV", "TOP1.R2", "BLUP.R2", "ENET.R2", "BSLMM.R2", "LASSO.R2", "TOP1.PV", "BLUP.PV", "ENET.PV", "BSLMM.PV", "LASSO.PV")], digits = 3),
+        quote = FALSE, row.names = FALSE, col.names = FALSE, sep = ' | ', file = fout, append = TRUE
+    )
+    cat('{: #models}\n\n', file = fout, append = TRUE)
 
-	cat("\n### Trait associations\n\n | Trait | Avg chi2 ratio | Avg chi2 | Max chi2 | ",
-	    paste(1:df.genes$n.models[i], collapse = " | "),
-	    "| \n | --- |\n",
-	    sep = '',
-	    file = paste("jekyll/genes/", uni.genes[i], ".md", sep = ''),
-	    append = TRUE)
-	
-	if (i %% 100 == 0) cat(i, '\n')
+    cat("\n### Trait associations\n\n | Trait | Avg chi2 ratio | Avg chi2 | Max chi2 | ",
+        paste(1:df.genes$n.models[i], collapse = " | "),
+        "| \n | --- |\n",
+        sep = '',
+        file = paste("jekyll/genes/", uni.genes[i], ".md", sep = ''),
+        append = TRUE)
+    
+    if (i %% 100 == 0) cat(i, '\n')
 }
 
 # iterate over each trait and count the number of significant genes
 for (i in 1:N.traits) {
-	system(paste('bash scripts/APPEND_GENE.sh ', tbl.traits$OUTPUT[i], " \"", df.traits$link[i], "\" ", traits.nfo$AVG.CHISQ[i], "\n", sep = ''))
-	cat(i, '\n')
+    system(paste('bash scripts/add_trait_to_gene_pages.sh ', tbl.traits$OUTPUT[i], " \"", df.traits$link[i], "\" ", traits.nfo$AVG.CHISQ[i], "\n", sep = ''))
+    cat(i, '\n')
 }
 
 for (i in 1:length(uni.genes)) {
-	cat("{: #assoc}\n", file = paste("jekyll/genes/", uni.genes[i], ".md", sep = ''), append = TRUE)
+    cat("{: #assoc}\n", file = paste("jekyll/genes/", uni.genes[i], ".md", sep = ''), append = TRUE)
 }

@@ -33,22 +33,22 @@ echo -e "ID\tNAME" > data/genes.par
 perl -nle '/gene_id "([^"]+)".+gene_name "([^"]+)"/ && print "$1\t$2"' $gtf | sort | uniq >> data/genes.par
 
 ## Process TWAS results
-bash scripts/MERGE.sh
+bash scripts/merge_TWAS_results.sh
 mkdir jekyll
 cp -r jekyll_base/* jekyll/
 mkdir -p jekyll/traits jekyll/genes jekyll/data
 
 N_TRAITS=`wc -l data/traits.par | awk '{ print $1 - 1 }'`
 ## sbatch -n 1 -t 08:00:00 --mem-per-cpu=8G --job-name="report" --array=1-$N_TRAITS REPORT.sh
-## R --slave --args ${SLURM_ARRAY_TASK_ID} < REPORT_SINGLE.R
+## R --slave --args ${SLURM_ARRAY_TASK_ID} < build_pages_for_trait.R
 ## for i in `seq 1 $N_TRAITS`; do
-##     Rscript REPORT_SINGLE.R $i
+##     Rscript build_pages_for_trait.R $i
 ## done
-parallel -j1 --joblog data/tmp/report.log Rscript scripts/REPORT_SINGLE.R {} ::: `seq 1 $N_TRAITS`
+parallel -j1 --joblog data/tmp/report.log Rscript scripts/build_pages_for_trait.R {} ::: `seq 1 $N_TRAITS`
 
-# sbatch --wrap="Rscript scripts/REPORT_GENES.R"
-Rscript scripts/REPORT_GENES.R
-Rscript scripts/REPORT_INDEX.R
+## sbatch --wrap="Rscript scripts/build_gene_pages.R"
+Rscript scripts/build_gene_pages.R
+Rscript scripts/build_index_pages.R
 
 ## Compress TWAS data for site download links
 cat data/traits.par | tail -n+2 | cut -f2 | while read trait; do

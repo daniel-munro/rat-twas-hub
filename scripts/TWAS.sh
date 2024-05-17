@@ -3,7 +3,18 @@
 # Run TWAS analyses
 # $1 = trait name
 # $2 = integer GWAS sample size
-# Run assumes FUSION code is at scripts/fusion_twas and WEIGHTS, GWAS, and LDREF are in data/.
+# Run assumes FUSION scripts are in scripts/ and WEIGHTS, GWAS, and LDREF are in data/.
+
+# Inputs:
+# data/all.models.par
+# data/GWAS/$TRAIT/$TRAIT.$CHR.sumstats
+# data/LDREF/Brain.$CHR.{bed,bim,fam}
+# data/panels.par
+
+# Outputs:
+# data/tmp/$TRAIT/$TRAIT.$CHR.dat
+# data/tmp/$TRAIT/$TRAIT.$CHR.top
+# data/tmp/$TRAIT/$TRAIT.$CHR.post.*
 
 TRAIT=$1
 N=$2

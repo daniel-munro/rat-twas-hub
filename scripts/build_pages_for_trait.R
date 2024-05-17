@@ -1,5 +1,21 @@
+# Load the results of a single trait and generate a markdown file for the trait page and each of its hit loci
+
+# Inputs:
+# data/genes.par
+# data/traits.par
+# data/panels.par
+# data/all.models.par
+# data/traits.par.nfo
+# data/tmp/{trait}.dat
+# data/tmp/{trait}.dat.post.report
+# data/tmp/{trait}.top
+
+# Outputs:
+# jekyll/traits/{trait}.md
+# jekyll/traits/{trait}/{locus}.md
+
 arg <- commandArgs(trailingOnly = TRUE)
-CUR.TRAIT <- as.numeric(arg[1])
+i_trait <- as.numeric(arg[1])
 
 # Load gene names since Ensembl IDs were used for TWAS
 cat("reading data/genes.par\n")
@@ -10,12 +26,12 @@ cat("reading data/traits.par\n")
 tbl.traits <- read.table("data/traits.par", as.is = TRUE, head = TRUE, sep = '\t', quote = "")
 N.traits <- nrow(tbl.traits)
 df.traits <- data.frame("name" = tbl.traits$NAME,
-                       "n" = tbl.traits$N,
-                       "num.genes" = rep(NA, N.traits),
-                       "num.models" = rep(NA, N.traits),
-                       "ref" = tbl.traits$REF,
-                       "year" = tbl.traits$YEAR,
-                       row.names = tbl.traits$ID)
+                        "n" = tbl.traits$N,
+                        "num.genes" = rep(NA, N.traits),
+                        "num.models" = rep(NA, N.traits),
+                        "ref" = tbl.traits$REF,
+                        "year" = tbl.traits$YEAR,
+                        row.names = tbl.traits$ID)
 df.traits$link <- paste("[", df.traits$name, "]({{ site.baseurl }}traits/", rownames(df.traits), ")", sep = '')
 
 cat("reading data/panels.par\n")
@@ -39,15 +55,8 @@ traits.nfo <- read.table("data/traits.par.nfo", as.is = TRUE, head = TRUE)
 m <- match(rownames(df.traits), traits.nfo$ID)
 traits.nfo <- traits.nfo[m, ]
 
-# iterate and make each gene file
-uni.genes <- sort(unique(tbl.models.pos$ID))
-df.genes <- data.frame("gene" = uni.genes,
-                       "n.models" = rep(0, length(uni.genes)),
-                       "n.assoc" = rep(0, length(uni.genes)))
-df.genes$link <- paste('*', paste("[", gene_names[df.genes$gene], "]({{ site.baseurl }}genes/", df.genes$gene, ")", sep = ''), '*', sep = '')
-
-# iterate over each trait and count the number of significant genes
-i <- CUR.TRAIT
+# Count the number of significant genes for the trait
+i <- i_trait
 
 cat("reading", tbl.traits$OUTPUT[i], '\n')
 cur <- read.table(tbl.traits$OUTPUT[i], as.is = TRUE, head = TRUE, sep = '\t')
@@ -70,10 +79,10 @@ df.cur.models <- data.frame("tissue" = tbl.panels$TISSUE,
                             "avg.chisq" = rep(NA, N.models),
                             row.names = tbl.panels$ID)
 for (m in 1:N.models) {
-	keep <- cur$PANEL == tbl.panels$PANEL[m]
-	df.cur.models$avg.chisq[m] <- mean(as.numeric(cur$TWAS.Z[keep])^2, na.rm = TRUE)
-	df.cur.models$num.hits[m] <- sum(as.numeric(cur$TWAS.P[keep]) < 0.05 / n, na.rm = TRUE)
-	df.cur.models$pct.hits[m] <- 100 * mean(as.numeric(cur$TWAS.P[keep]) < 0.05 / n, na.rm = TRUE)
+    keep <- cur$PANEL == tbl.panels$PANEL[m]
+    df.cur.models$avg.chisq[m] <- mean(as.numeric(cur$TWAS.Z[keep])^2, na.rm = TRUE)
+    df.cur.models$num.hits[m] <- sum(as.numeric(cur$TWAS.P[keep]) < 0.05 / n, na.rm = TRUE)
+    df.cur.models$pct.hits[m] <- 100 * mean(as.numeric(cur$TWAS.P[keep]) < 0.05 / n, na.rm = TRUE)
 }
 
 # ---- PRINT TRAIT PAGE
@@ -160,48 +169,55 @@ if (file.info(paste(tbl.traits$OUTPUT[i], ".post.report", sep = ''))$size != 0) 
     cat('{: #loci}\n\n', file = fout, append = TRUE)
     
     # # ---- Get pleiotropic loci
-    # n.pleiot = 0
-    # file.top = paste("data/tmp/",tbl.traits$ID[i],".top",sep='')
-    # write.table( cur$FILE[ !is.na( match( cur$FILE , clump.mod ) ) ] , quote=F , row.names=F , col.names="FILE" , file=file.top ) 
-    
-    # for ( ii in 1:N.traits ) {
-    # 	cat( ii , '\n' )
-    # 	if ( ii != i ) {
-    # 		system( paste( "cat ",file.top," | ~/tools/search ",tbl.traits$OUTPUT[ii]," 2 >",file.top,".tmp" , sep='') )
-    # 		other.cur = read.table( paste(file.top,".tmp" , sep='') , as.is=T , head=T , sep='\t' )
-    # 		m = match( other.cur$FILE , cur$FILE[ top.models ] )
-    # 		other.cur = other.cur[ !is.na(m) , ]
-    # 		m = m[!is.na(m)]
-    # 		other.this = (cur[ top.models , ])[ m , ]
-    # 		keep = which( as.numeric(other.cur$TWAS.P) < 0.05/n.top)
-    # 		if ( length(keep) > 0 ) {
-    # 			if( length(keep) >= 4 ) {
-    # 				tst = cor.test(as.numeric(other.this$TWAS.Z[ keep ]) , as.numeric(other.cur$TWAS.Z[ keep ]) )
-    # 			} else {
-    # 				tst = data.frame( "est" = 0 , "p.value" = 1 )
-    # 			}
-    # 			genes = sort(unique(other.this$ID[ keep ]))
-    # 			genes.link = paste( '*' , paste( "[" , gene_names[genes] , "]({{ site.baseurl }}genes/" , genes , ")" , sep='' , collapse=' ') , '*' , sep='' )
-    # 			num.genes.twas = length(unique(other.this$ID[which( as.numeric(other.cur$TWAS.P) < 0.05/n)]))
-    # 			df.tmp = data.frame( "link" = df.traits$link[ii] , "chisq.ratio" = round(mean(as.numeric(other.cur$TWAS.Z)^2,na.rm=T) / traits.nfo$AVG.CHISQ[ii],2) , "num.genes" =  length(unique(other.this$ID[ keep ])) , "num.genes.twas" = num.genes.twas , "pct.genes.twas" = round(100 * num.genes.twas / traits.nfo$NUM.JOINT.GENES[3],1) , "corr" = round(tst$est,2) , "p.val" = tst$p.value , "genes" = genes.link )
-    # 			if ( n.pleiot == 0 ) {
-    # 				df.pleiot = df.tmp
-    # 			} else {
-    # 				df.pleiot = rbind(df.pleiot,df.tmp)
-    # 			}
-    # 			n.pleiot = nrow(df.pleiot)
-    # 		}
-    # 	}
+    # n.pleiot <- 0
+    # file.top <- paste("data/tmp/", tbl.traits$ID[i], ".top", sep = '')
+    # write.table(cur$FILE[!is.na(match(cur$FILE, clump.mod))], quote = FALSE, row.names = FALSE, col.names = "FILE", file = file.top)
+    # 
+    # for (ii in 1:N.traits) {
+    #     cat(ii, '\n')
+    #     if (ii != i) {
+    #         system(paste("cat ", file.top, " | ~/tools/search ", tbl.traits$OUTPUT[ii], " 2 >", file.top, ".tmp", sep = ''))
+    #         other.cur <- read.table(paste(file.top, ".tmp", sep = ''), as.is = TRUE, head = TRUE, sep = '\t')
+    #         m <- match(other.cur$FILE, cur$FILE[top.models])
+    #         other.cur <- other.cur[!is.na(m), ]
+    #         m <- m[!is.na(m)]
+    #         other.this <- (cur[top.models, ])[m, ]
+    #         keep <- which(as.numeric(other.cur$TWAS.P) < 0.05 / n.top)
+    #         if (length(keep) > 0) {
+    #             if(length(keep) >= 4) {
+    #                 tst <- cor.test(as.numeric(other.this$TWAS.Z[keep]), as.numeric(other.cur$TWAS.Z[keep]))
+    #             } else {
+    #                 tst <- data.frame("est" = 0, "p.value" = 1)
+    #             }
+    #             genes <- sort(unique(other.this$ID[keep]))
+    #             genes.link <- paste('*', paste("[", gene_names[genes], "]({{ site.baseurl }}genes/", genes, ")", sep = '', collapse=' '), '*', sep = '')
+    #             num.genes.twas <- length(unique(other.this$ID[which(as.numeric(other.cur$TWAS.P) < 0.05 / n)]))
+    #             df.tmp <- data.frame("link" = df.traits$link[ii],
+    #                                  "chisq.ratio" = round(mean(as.numeric(other.cur$TWAS.Z)^2, na.rm = TRUE) / traits.nfo$AVG.CHISQ[ii], 2),
+    #                                  "num.genes" = length(unique(other.this$ID[keep])),
+    #                                  "num.genes.twas" = num.genes.twas,
+    #                                  "pct.genes.twas" = round(100 * num.genes.twas / traits.nfo$NUM.JOINT.GENES[3], 1),
+    #                                  "corr" = round(tst$est, 2),
+    #                                  "p.val" = tst$p.value,
+    #                                  "genes" = genes.link)
+    #             if (n.pleiot == 0) {
+    #                 df.pleiot <- df.tmp
+    #             } else {
+    #                 df.pleiot <- rbind(df.pleiot, df.tmp)
+    #             }
+    #             n.pleiot <- nrow(df.pleiot)
+    #         }
+    #     }
     # }
     
-    # cat( '### Pleiotropic Associations\n\n' , sep='',file=fout,append=T)
-    # if ( n.pleiot != 0 ) {
-    # cat( "| Trait | chisq ratio | # genes<sup>+</sup> | # genes<sup>++</sup> | % genes<sup>++</sup> | corr | corr P | genes |","| --- |",sep='\n',file=fout,append=T)
-    # df.pleiot$pct.genes.twas[ is.na(df.pleiot$pct.genes.twas) ] = 0
-    # write.table(format(df.pleiot,digits=2),quote=F,row.names=F,col.names=F,sep=' | ',file=fout,append=T)
-    # cat( '{: #pleiotropic}\n\n' , file=fout,append=T)
+    # cat('### Pleiotropic Associations\n\n', sep = '', file = fout, append = TRUE)
+    # if (n.pleiot != 0) {
+    #     cat("| Trait | chisq ratio | # genes<sup>+</sup> | # genes<sup>++</sup> | % genes<sup>++</sup> | corr | corr P | genes |", "| --- |", sep = '\n', file = fout, append = TRUE)
+    #     df.pleiot$pct.genes.twas[is.na(df.pleiot$pct.genes.twas)] <- 0
+    #     write.table(format(df.pleiot, digits = 2), quote = FALSE, row.names = FALSE, col.names = FALSE, sep = ' | ', file = fout, append = TRUE)
+    #     cat('{: #pleiotropic}\n\n', file = fout, append = TRUE)
     # }
-    
+    # 
     cat('### Associations by panel\n\n', sep = '', file = fout, append = TRUE)
     # cat( "| study | tissue | # hits | % hits/tests | avg chisq |","| --- |",sep='\n',file=fout,append=T)
     cat("| tissue | modality | # hits | % hits/tests | avg chisq |", "| --- |", sep = '\n', file = fout, append = TRUE)

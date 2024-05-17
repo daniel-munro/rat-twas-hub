@@ -1,3 +1,20 @@
+# Load the data and generate the index pages for the traits, models, and genes.
+
+# Inputs:
+# data/genes.par
+# data/panels.par
+# data/all.models.par
+# data/traits.par
+# data/traits.par.nfo
+# data/genes.nfo
+# data/genes.models.nfo
+
+# Outputs:
+# jekyll/traits.md
+# jekyll/models.md
+# jekyll/genes.json
+# jekyll/genes.md
+
 # Load gene names since Ensembl IDs were used for TWAS
 gene_names <- read.table("data/genes.par", as.is = TRUE, head = TRUE, sep = '\t')
 gene_names <- setNames(gene_names$NAME, gene_names$ID)

@@ -1,3 +1,19 @@
+# Merge trait data and generate summary files
+
+# Inputs:
+# data/traits.par
+# data/tmp/{trait}/{trait}.{1..20}.dat
+# data/tmp/{trait}/{trait}.{1..20}.top
+# data/tmp/{trait}/{trait}.{1..20}.post.report
+
+# Outputs:
+# data/tmp/{trait}.dat
+# data/tmp/{trait}.dat.post.report
+# data/tmp/{trait}.top.dat
+# data/traits.par.nfo
+# data/genes.nfo
+# data/genes.models.nfo
+
 # Combine trait data
 tail -n+2 data/traits.par | awk '{ print $2 }' | while read id; do
 # cat trait_list.par | awk '{ print $1 }' | while read line; do
@@ -13,7 +29,7 @@ done
 tail -n+2 data/traits.par | awk '{ print $2 }' | while read id; do
     avgchisq=`tail -n+2 data/tmp/$id.dat | awk '{ print $19^2 }' | awk -f scripts/avg.awk`
     cat data/tmp/$id/*.report | awk -v chi=$avgchisq -v id=$id 'BEGIN { loc=0; tothit=0; tot=0; } $1 != "FILE" { tothit += $5; tot+=$6; loc++; } END { print id,loc,tot,tothit,chi }'
-done | awk 'BEGIN { print "ID NUM.LOCI NUM.JOINT.GENES NUM.GENES AVG.CHISQ" } { print $0 }'  | tr ' ' '\t' > data/traits.par.nfo
+done | awk 'BEGIN { print "ID NUM.LOCI NUM.JOINT.GENES NUM.GENES AVG.CHISQ" } { print $0 }' | tr ' ' '\t' > data/traits.par.nfo
 
 # Generate genes info file
 tail -n+2 data/traits.par | awk '{ print $2 }' | while read id; do
