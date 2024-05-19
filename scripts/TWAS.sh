@@ -12,9 +12,9 @@
 # data/panels.par
 
 # Outputs:
-# data/tmp/$TRAIT/$TRAIT.$CHR.dat
-# data/tmp/$TRAIT/$TRAIT.$CHR.top
-# data/tmp/$TRAIT/$TRAIT.$CHR.post.*
+# data/twas_out/$TRAIT/$TRAIT.$CHR.dat
+# data/twas_out/$TRAIT/$TRAIT.$CHR.top
+# data/twas_out/$TRAIT/$TRAIT.$CHR.post.*
 
 TRAIT=$1
 N=$2
@@ -30,10 +30,10 @@ fi
 POS="data/all.models.par"
 GWAS="data/GWAS/$TRAIT/$TRAIT.$CHR.sumstats"
 LDREF="data/LDREF/Brain."
-OUT="data/tmp/$TRAIT/$TRAIT.$CHR"
+OUT="data/twas_out/$TRAIT/$TRAIT.$CHR"
 TOTAL=`wc -l $POS | awk '{ print $1 - 1 }'`
 
-mkdir -p "data/tmp/$TRAIT"
+mkdir -p "data/twas_out/$TRAIT"
 Rscript scripts/FUSION.assoc_test.R \
     --sumstats "$GWAS" \
     --out "$OUT.dat" \

@@ -15,108 +15,78 @@
 # jekyll/genes.json
 # jekyll/genes.md
 
+suppressPackageStartupMessages(library(tidyverse))
+
 # Load gene names since Ensembl IDs were used for TWAS
-gene_names <- read.table("data/genes.par", as.is = TRUE, head = TRUE, sep = '\t')
-gene_names <- setNames(gene_names$NAME, gene_names$ID)
+gene_names <- read_tsv("data/genes.par", col_types = "cc") |>
+    deframe()
 
-tbl.panels <- read.table("data/panels.par", as.is = TRUE, head = TRUE, sep = '\t')
-N.models <- nrow(tbl.panels)
-# df.panels = data.frame( "n"=tbl.panels$N , "study"=tbl.panels$STUDY , "tissue"=tbl.panels$TISSUE , "num.hits" = rep(0,N.models) , "num.traits" = rep(0,N.models) , row.names=tbl.panels$ID )
-df.panels <- data.frame("n" = tbl.panels$N,
-                        "tissue" = tbl.panels$TISSUE,
-                        "modality" = tbl.panels$MODALITY,
-                        "num.hits" = rep(0, N.models),
-                        "num.traits" = rep(0, N.models),
-                        row.names = tbl.panels$ID)
+tbl_panels <- read_tsv("data/panels.par", col_types = "ccccci")
 
-tbl.models.pos <- read.table("data/all.models.par", as.is = TRUE, head = TRUE)
-m <- match(tbl.models.pos$PANEL, tbl.panels$PANEL)
-# tbl.models.pos$PANEL = paste( tbl.panels$STUDY , " | " , tbl.panels$TISSUE , sep='' )[ m ] 
-tbl.models.pos$PANEL <- paste(tbl.panels$TISSUE, " | ", tbl.panels$MODALITY, sep = '')[m]
+tbl_models_pos <- read.table("data/all.models.par", as.is = TRUE, head = TRUE)
+m <- match(tbl_models_pos$PANEL, tbl_panels$PANEL)
+tbl_models_pos$PANEL <- paste(tbl_panels$TISSUE, " | ", tbl_panels$MODALITY, sep = "")[m]
 
 # ---- PRINT TRAIT INDEX
-tbl.traits <- read.table("data/traits.par", as.is = TRUE, head = TRUE, sep = '\t', quote = "")
-N.traits <- nrow(tbl.traits)
-df.traits <- data.frame("type" = tbl.traits$TYPE,
-                        "name" = tbl.traits$NAME,
-                        "n" = tbl.traits$N,
-                        "num.loci" = rep(NA, N.traits),
-                        "num.joint.genes" = rep(NA, N.traits),
-                        "num.total.genes" = rep(NA, N.traits),
-                        "ref" = tbl.traits$REF,
-                        "year" = tbl.traits$YEAR,
-                        row.names = tbl.traits$ID)
-df.traits$link <- paste("[", df.traits$name, "]({{ site.baseurl }}traits/", rownames(df.traits), ")", sep = '')
+traits_nfo <- read_tsv("data/traits.par.nfo", col_types = "ciiid")
 
-df.traits$data <- paste("[ <i class=\"far fa-file-archive\" aria-hidden=\"true\"></i> ]({{ site.baseurl }}data/", gsub(".dat", "", gsub("^.+/", "", tbl.traits$OUTPUT)), ".tar.bz2)" , sep = '')
-
-traits.nfo <- read.table("data/traits.par.nfo", as.is = TRUE, head = TRUE)
-m <- match(rownames(df.traits), traits.nfo$ID)
-traits.nfo <- traits.nfo[m, ]
-df.traits$num.loci <- traits.nfo$NUM.LOCI
-df.traits$num.joint.genes <- traits.nfo$NUM.JOINT.GENES
-df.traits$num.total.genes <- traits.nfo$NUM.GENES
+tbl_traits <- read_tsv("data/traits.par", col_types = "ccicicc") |>
+    mutate(link = str_glue("[{NAME}]({{{{ site.baseurl }}}}traits/{ID})"),
+           data_url = str_glue("{{{{ site.baseurl }}}}data/{ID}.tar.bz2"),
+           data_link = str_glue('[ <i class="far fa-file-archive" aria-hidden="true"></i> ]({data_url})')) |>
+    left_join(traits_nfo, by = "ID")
 
 fout <- "jekyll/traits.md"
-cat("---", "title: Traits", "permalink: traits/", "layout: traits", "---\n", sep = '\n', file = fout)
-cat("# *",
-    nrow(df.traits),
-    "* traits &middot; *",
-    formatC(sum(df.traits$num.loci), format = "f", big.mark = ",", drop0trailing = TRUE),
-    "* associated loci &middot; *",
-    formatC(sum(df.traits$num.total.genes), format = "f", big.mark = ",", drop0trailing = TRUE),
-    "*  gene/trait associations\n\n",
-    sep = '', file = fout, append = TRUE)
-cat("| Type | Trait | N | # loci | # indep genes | # total genes | Ref. | Year | data | ", "| --- |", sep = '\n', file = fout, append = TRUE)
-write.table(
-    df.traits[,c("type","link","n","num.loci","num.joint.genes","num.total.genes","ref","year","data")],
-    quote = FALSE, row.names = FALSE, col.names = FALSE, sep = ' | ', file = fout, append = TRUE
-)
+cat("---", "title: Traits", "permalink: traits/", "layout: traits", "---\n", sep = "\n", file = fout)
+n_loci <- formatC(sum(tbl_traits$NUM.LOCI), format = "f", big.mark = ",", drop0trailing = TRUE)
+n_genes <- formatC(sum(tbl_traits$NUM.GENES), format = "f", big.mark = ",", drop0trailing = TRUE)
+cat("# *", nrow(tbl_traits), "* traits &middot; *",
+    n_loci, "* associated loci &middot; *",
+    n_genes, "*  gene/trait associations\n\n",
+    sep = "", file = fout, append = TRUE)
+cat("| Type | Trait | N | # loci | # indep genes | # total genes | Ref. | Year | data | ", "| --- |", sep = "\n", file = fout, append = TRUE)
+tbl_traits |>
+    select(TYPE, link, N, NUM.LOCI, NUM.JOINT.GENES, NUM.GENES, REF, YEAR, data_link) |>
+    write.table(quote = FALSE, row.names = FALSE, col.names = FALSE, sep = " | ", file = fout, append = TRUE)
 
 fout <- "jekyll/models.md"
-cat("---", "title: Models", "permalink: models/", "layout: about", "---\n", sep = '\n', file = fout)
-cat("# Models \n\n", sep = '', file = fout, append = TRUE)
+cat("---", "title: Models", "permalink: models/", "layout: about", "---\n", sep = "\n", file = fout)
+cat("# Models \n\n", sep = "", file = fout, append = TRUE)
 
-# cat( "| Study | Tissue | N |","| --- |",sep='\n',file=fout,append=T)
-# write.table(df.panels[,c("study","tissue","n")],quote=F,row.names=F,col.names=F,sep=' | ',file=fout,append=T)
-cat("| Tissue | Modality | N |", "| --- |", sep = '\n', file = fout, append = TRUE)
-write.table(df.panels[, c("tissue", "modality", "n")], quote = FALSE,
-            row.names = FALSE, col.names = FALSE, sep = ' | ', file = fout, append = TRUE)
+cat("| Tissue | Modality | N |", "| --- |", sep = "\n", file = fout, append = TRUE)
+tbl_panels |>
+    select(TISSUE, MODALITY, N) |>
+    write.table(quote = FALSE, row.names = FALSE, col.names = FALSE, sep = " | ", file = fout, append = TRUE)
 # ----
 
 ## Make genes.json
-uni.genes <- sort(unique(tbl.models.pos$ID))
-df.genes <- data.frame("gene" = uni.genes,
-                       "n.models" = rep(0, length(uni.genes)),
-                       "n.assoc" = rep(0, length(uni.genes)))
-# df.genes$link = paste( '*' , paste( "[" , gene_names[df.genes$gene] , "]({{ site.baseurl }}genes/" , df.genes$gene , ")" , sep='' ) , '*' , sep='' )
+uni_genes <- sort(unique(tbl_models_pos$ID))
 
-genes.nfo <- read.table("data/genes.nfo", as.is = TRUE)
-df.genes$n.assoc <- genes.nfo[match(df.genes$gene, genes.nfo[, 1]), 2]
-genes.nfo <- read.table("data/genes.models.nfo", as.is = TRUE)
-df.genes$n.models <- genes.nfo[match(df.genes$gene, genes.nfo[, 1]), 2]
-df.genes$n.assoc[is.na(df.genes$n.assoc)] <- 0
-df.genes$n.models[is.na(df.genes$n.models)] <- 0
+genes_n_assoc <- read_delim("data/genes.nfo", delim = " ", col_types = "ci", col_names = FALSE) |>
+    deframe()
+genes_n_models <- read_delim("data/genes.models.nfo", delim = " ", col_types = "ci", col_names = FALSE) |>
+    deframe()
 
-df.json <- df.genes[, c("gene", "n.assoc", "n.models")]
-df.json$gene_link <- paste("<em><a href=\\\"./", df.json$gene, "\\\">", gene_names[df.genes$gene], "</a></em>", sep = '')
-cat("{\n\"data\":[\n",
-    paste("[\"", df.json$gene_link, "\",\"", df.json$gene, "\",", df.json$n.assoc, ",", df.json$n.models, "]", sep = '', collapse = ",\n"),
+df_genes <- tibble(gene = uni_genes) |>#, n.models = 0, n.assoc = 0)
+    mutate(n.assoc = genes_n_assoc[gene],
+           n.models = genes_n_models[gene],
+           gene_link = str_glue('<em><a href=\\"./{gene}\\">{gene_names[gene]}</a></em>')) |>
+    replace_na(list(n.assoc = 0, n.models = 0))
+
+cat('{\n"data":[\n',
+    str_c(str_glue('["{df_genes$gene_link}","{df_genes$gene}",{df_genes$n.assoc},{df_genes$n.models}]'), collapse = ",\n"),
     "]\n}",
-    sep = '',
+    sep = "",
     file = "jekyll/genes.json")
 
 # ---- PRINT GENE INDEX
 fout <- "jekyll/genes.md"
-cat("---", "title: Genes", "permalink: genes/", "layout: genes", "---\n", sep = '\n', file = fout)
-cat("# *",
-    formatC(nrow(df.genes), format = "f", big.mark = ",", drop0trailing = TRUE),
-    "* genes &middot; *",
-    formatC(sum(df.genes$n.models), format = "f", big.mark = ",", drop0trailing = TRUE),
-    "* models\n\n",
-    sep = '', file = fout, append = TRUE)
-cat("| Gene | ID | # associations | # models |\n", "| --- |\n| |\n", sep = '', file = fout, append = TRUE)
+cat("---", "title: Genes", "permalink: genes/", "layout: genes", "---\n", sep = "\n", file = fout)
+n_genes <- formatC(nrow(df_genes), format = "f", big.mark = ",", drop0trailing = TRUE)
+n_models <- formatC(sum(df_genes$n.models), format = "f", big.mark = ",", drop0trailing = TRUE)
+cat(str_glue("# *{n_genes}* genes &middot; *{n_models}* models\n\n"), sep = "", file = fout, append = TRUE)
+cat("| Gene | ID | # associations | # models |\n", "| --- |\n| |\n", sep = "", file = fout, append = TRUE)
 ## Table rows get loaded from genes.json instead
-#write.table(df.genes[,c("link","n.assoc","n.models")],quote=F,row.names=F,col.names=F,sep=' | ',file=fout,append=T)
-cat('{: #genes}\n', file = fout, append = TRUE)
+#write.table(df_genes[,c("link","n.assoc","n.models")],quote=F,row.names=F,col.names=F,sep=' | ',file=fout,append=T)
+cat("{: #genes}\n", file = fout, append = TRUE)
 # ----

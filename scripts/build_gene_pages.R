@@ -10,98 +10,70 @@
 # Outputs:
 # jekyll/genes/{gene}.md
 
+suppressPackageStartupMessages(library(tidyverse))
+
 # Load gene names since Ensembl IDs were used for TWAS
-gene_names <- read.table("data/genes.par", as.is = TRUE, head = TRUE, sep = '\t')
-gene_names <- setNames(gene_names$NAME, gene_names$ID)
+gene_names <- read_tsv("data/genes.par", col_types = "cc") |>
+    deframe()
 
-tbl.panels <- read.table("data/panels.par", as.is = TRUE, head = TRUE, sep = '\t')
-N.models <- nrow(tbl.panels)
-# df.panels = data.frame( "n"=tbl.panels$N , "study"=tbl.panels$STUDY , "tissue"=tbl.panels$TISSUE , "num.hits" = rep(0,N.models) , "num.traits" = rep(0,N.models) , row.names=tbl.panels$ID )
-df.panels <- data.frame("n" = tbl.panels$N,
-                        "tissue" = tbl.panels$TISSUE,
-                        "modality" = tbl.panels$MODALITY,
-                        "num.hits" = rep(0, N.models),
-                        "num.traits" = rep(0, N.models),
-                        row.names = tbl.panels$ID)
+tbl_panels <- read_tsv("data/panels.par", col_types = "ccccci")
 
-tbl.models.pos <- read.table("data/all.models.par", as.is = TRUE, head = TRUE)
-m <- match(tbl.models.pos$PANEL, tbl.panels$PANEL)
-# tbl.models.pos$PANEL = paste( tbl.panels$STUDY , " | " , tbl.panels$TISSUE , sep='' )[ m ] 
-tbl.models.pos$PANEL <- paste(tbl.panels$TISSUE, " | ", tbl.panels$MODALITY, sep = '')[m]
+tbl_models <- read_tsv("data/all.models.par", col_types = "ccciiiiddddddddddddd") |>
+    left_join(select(tbl_panels, PANEL, TISSUE, MODALITY), by = "PANEL")
 
 # ---- PRINT TRAIT INDEX
-tbl.traits <- read.table("data/traits.par", as.is = TRUE, head = TRUE, sep = '\t', quote = "")
-N.traits <- nrow(tbl.traits)
-df.traits <- data.frame("type" = tbl.traits$TYPE,
-                        "name" = tbl.traits$NAME,
-                        "n" = tbl.traits$N,
-                        "num.loci" = rep(NA, N.traits),
-                        "num.joint.genes" = rep(NA, N.traits),
-                        "num.total.genes" = rep(NA, N.traits),
-                        "ref" = tbl.traits$REF,
-                        "year" = tbl.traits$YEAR,
-                        row.names = tbl.traits$ID)
-# df.traits$link = paste( "[" , df.traits$name , "](/traits/" , rownames(df.traits) , ")" , sep='' )
-df.traits$link <- paste("[", df.traits$name, "]({{ site.baseurl }}traits/", rownames(df.traits), ")", sep = '')
 
-traits.nfo <- read.table("data/traits.par.nfo", as.is = TRUE, head = TRUE)
-m <- match(rownames(df.traits), traits.nfo[, 1])
-traits.nfo <- traits.nfo[m, ]
-df.traits$num.loci <- traits.nfo$NUM.LOCI
-df.traits$num.joint.genes <- traits.nfo$NUM.JOINT.GENES
-df.traits$num.total.genes <- traits.nfo$NUM.GENES
+traits_nfo <- read_tsv("data/traits.par.nfo", col_types = "ciiid")
+
+tbl_traits <- read_tsv("data/traits.par", col_types = "ccicicc") |>
+    mutate(link = str_glue("[{NAME}]({{{{ site.baseurl }}}}traits/{ID})")) |>
+    left_join(traits_nfo, by = "ID")
 
 # iterate and make each gene file
-uni.genes <- sort(unique(tbl.models.pos$ID))
+uni_genes <- sort(unique(tbl_models$ID))
 
-df.genes <- data.frame("gene" = uni.genes,
-                       "n.models" = rep(0, length(uni.genes)),
-                       "n.assoc" = rep(0, length(uni.genes)))
-df.genes$link <- paste('*',
-                       paste("[", df.genes$gene, "]({{ site.baseurl }}genes/", df.genes$gene, ")", sep = ''),
-                       '*' , sep = '')
+df_genes <- tibble(gene = uni_genes) |>
+    mutate(n.models = 0,
+           link = str_glue("*[{gene}]({{{{ site.baseurl }}}}genes/{gene})*"))
 
-# df.json = df.genes[,c("gene","n.models","n.assoc")]
-# df.json$gene = paste( "<em><a href=\"/genes/",df.json$gene,"\">",df.genes$gene,"</a></em>",sep='' )
-# names(df.json) = c("gene","n_models","n_assoc")
-# library('RJSONIO')
-# cat( toJSON(unname(split(df.json, 1:nrow(df.json)))) , file="genes.json" )
-
-for (i in 1:length(uni.genes)) {
-    fout <- paste("jekyll/genes/", uni.genes[i], ".md", sep = '')
-    cat("---\n", "title: ", gene_names[uni.genes[i]], "\npermalink: genes/", uni.genes[i], "/ \nlayout: gene\n", "---\n\n", sep = '', file = fout)
+for (i in 1:length(uni_genes)) {
+    fout <- str_glue("jekyll/genes/{uni_genes[i]}.md")
+    cat("---\n", "title: ", gene_names[uni_genes[i]], "\npermalink: genes/", uni_genes[i], "/ \nlayout: gene\n", "---\n\n", sep = "", file = fout)
     cat("## [Hub]({{ site.baseurl }}) : [Genes]({{ site.baseurl }}genes)\n\n", file = fout, append = TRUE)
-    cat('# ', gene_names[uni.genes[i]], '\n', sep = '', file = fout, append = TRUE)
+    cat("# ", gene_names[uni_genes[i]], "\n", sep = "", file = fout, append = TRUE)
     
     # WGT	ID	CHR	P0	P1	ID	NSNPS	HSQ	HSQ.SE	HSQ.PV	TOP1.R2	BLUP.R2	ENET.R2	BSLMM.R2	LASSO.R2	TOP1.PV	BLUP.PV	ENET.PV	BSLMM.PV	LASSO.PV
-    cat('\n### Models\n\n', sep = '', file = fout, append = TRUE)
-    # cat( '| # | panel | tissue | h2 | h2 se | h2 P | eQTL R2 | BLUP R2 | ENET R2 | BSLMM R2 | LASSO R2 | eQTL P | BLUP P | ENET P | BSLMM P | LASSO P |\n| --- |\n' , sep='',file=fout,append=T)
-    cat('| # | tissue | modality | h2 | h2 se | h2 P | eQTL R2 | BLUP R2 | ENET R2 | BSLMM R2 | LASSO R2 | eQTL P | BLUP P | ENET P | BSLMM P | LASSO P |\n| --- |\n', sep = '', file = fout, append = TRUE)
-    cur.models <- tbl.models.pos[tbl.models.pos$ID == uni.genes[i], ]
-    cur.models$NUM <- 1:nrow(cur.models)
-    df.genes$n.models[i] <- df.genes$n.models[i] + nrow(cur.models)
-    write.table(
-        format(cur.models[, c("NUM", "PANEL", "HSQ", "HSQ.SE", "HSQ.PV", "TOP1.R2", "BLUP.R2", "ENET.R2", "BSLMM.R2", "LASSO.R2", "TOP1.PV", "BLUP.PV", "ENET.PV", "BSLMM.PV", "LASSO.PV")], digits = 3),
-        quote = FALSE, row.names = FALSE, col.names = FALSE, sep = ' | ', file = fout, append = TRUE
-    )
-    cat('{: #models}\n\n', file = fout, append = TRUE)
+    cat("\n### Models\n\n", sep = "", file = fout, append = TRUE)
+    cat("| # | tissue | modality | h2 | h2 se | h2 P | eQTL R2 | BLUP R2 | ENET R2 | BSLMM R2 | LASSO R2 | eQTL P | BLUP P | ENET P | BSLMM P | LASSO P |\n| --- |\n", sep = "", file = fout, append = TRUE)
+    cur_models <- tbl_models |>
+        filter(ID == uni_genes[i]) |>
+        mutate(NUM = 1:n())
+    df_genes$n.models[i] <- df_genes$n.models[i] + nrow(cur_models)
+    cur_models |>
+        select(NUM, TISSUE, MODALITY, HSQ, HSQ.SE, HSQ.PV, TOP1.R2, BLUP.R2,
+               ENET.R2, BSLMM.R2, LASSO.R2, TOP1.PV, BLUP.PV, ENET.PV, BSLMM.PV,
+               LASSO.PV) |>
+        as.data.frame() |>
+        format(digits = 3) |>
+        write.table(quote = FALSE, row.names = FALSE, col.names = FALSE, sep = " | ", file = fout, append = TRUE)
+    cat("{: #models}\n\n", file = fout, append = TRUE)
 
     cat("\n### Trait associations\n\n | Trait | Avg chi2 ratio | Avg chi2 | Max chi2 | ",
-        paste(1:df.genes$n.models[i], collapse = " | "),
+        str_c(1:df_genes$n.models[i], collapse = " | "),
         "| \n | --- |\n",
-        sep = '',
-        file = paste("jekyll/genes/", uni.genes[i], ".md", sep = ''),
+        sep = "",
+        file = str_glue("jekyll/genes/{uni_genes[i]}.md"),
         append = TRUE)
     
-    if (i %% 100 == 0) cat(i, '\n')
+    if (i %% 100 == 0) cat(i, "\n")
 }
 
 # iterate over each trait and count the number of significant genes
-for (i in 1:N.traits) {
-    system(paste('bash scripts/add_trait_to_gene_pages.sh ', tbl.traits$OUTPUT[i], " \"", df.traits$link[i], "\" ", traits.nfo$AVG.CHISQ[i], "\n", sep = ''))
-    cat(i, '\n')
+for (i in 1:nrow(tbl_traits)) {
+    system(str_glue('bash scripts/add_trait_to_gene_pages.sh {tbl_traits$OUTPUT[i]} "{tbl_traits$link[i]}" {tbl_traits$AVG.CHISQ[i]}\n'))
+    cat(i, "\n")
 }
 
-for (i in 1:length(uni.genes)) {
-    cat("{: #assoc}\n", file = paste("jekyll/genes/", uni.genes[i], ".md", sep = ''), append = TRUE)
+for (i in 1:length(uni_genes)) {
+    cat("{: #assoc}\n", file = str_glue("jekyll/genes/{uni_genes[i]}.md"), append = TRUE)
 }

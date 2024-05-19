@@ -687,7 +687,19 @@ for ( i in 1:length(cons.loc.starts) ) {
 		if ( opt$report ) {
 			best.snp.chisq = max(snp.z^2,na.rm=T)
 			cond.snp.chisq = snp.cond.z[which.max(snp.z^2)]^2
-			cat( paste(opt$out,".loc_",i,sep='') , opt$chr , range( genos$bim[ cur.keep , 4 ] ) , length(unique(wgtlist$ID[ge.keep])) , sum( joint.keep[ ge.keep ] ) , min(wgtlist$TWAS.P[ ge.keep ],na.rm=T) , 2*pnorm(sqrt(best.snp.chisq), lower.tail=F) , 2*pnorm(sqrt(cond.snp.chisq), lower.tail=F) , 1 - cond.snp.chisq / best.snp.chisq , '\n' , sep='\t' , file=file.report , append=T )
+			# Modified below to remove trailing tab character -DM
+			row_text <- paste(paste(opt$out,".loc_",i,sep=''),
+			                  opt$chr,
+			                  range( genos$bim[ cur.keep , 4 ] )[1],
+			                  range( genos$bim[ cur.keep , 4 ] )[2],
+			                  length(unique(wgtlist$ID[ge.keep])),
+			                  sum( joint.keep[ ge.keep ] ),
+			                  min(wgtlist$TWAS.P[ ge.keep ],na.rm=T),
+			                  2*pnorm(sqrt(best.snp.chisq), lower.tail=F),
+			                  2*pnorm(sqrt(cond.snp.chisq), lower.tail=F),
+			                  1 - cond.snp.chisq / best.snp.chisq,
+			                  sep='\t')
+			cat(row_text, '\n', sep = "", file=file.report , append=T )
 		
 			cur.wgt = wgtlist[ ge.keep , ]
 			cur.wgt$JOINT = joint.keep[ ge.keep ]
