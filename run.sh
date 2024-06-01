@@ -7,19 +7,17 @@ tissue=Brain
 gtf=data/Rattus_norvegicus.Rnor_6.0.99.gtf
 
 ## Add gene names since Ensembl IDs were used in TWAS
-echo -e "ID\tNAME" > data/genes.par
-perl -nle '/gene_id "([^"]+)".+gene_name "([^"]+)"/ && print "$1\t$2"' $gtf | sort | uniq >> data/genes.par
+echo -e "ID\tNAME" > data/gene_names.tsv
+perl -nle '/gene_id "([^"]+)".+gene_name "([^"]+)"/ && print "$1\t$2"' $gtf | sort | uniq >> data/gene_names.tsv
 
 # Create table of all models
-echo -e "WGT\tPANEL\tID\tCHR\tP0\tP1\tNSNPS\tHSQ\tHSQ.SE\tHSQ.PV\tTOP1.R2\tBLUP.R2\tENET.R2\tBSLMM.R2\tLASSO.R2\tTOP1.PV\tBLUP.PV\tENET.PV\tBSLMM.PV\tLASSO.PV" > data/all.models.par
-tail -n+2 "$wgt_dir/$tissue/expression.pos" \
-    | join -1 2 -2 1 -t'	' - <(tail -n+2 "$wgt_dir/$tissue/expression.profile") \
-    | awk -v OFS='	' -v tis="$tissue" '{ print tis"/"$2,"RatGTEx."tis".expression",$1,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19 }' \
-    >> data/all.models.par
-tail -n+2 "$wgt_dir/$tissue/stability.pos" \
-    | join -1 2 -2 1 -t'	' - <(tail -n+2 "$wgt_dir/$tissue/stability.profile") \
-    | awk -v OFS='	' -v tis="$tissue" '{ print tis"/"$2,"RatGTEx."tis".stability",$1,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19 }' \
-    >> data/all.models.par
+echo -e "WGT\tPANEL\tID\tCHR\tP0\tP1\tNSNPS\tHSQ\tHSQ.SE\tHSQ.PV\tTOP1.R2\tBLUP.R2\tENET.R2\tBSLMM.R2\tLASSO.R2\tTOP1.PV\tBLUP.PV\tENET.PV\tBSLMM.PV\tLASSO.PV" > data/all_models.par
+for modality in alt_polyA alt_TSS expression isoforms splicing stability; do
+    tail -n+2 "$wgt_dir/$tissue/$modality.pos" \
+        | join -1 2 -2 1 -t'	' - <(tail -n+2 "$wgt_dir/$tissue/$modality.profile") \
+        | awk -v OFS='	' -v tis="$tissue" -v mod="$modality" '{ print tis"/"$2,"RatGTEx."tis"."mod,$1,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19 }' \
+        >> data/all_models.par
+done
 
 ## Run TWAS
 mkdir -p data/twas_out

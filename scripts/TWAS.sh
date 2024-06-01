@@ -1,5 +1,7 @@
 #!/bin/sh
 
+set -e
+
 # Run TWAS analyses
 # $1 = trait name
 # $2 = integer GWAS sample size
@@ -27,7 +29,7 @@ fi
 # ---
 # trait=`basename $GWAS | sed 's/\.[[:alnum:]]\+\.sumstats//'`
 
-POS="data/all.models.par"
+POS="data/all_models.par"
 GWAS="data/GWAS/$TRAIT/$TRAIT.$CHR.sumstats"
 LDREF="data/LDREF/Brain."
 OUT="data/twas_out/$TRAIT/$TRAIT.$CHR"
@@ -40,9 +42,8 @@ Rscript scripts/FUSION.assoc_test.R \
     --weights "$POS" \
     --weights_dir data/WEIGHTS \
     --ref_ld_chr "$LDREF" \
-    --chr $CHR --coloc_P 0.00005 --GWASN $N --PANELN data/panels.par
-# cat $OUT.dat | awk -vt=$TOTAL 'NR == 1 || $20 < 0.05/t' > $OUT.top
-cat $OUT.dat | awk -vt=$TOTAL 'NR == 1 || $20 < 0.05' > $OUT.top # For testing
+    --chr $CHR --coloc_P 0.0005 --GWASN $N --PANELN data/panels.par
+cat $OUT.dat | awk -vt=$TOTAL 'NR == 1 || $20 < 0.05/t' > $OUT.top
 
 if [ $(wc -l < "$OUT.top") -eq 1 ]; then
     printf "FILE\tCHR\tP0\tP1\tHIT.GENES\tJOINT.GENES\tBEST.TWAS.P\tBEST.SNP.P\tCOND.SNP.P\tVAR.EXP\n" > "$OUT.post.report"
@@ -54,5 +55,4 @@ else
         --minp_input 1 \
         --ref_ld_chr "$LDREF" \
         --chr "$CHR" --locus_win 200e3 --report
-        # --chr "$CHR" --plot --locus_win 200e3 --report
 fi

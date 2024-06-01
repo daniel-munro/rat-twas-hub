@@ -1,3 +1,5 @@
+# This script has been updated separately from the official repo.
+
 suppressMessages(library('plink2R'))
 suppressMessages(library("optparse"))
 
@@ -358,8 +360,13 @@ for ( w in 1:nrow(wgtlist) ) {
 
 		vb1 = rep(1/wgtlist$N[w],length(b1))
 		vb2 = rep(1/opt$GWASN,length(b2))
-
-		err = suppressMessages(capture.output(clc <- coloc.abf(dataset1=list(beta=b1,varbeta=vb1,type="quant",N=wgtlist$N[w],sdY=1),dataset2=list(beta=b2,varbeta=vb2,type="quant",N=opt$GWASN,sdY=1))))
+		
+		# err = suppressMessages(capture.output(clc <- coloc.abf(dataset1=list(beta=b1,varbeta=vb1,type="quant",N=wgtlist$N[w],sdY=1),dataset2=list(beta=b2,varbeta=vb2,type="quant",N=opt$GWASN,sdY=1))))
+		# Update for newer versions of coloc requiring snp vectors:
+		err = suppressMessages(capture.output(
+		    clc <- coloc.abf(dataset1 = list(beta = b1, varbeta = vb1, snp = names(b1), type = "quant", N = wgtlist$N[w], sdY = 1),
+		                     dataset2 = list(beta = b2, varbeta = vb2, snp = names(b1), type = "quant", N = opt$GWASN, sdY = 1))
+		))
 		out.tbl$COLOC.PP0[w] = round(clc$summary[2],3)
 		out.tbl$COLOC.PP1[w] = round(clc$summary[3],3)
 		out.tbl$COLOC.PP2[w] = round(clc$summary[4],3)
