@@ -80,12 +80,12 @@ cat("`" , length(top_models), " significantly associated models · ", length(top
 cur_clumps <- read_tsv(str_glue("{tbl_traits$OUTPUT[i]}.post.report"), col_types = "ciiiiidddd") |>
     arrange(CHR, P0) |>
     mutate(VAR.EXP = round(VAR.EXP * 100, 0),
-           link = str_glue("*[{1:n()}]({{{{ site.baseurl }}}}traits/{trait}/{1:n()})*"),
+           link = str_glue("*[{seq_len(n())}]({{{{ site.baseurl }}}}traits/{trait}/{seq_len(n())})*"),
            genes = "")
 
 # load clumped genes
 clump_mod <- vector()
-for (ii in 1:nrow(cur_clumps)) {
+for (ii in seq_len(nrow(cur_clumps))) {
     cur_genes_tbl <- read_tsv(str_glue("{cur_clumps$FILE[ii]}.genes"),
                               col_types = "ccciiidcdcdddiicdddddddddld") |>
         mutate(num = 1:n(),

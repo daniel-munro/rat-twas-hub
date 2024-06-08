@@ -68,6 +68,7 @@ rule twas:
         ldref_prefix = "data/LDREF/Brain.",
         trait_dir = "data/twas_out/{trait}",
         gwas_n = lambda w: traits_df.loc[w.trait, "N"],
+    group: "twas"
     resources:
         mem_mb = 8000,
         walltime = 4,
@@ -92,6 +93,7 @@ rule twas_top:
         dat = "data/twas_out/{trait}/{trait}.{chrom}.dat",
     output:
         top = "data/twas_out/{trait}/{trait}.{chrom}.top"
+    group: "twas"
     shell:
         """
         TOTAL=`wc -l {input.models} | awk '{{ print $1 - 1 }}'`
@@ -108,6 +110,9 @@ rule twas_post:
     params:
         ldref_prefix = "data/LDREF/Brain.",
         out_prefix = "data/twas_out/{trait}/{trait}.{chrom}.post",
+    group: "twas"
+    resources:
+        mem_mb = 8000,
     shell:
         """
         if [ $(wc -l < {input.top}) -eq 1 ]; then

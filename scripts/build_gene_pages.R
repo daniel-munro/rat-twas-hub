@@ -60,21 +60,20 @@ for (i in 1:length(all_genes)) {
     
     # WGT	ID	CHR	P0	P1	ID	NSNPS	HSQ	HSQ.SE	HSQ.PV	TOP1.R2	BLUP.R2	ENET.R2	BSLMM.R2	LASSO.R2	TOP1.PV	BLUP.PV	ENET.PV	BSLMM.PV	LASSO.PV
     cat("\n### Models\n\n", sep = "", file = fout, append = TRUE)
-    cat("| # | tissue | modality | RNA phenotype | h2 | h2 se | h2 P | eQTL R2 | BLUP R2 | ENET R2 | BSLMM R2 | LASSO R2 | eQTL P | BLUP P | ENET P | BSLMM P | LASSO P |\n| --- |\n", sep = "", file = fout, append = TRUE)
+    cat("| # | tissue | modality | RNA phenotype | h<sup>2</sup> | h<sup>2</sup> se | h<sup>2</sup> P | eQTL R<sup>2</sup> | BLUP R<sup>2</sup> | ENET R<sup>2</sup> | LASSO R<sup>2</sup> | eQTL P | BLUP P | ENET P | LASSO P |\n| --- |\n", sep = "", file = fout, append = TRUE)
     cur_models <- tbl_models |>
         filter(gene_id == all_genes[i]) |>
         mutate(NUM = 1:n())
     df_genes$n.models[i] <- df_genes$n.models[i] + nrow(cur_models)
     cur_models |>
         select(NUM, TISSUE, MODALITY, ID, HSQ, HSQ.SE, HSQ.PV, TOP1.R2, BLUP.R2,
-               ENET.R2, BSLMM.R2, LASSO.R2, TOP1.PV, BLUP.PV, ENET.PV, BSLMM.PV,
-               LASSO.PV) |>
+               ENET.R2, LASSO.R2, TOP1.PV, BLUP.PV, ENET.PV, LASSO.PV) |>
         as.data.frame() |>
         format(digits = 3) |>
         write.table(quote = FALSE, row.names = FALSE, col.names = FALSE, sep = " | ", file = fout, append = TRUE)
     cat("{: #models}\n\n", file = fout, append = TRUE)
 
-    cat("\n### Trait associations\n\n| Trait | Avg chi2 ratio | Avg chi2 | Max chi2 | ",
+    cat("\n### Trait associations\n\n| Trait | Avg chi<sup>2</sup> ratio | Avg chi<sup>2</sup> | Max chi<sup>2</sup> | ",
         str_c(1:df_genes$n.models[i], collapse = " | "),
         " | \n| --- |\n",
         sep = "",
