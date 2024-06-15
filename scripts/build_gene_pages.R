@@ -48,10 +48,6 @@ tbl_traits <- read_tsv("data/traits.par", col_types = "ccicicc") |>
 # iterate and make each gene file
 all_genes <- sort(unique(tbl_models$gene_id))
 
-df_genes <- tibble(gene = all_genes) |>
-    mutate(n.models = 0,
-           link = str_glue("*[{gene}]({{{{ site.baseurl }}}}genes/{gene})*"))
-
 for (i in 1:length(all_genes)) {
     fout <- str_glue("jekyll/genes/{all_genes[i]}.md")
     cat("---\n", "title: ", gene_names[all_genes[i]], "\npermalink: genes/", all_genes[i], "/ \nlayout: gene\n", "---\n\n", sep = "", file = fout)
@@ -64,7 +60,6 @@ for (i in 1:length(all_genes)) {
     cur_models <- tbl_models |>
         filter(gene_id == all_genes[i]) |>
         mutate(NUM = 1:n())
-    df_genes$n.models[i] <- df_genes$n.models[i] + nrow(cur_models)
     cur_models |>
         select(NUM, TISSUE, MODALITY, ID, HSQ, HSQ.SE, HSQ.PV, TOP1.R2, BLUP.R2,
                ENET.R2, LASSO.R2, TOP1.PV, BLUP.PV, ENET.PV, LASSO.PV) |>
@@ -73,12 +68,15 @@ for (i in 1:length(all_genes)) {
         write.table(quote = FALSE, row.names = FALSE, col.names = FALSE, sep = " | ", file = fout, append = TRUE)
     cat("{: #models}\n\n", file = fout, append = TRUE)
 
-    cat("\n### Trait associations\n\n| Trait | Avg chi<sup>2</sup> ratio | Avg chi<sup>2</sup> | Max chi<sup>2</sup> | ",
-        str_c(1:df_genes$n.models[i], collapse = " | "),
+    cat(
+        "\n### Trait associations\n\n",
+        "| Trait | Avg chi<sup>2</sup> ratio | Avg chi<sup>2</sup> | Max chi<sup>2</sup> | ",
+        str_c(with(cur_models, str_glue('<span title="{TISSUE}: {MODALITY}: {ID}">{NUM}</span>')), collapse = " | "),
         " | \n| --- |\n",
         sep = "",
         file = str_glue("jekyll/genes/{all_genes[i]}.md"),
-        append = TRUE)
+        append = TRUE
+    )
     
     if (i %% 100 == 0) cat(i, "\n")
 }
@@ -90,5 +88,15 @@ for (i in 1:nrow(tbl_traits)) {
 }
 
 for (i in 1:length(all_genes)) {
-    cat("{: #assoc}\n", file = str_glue("jekyll/genes/{all_genes[i]}.md"), append = TRUE)
+    cat(
+        "{: #assoc}\n\n",
+        "For each tested trait, stats based on TWAS chi<sup>2</sup> (squared Z-score) for the above models are shown. ",
+        "Avg chi<sup>2</sup> ratio is the mean chi<sup>2</sup> across all models for this gene, divided by the mean chi<sup>2</sup> across all models for all genes. ",
+        "Avg chi<sup>2</sup> is the mean chi<sup>2</sup> across all models for this gene. ",
+        "Max chi<sup>2</sup> is the highest chi<sup>2</sup> across all models for this gene.\n\n",
+        "The numbered columns correspond to the **numbered models** in the table above. ",
+        "They contain the **TWAS Z-score** for each trait-model pair. ",
+        "**Colors** indicate strong Z-scores (below -2 or above 2): lower negative Z-scores are darker blue, higher positive Z-scores are darker red.\n\n",
+        file = str_glue("jekyll/genes/{all_genes[i]}.md"), append = TRUE
+    )
 }
