@@ -86,7 +86,7 @@ cat("---", "title: Genes", "permalink: genes/", "layout: genes", "---\n", sep = 
 n_genes <- formatC(nrow(df_genes), format = "f", big.mark = ",", drop0trailing = TRUE)
 n_models <- formatC(sum(df_genes$n.models), format = "f", big.mark = ",", drop0trailing = TRUE)
 cat(str_glue("# *{n_genes}* genes &middot; *{n_models}* models\n\n\n"), sep = "", file = fout, append = TRUE)
-cat("| Gene | ID | # associations | # models |\n", "| --- |\n| |\n", sep = "", file = fout, append = TRUE)
+cat("| Gene | ID | # associated traits | # models |\n", "| --- |\n| |\n", sep = "", file = fout, append = TRUE)
 ## Table rows get loaded from genes.json instead
 #write.table(df_genes[,c("link","n.assoc","n.models")],quote=F,row.names=F,col.names=F,sep=' | ',file=fout,append=T)
 cat("{: #genes}\n", file = fout, append = TRUE)

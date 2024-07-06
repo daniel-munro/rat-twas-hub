@@ -148,7 +148,7 @@ cat("{: #loci}\n\n", file = fout, append = TRUE)
 # ---- Get pleiotropic loci
 n_pleiot <- 0
 for (ii in 1:nrow(tbl_traits)) {
-    cat(ii, "\n")
+    # cat(ii, "\n")
     if ((ii != i) && length(top_models) > 0) {
         other_cur <- read_tsv(
             tbl_traits$OUTPUT[ii],

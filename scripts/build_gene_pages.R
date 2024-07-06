@@ -78,7 +78,7 @@ for (i in 1:length(all_genes)) {
         append = TRUE
     )
     
-    if (i %% 100 == 0) cat(i, "\n")
+    if (i %% 1000 == 0) cat(i, "\n")
 }
 
 # iterate over each trait and count the number of significant genes
