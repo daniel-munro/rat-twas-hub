@@ -229,5 +229,6 @@ rule build_jekyll:
         genes_assoc = "data/genes_n_assoc.nfo",
     output:
         expand("jekyll/data/{trait}.tar.bz2", trait=traits)
+    threads: 16
     shell:
-        "bash scripts/build_jekyll.sh"
+        "bash scripts/build_jekyll.sh {threads}"

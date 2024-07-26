@@ -9,7 +9,6 @@ sample_size <- read_tsv("data/GWAS_original/sample_sizes.tsv",
 df <- read_tsv("data/GWAS_original/traits_pruned.r2_50.tsv",
                col_names = c("project", "trait"),
                col_types = "cc") |>
-  slice(1:10) |> # for testing
   left_join(sample_size, by = c("project", "trait"), relationship = "one-to-one") |>
   left_join(descs, by = c("project", "trait"), relationship = "one-to-one") |>
   mutate(OUTPUT = str_glue("data/twas_out/{trait}.dat"),

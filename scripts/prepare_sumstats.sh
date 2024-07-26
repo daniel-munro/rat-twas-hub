@@ -1,7 +1,7 @@
 set -e
 
 # Convert to sumstats format
-cat data/GWAS_original/traits_pruned.r2_50.tsv | head -n10 | while read line; do
+cat data/GWAS_original/traits_pruned.r2_50.tsv | while read line; do
     echo $line
     project=`echo $line | awk '{ print $1 }'`
     trait=`echo $line | awk '{ print $2 }'`

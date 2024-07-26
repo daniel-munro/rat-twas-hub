@@ -27,7 +27,8 @@ tbl_panels <- read_tsv("data/panels.par", col_types = "ccccci")
 # ---- PRINT TRAIT INDEX
 traits_nfo <- read_tsv("data/traits.par.nfo", col_types = "ciiid")
 
-tbl_traits <- read_tsv("data/traits.par", col_types = "ccicicc") |>
+# Specify na since default includes empty string, and empty fields should appear empty.
+tbl_traits <- read_tsv("data/traits.par", col_types = "ccicccc", na = "NA") |>
     mutate(link = str_glue("[{NAME}]({{{{ site.baseurl }}}}traits/{ID})"),
            data_url = str_glue("{{{{ site.baseurl }}}}data/{ID}.tar.bz2"),
            data_link = str_glue('[ <i class="far fa-file-archive" aria-hidden="true"></i> ]({data_url})')) |>
@@ -41,9 +42,9 @@ cat("# *", nrow(tbl_traits), "* traits &middot; *",
     n_loci, "* associated loci &middot; *",
     n_genes, "*  gene/trait associations\n\n",
     sep = "", file = fout, append = TRUE)
-cat("| Type | Trait | N | # loci | # indep genes | # total genes | Ref. | Year | data | ", "| --- |", sep = "\n", file = fout, append = TRUE)
+cat("| Type | Trait | N | # loci | # indep genes | # total genes | Project | data | ", "| --- |", sep = "\n", file = fout, append = TRUE)
 tbl_traits |>
-    select(TYPE, link, N, NUM.LOCI, NUM.JOINT.GENES, NUM.GENES, REF, YEAR, data_link) |>
+    select(TYPE, link, N, NUM.LOCI, NUM.JOINT.GENES, NUM.GENES, PROJECT, data_link) |>
     write.table(quote = FALSE, row.names = FALSE, col.names = FALSE, sep = " | ", file = fout, append = TRUE)
 
 fout <- "jekyll/models.md"

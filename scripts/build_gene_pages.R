@@ -41,7 +41,7 @@ tbl_models <- read_tsv("data/all_models.par", col_types = "ccciiiiddddddddddddd"
 
 traits_nfo <- read_tsv("data/traits.par.nfo", col_types = "ciiid")
 
-tbl_traits <- read_tsv("data/traits.par", col_types = "ccicicc") |>
+tbl_traits <- read_tsv("data/traits.par", col_types = "ccicccc") |>
     mutate(link = str_glue("[{NAME}]({{{{ site.baseurl }}}}traits/{ID})")) |>
     left_join(traits_nfo, by = "ID")
 

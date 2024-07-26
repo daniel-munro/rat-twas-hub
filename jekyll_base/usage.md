@@ -6,7 +6,7 @@ layout: about
 
 # Usage
 
-This page describes an example analysis of an individual disease. First, go to the [traits]({{ site.baseurl }}traits/) tab and search for "Open field: Total distance to center zone", or follow this link to the ["Open field: Total distance to center zone" trait view]({{ site.baseurl }}traits/open_field_dist2ctrtotal).
+This page describes an example analysis of an individual disease. First, go to the [traits]({{ site.baseurl }}traits/) tab and search for "Velocity during novelty place preference test", or follow this link to the ["Velocity during novelty place preference test" trait view]({{ site.baseurl }}traits/novelty_seeking_test_total_velocity).
 
 ### Trait view
 
@@ -23,12 +23,12 @@ The third table of the Trait View shows the breakdown of associations by gene ex
 
 ### Locus view
 
-Click on [locus #1]({{ site.baseurl }}traits/open_field_dist2ctrtotal/1/) in the "Open field: Total distance to center zone" associations table to go to the Locus View for the *Slc7a5* locus. The top panel shows a Manhattan plot of the GWAS association before and after conditioning on the predicted expression (see [About]({{ site.baseurl }}about) for more details on conditioning). The next panel shows all of the significantly associated models, their model performance, correlation with the top index SNP, and *coloc* posterior probabilities (PP3 = two distinct causal variants; PP4 = a single shared causal variant).
+Click on [locus #2]({{ site.baseurl }}traits/novelty_seeking_test_total_velocity/2/) in the "Velocity during novelty place preference test" associations table to go to the Locus View for the *Ctsc*/*Grm5*/*Tyr* locus. The top panel shows a Manhattan plot of the GWAS association before and after conditioning on the predicted expression (see [About]({{ site.baseurl }}about) for more details on conditioning). The next panel shows all of the significantly associated models, their model performance, correlation with the top index SNP, and *coloc* posterior probabilities (PP3 = two distinct causal variants; PP4 = a single shared causal variant).
 <!-- Here we see a single predictive model for *CNTN4* at this locus (from CommonMind brain) with a high PP4 and a much stronger TWAS vs eQTL Z-score, suggesting the TWAS is aggregating additional predictive signal - all good indicators of a pleiotropic effect. Since only one model is significant in the locus it is the "joint"ly selected model by default. -->
 
 ### Gene view
 
-Click on [Slc7a5]({{ site.baseurl }}genes/ENSRNOG00000048205/) to go to the Gene View. The top table shows all of the predictive models that have been computed for this gene and their respective performance.
+Click on [Ctsc]({{ site.baseurl }}genes/ENSRNOG00000016496/) to go to the Gene View. The top table shows all of the predictive models that have been computed for this gene and their respective performance.
 <!-- Here we again see that for the model trained in brain, the best multivariate predictive model (in this case elastic net with cross-validation P=4.7e-07) far outperforms the best eQTL (P=2.3e-04), which provides further confidence that the TWAS predictor is capturing real additional signal and leading to a more significant disease association. -->
 
 The second table of the gene view shows a heatmap of association for this gene between all traits (rows) and all models (columns 4-). We order the heatmap by the "avg Chi<sup>2</sup> ratio" column, which is computed as the average Chi<sup>2</sup> for the gene-disease pair (across all models) divided by the average Chi<sup>2</sup> for all genes in the listed disease (across all models). This normalization accounts for sample size and heritability differences between traits and emphasize associations that are stronger than expected by chance (without the normalization, highly heritable and polygenic traits like height, for example, would constantly be at the top of the list simply because they have so many detectable causal variants). The subsequent columns list the raw average Chi<sup>2</sup> statistic, maximum Chi<sup>2</sup> statistic across all models (to filter for model-specific associations), and then the individual Z-scores for each model.

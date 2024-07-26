@@ -37,7 +37,7 @@ gene_names <- read_tsv("data/gene_names.tsv", col_types = "cc") |>
 
 traits_nfo <- read_tsv("data/traits.par.nfo", col_types = "ciiid")
 
-tbl_traits <- read_tsv("data/traits.par", col_types = "ccicicc") |>
+tbl_traits <- read_tsv("data/traits.par", col_types = "ccicccc") |>
     mutate(link = str_glue("[{NAME}]({{{{ site.baseurl }}}}traits/{ID})")) |>
     left_join(traits_nfo, by = "ID")
 
@@ -73,8 +73,12 @@ system(str_glue("mkdir -p jekyll/traits/{trait}"))
 
 cat("---\n", 'title: "', tbl_traits$NAME[i], '"\npermalink: traits/', trait, "/\nlayout: trait\n", "---\n\n", sep = "", file = fout)
 cat("## [Hub]({{ site.baseurl }}) : [Traits]({{ site.baseurl }}traits/)\n\n", file = fout, append = TRUE)
-cat("# ", tbl_traits$NAME[i], "\n", sep = "", file = fout, append = TRUE)
-cat("`" , length(top_models), " significantly associated models · ", length(top_genes), " unique genes`.\n\n", sep = "", file = fout, append = TRUE)
+cat("# ", tbl_traits$NAME[i], "\n\n", sep = "", file = fout, append = TRUE)
+if (!is.na(tbl_traits$DESCRIPTION[i])) {
+    cat(tbl_traits$DESCRIPTION[i], "\n\n", sep = "", file = fout, append = TRUE)
+}
+cat("Project: ", tbl_traits$PROJECT[i], "\n\n", sep = "", file = fout, append = TRUE)
+cat(length(top_models), " significantly associated models · ", length(top_genes), " unique genes\n\n", sep = "", file = fout, append = TRUE)
 
 # ---- Get clumped and conditional loci
 cur_clumps <- read_tsv(str_glue("{tbl_traits$OUTPUT[i]}.post.report"), col_types = "ciiiiidddd") |>
@@ -136,14 +140,17 @@ for (ii in seq_len(nrow(cur_clumps))) {
         write.table(quote = FALSE, row.names = FALSE, col.names = FALSE, sep = " | ", file = fout_clump, append = TRUE)
     cat("{: #models}\n\n", file = fout_clump, append = TRUE)
 }
-cat("\n### Significant Loci\n\n", sep = "", file = fout, append = TRUE)
-cat("| # | chr | p0 | p1 | # assoc genes | # joint models | best TWAS P | best SNP P | cond SNP P | % var exp | joint genes |\n| --- |\n", sep = "", file = fout, append = TRUE)
-cur_clumps |>
-    select(link, CHR, P0, P1, HIT.GENES, JOINT.GENES, BEST.TWAS.P, BEST.SNP.P, COND.SNP.P, VAR.EXP, genes) |>
-    as.data.frame() |>
-    format(digits = 2) |>
-    write.table(quote = FALSE, row.names = FALSE, col.names = FALSE, sep = " | ", file = fout, append = TRUE)
-cat("{: #loci}\n\n", file = fout, append = TRUE)
+
+if (nrow(cur_clumps) > 0) {
+    cat("\n### Significant Loci\n\n", sep = "", file = fout, append = TRUE)
+    cat("| # | chr | p0 | p1 | # assoc genes | # joint models | best TWAS P | best SNP P | cond SNP P | % var exp | joint genes |\n| --- |\n", sep = "", file = fout, append = TRUE)
+    cur_clumps |>
+        select(link, CHR, P0, P1, HIT.GENES, JOINT.GENES, BEST.TWAS.P, BEST.SNP.P, COND.SNP.P, VAR.EXP, genes) |>
+        as.data.frame() |>
+        format(digits = 2) |>
+        write.table(quote = FALSE, row.names = FALSE, col.names = FALSE, sep = " | ", file = fout, append = TRUE)
+    cat("{: #loci}\n\n", file = fout, append = TRUE)
+}
 
 # ---- Get pleiotropic loci
 n_pleiot <- 0
@@ -187,8 +194,8 @@ for (ii in 1:nrow(tbl_traits)) {
     }
 }
 
-cat("### Pleiotropic Associations\n\n", sep = "", file = fout, append = TRUE)
 if (n_pleiot != 0) {
+    cat("### Pleiotropic Associations\n\n", sep = "", file = fout, append = TRUE)
     cat("| Trait | chisq ratio | # genes<sup>+</sup> | # genes<sup>++</sup> | % genes<sup>++</sup> | corr | corr P | genes |", "| --- |", sep = "\n", file = fout, append = TRUE)
     df_pleiot |>
         replace_na(list(pct.genes.twas = 0)) |>
