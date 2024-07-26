@@ -27,11 +27,13 @@ tbl_panels <- read_tsv("data/panels.par", col_types = "ccccci")
 # ---- PRINT TRAIT INDEX
 traits_nfo <- read_tsv("data/traits.par.nfo", col_types = "ciiid")
 
-# Specify na since default includes empty string, and empty fields should appear empty.
-tbl_traits <- read_tsv("data/traits.par", col_types = "ccicccc", na = "NA") |>
-    mutate(link = str_glue("[{NAME}]({{{{ site.baseurl }}}}traits/{ID})"),
-           data_url = str_glue("{{{{ site.baseurl }}}}data/{ID}.tar.bz2"),
-           data_link = str_glue('[ <i class="far fa-file-archive" aria-hidden="true"></i> ]({data_url})')) |>
+tbl_traits <- read_tsv("data/traits.par", col_types = "ccicccc") |>
+    mutate(
+        link = str_glue("[{NAME}]({{{{ site.baseurl }}}}traits/{ID})"),
+        data_url = str_glue("{{{{ site.baseurl }}}}data/{ID}.tar.bz2"),
+        data_link = str_glue('[ <i class="far fa-file-archive" aria-hidden="true"></i> ]({data_url})'),
+        TYPE = if_else(is.na(TYPE), "?", TYPE),
+    ) |>
     left_join(traits_nfo, by = "ID")
 
 fout <- "jekyll/traits.md"

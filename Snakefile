@@ -29,6 +29,7 @@ rule all:
         # "data/traits.par.nfo",
         # "data/genes_n_models.nfo",
         # "data/genes_n_assoc.nfo",
+        "jekyll/traits.md",
         expand("jekyll/data/{trait}.tar.bz2", trait=traits),
 
 rule gene_names:
@@ -228,7 +229,25 @@ rule build_jekyll:
         genes_models = "data/genes_n_models.nfo",
         genes_assoc = "data/genes_n_assoc.nfo",
     output:
-        expand("jekyll/data/{trait}.tar.bz2", trait=traits)
+        genes_page = "jekyll/genes.md",
+        traits_page = "jekyll/traits.md",
+        trait_pages = expand("jekyll/traits/{trait}.md", trait=traits),
     threads: 16
     shell:
         "bash scripts/build_jekyll.sh {threads}"
+
+rule compress_twas_data:
+    """Compress TWAS results for site download links"""
+    input:
+        dat = expand("data/twas_out/{trait}.dat", trait=traits),
+        report = expand("data/twas_out/{trait}.dat.post.report", trait=traits),
+    output:
+        tar = expand("jekyll/data/{trait}.tar.bz2", trait=traits),
+    params:
+        traits = " ".join(traits),
+    threads: 16
+    shell:
+        """
+        mkdir -p jekyll/data
+        parallel -j{threads} "cd data/twas_out && tar -cjf ../../jekyll/data/{{}}.tar.bz2 {{}}/ {{}}.dat {{}}.dat.post.report && cd ../.." ::: {params.traits}
+        """
