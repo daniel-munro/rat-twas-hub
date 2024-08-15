@@ -66,7 +66,13 @@ for (i in 1:length(all_genes)) {
         as.data.frame() |>
         format(digits = 3) |>
         write.table(quote = FALSE, row.names = FALSE, col.names = FALSE, sep = " | ", file = fout, append = TRUE)
-    cat("{: #models}\n\n", file = fout, append = TRUE)
+    cat(
+        "{: #models}\n\n",
+        "All models for this gene with cis-heritability P-value <0.01 were tested and are shown here. ",
+        "In each tissue, the gene can have zero, one, or multiple RNA phenotypes for each RNA modality. ",
+        "After the heritability statistics, subsequent columns show cross-validation performance (R<sup>2</sup> and P-value) of each modeling method.\n\n",
+        file = fout, append = TRUE
+    )
 
     cat(
         "\n### Trait associations\n\n",
@@ -74,7 +80,7 @@ for (i in 1:length(all_genes)) {
         str_c(with(cur_models, str_glue('<span title="{TISSUE}: {MODALITY}: {ID}">{NUM}</span>')), collapse = " | "),
         " | \n| --- |\n",
         sep = "",
-        file = str_glue("jekyll/genes/{all_genes[i]}.md"),
+        file = fout,
         append = TRUE
     )
     

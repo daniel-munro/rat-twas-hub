@@ -196,7 +196,7 @@ for (ii in 1:nrow(tbl_traits)) {
 
 if (n_pleiot != 0) {
     cat("### Pleiotropic Associations\n\n", sep = "", file = fout, append = TRUE)
-    cat("| Trait | chisq ratio | # genes<sup>+</sup> | # genes<sup>++</sup> | % genes<sup>++</sup> | corr | corr P | genes |", "| --- |", sep = "\n", file = fout, append = TRUE)
+    cat('| Trait | chisq ratio | <span title="Significant genes in target trait at Bonferroni correction"># genes<sup>+</sup></span> | <span title="Significant genes in target trait at transcriptome-wide significance"># genes<sup>++</sup></span> | % genes<sup>++</sup> | <span title="Correlation of effect sizes across the [+] genes">corr</span> | corr P | genes |', '| --- |', sep = "\n", file = fout, append = TRUE)
     df_pleiot |>
         replace_na(list(pct.genes.twas = 0)) |>
         as.data.frame() |>
