@@ -125,7 +125,7 @@ for (ii in seq_len(nrow(cur_clumps))) {
     # BCAC.1.post.loc_10.cond.csv
     
     cat("\n### Associated models\n\n", sep = "", file = fout_clump, append = TRUE)
-    cat("| # | Tissue | Gene | Modality | RNA phenotype | h2 | eQTL R2 | model | # weights | model R2 | model R2 P | eQTL GWAS Z | TWAS Z | TWAS P | Top SNP corr | PP3 | PP4 | joint |", "| --- |", sep = "\n", file = fout_clump, append = TRUE)
+    cat('| # | Tissue | Gene | Modality | RNA phenotype | <span title="Heritability estimate for the given transcriptomic model">h2</span> | eQTL R2 | model | # weights | model R2 | model R2 P | eQTL GWAS Z | TWAS Z | TWAS P | Top SNP corr | <span title="Posterior probability of two distinct causal variants">PP3</span> | <span title="Posterior probability of a single shared causal variant">PP4</span> | <span title="Whether the RNA phenotype is in the joint model">joint</span> |', "| --- |", sep = "\n", file = fout_clump, append = TRUE)
     
     cur_genes_tbl |>
         mutate(COLOC.PP3 = round(COLOC.PP3, 2),
@@ -138,18 +138,31 @@ for (ii in seq_len(nrow(cur_clumps))) {
         as.data.frame() |>
         format(digits = 2) |>
         write.table(quote = FALSE, row.names = FALSE, col.names = FALSE, sep = " | ", file = fout_clump, append = TRUE)
-    cat("{: #models}\n\n", file = fout_clump, append = TRUE)
+    cat(
+        "{: #models}\n\n",
+        "**h2**: Heritability estimate for the given transcriptomic model. ",
+        "**PP3**: Posterior probability of two distinct causal variants. ",
+        "**PP4**: Posterior probability of a single shared causal variant. ",
+        "**joint**: Whether the RNA phenotype is in the joint model.\n\n",
+        file = fout_clump, append = TRUE
+    )
 }
 
 if (nrow(cur_clumps) > 0) {
     cat("\n### Significant Loci\n\n", sep = "", file = fout, append = TRUE)
-    cat("| # | chr | p0 | p1 | # assoc genes | # joint models | best TWAS P | best SNP P | cond SNP P | % var exp | joint genes |\n| --- |\n", sep = "", file = fout, append = TRUE)
+    cat('| # | chr | <span title="Physical position of the start of the locus">p0</span> | <span title="Physical position of the end of the locus">p1</span> | # assoc genes | <span title="number of models selected by step-wise conditional analysis"># joint models</span> | best TWAS P | best SNP P | cond SNP P | % var exp | joint genes |\n| --- |\n', sep = "", file = fout, append = TRUE)
     cur_clumps |>
         select(link, CHR, P0, P1, HIT.GENES, JOINT.GENES, BEST.TWAS.P, BEST.SNP.P, COND.SNP.P, VAR.EXP, genes) |>
         as.data.frame() |>
         format(digits = 2) |>
         write.table(quote = FALSE, row.names = FALSE, col.names = FALSE, sep = " | ", file = fout, append = TRUE)
-    cat("{: #loci}\n\n", file = fout, append = TRUE)
+    cat(
+        "{: #loci}\n\n",
+        "**p0**: physical position of the start of the locus. ",
+        "**p1**: physical position of the end of the locus. ",
+        "**# joint models**: number of models selected by step-wise conditional analysis.\n\n",
+        file = fout, append = TRUE
+    )
 }
 
 # ---- Get pleiotropic loci
@@ -196,20 +209,32 @@ for (ii in 1:nrow(tbl_traits)) {
 
 if (n_pleiot != 0) {
     cat("### Pleiotropic Associations\n\n", sep = "", file = fout, append = TRUE)
-    cat('| Trait | chisq ratio | <span title="Significant genes in target trait at Bonferroni correction"># genes<sup>+</sup></span> | <span title="Significant genes in target trait at transcriptome-wide significance"># genes<sup>++</sup></span> | % genes<sup>++</sup> | <span title="Correlation of effect sizes across the [+] genes">corr</span> | corr P | genes |', '| --- |', sep = "\n", file = fout, append = TRUE)
+    cat('| Trait | <span title="Average Chi^2 statistic for the selected genes in the secondary trait, divided by the average statistic for all genes in the secondary trait.">chisq ratio</span> | <span title="Shared significant genes at Bonferroni correction"># genes<sup>+</sup></span> | <span title="Shared significant genes at transcriptome-wide significance"># genes<sup>++</sup></span> | <span title="Number of [++] genes as a percentage of primary trait\'s total joint genes.">% genes<sup>++</sup></span> | <span title="Correlation of effect sizes across the [+] genes">corr</span> | corr P | genes |', '| --- |', sep = "\n", file = fout, append = TRUE)
     df_pleiot |>
         replace_na(list(pct.genes.twas = 0)) |>
         as.data.frame() |>
         format(digits = 2) |>
         write.table(quote = FALSE, row.names = FALSE, col.names = FALSE, sep = " | ", file = fout, append = TRUE)
-    cat("{: #pleiotropic}\n\n", file = fout, append = TRUE)
+    cat(
+        "{: #pleiotropic}\n\n",
+        "**chisq ratio**: Average Chi<sup>2</sup> statistic for the selected genes in the secondary trait, divided by the average statistic for all genes in the secondary trait. ",
+        "**# genes<sup>+</sup>**: Shared significant genes at Bonferroni correction. ",
+        "**# genes<sup>++</sup>**: Shared significant genes at transcriptome-wide significance. ",
+        "**% genes<sup>++</sup>**: Number of [++] genes as a percentage of primary trait's total joint genes. ",
+        "**corr**: Correlation of effect sizes across the [+] genes.\n\n",
+        file = fout, append = TRUE
+    )
 }
 
 cat("### Associations by panel\n\n", sep = "", file = fout, append = TRUE)
-cat("| tissue | modality | # hits | % hits/tests | avg chisq |", "| --- |", sep = "\n", file = fout, append = TRUE)
+cat('| tissue | modality | # hits | % hits/tests | <span title="Average Chi^2 across all models in this panel for this trait">avg chisq</span> |', "| --- |", sep = "\n", file = fout, append = TRUE)
 df_cur_models |>
     select(TISSUE, MODALITY, num.hits, pct.hits, avg.chisq) |>
     as.data.frame() |>
     format(digits = 2) |>
     write.table(quote = FALSE, row.names = FALSE, col.names = FALSE, sep = " | ", file = fout, append = TRUE)
-cat("{: #panels}\n\n", file = fout, append = TRUE)
+cat(
+    "{: #panels}\n\n",
+    "**avg chisq**: Average Chi<sup>2</sup> (squared Z-score) across all models in this panel for this trait. ",
+    file = fout, append = TRUE
+)

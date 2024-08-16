@@ -76,7 +76,7 @@ for (i in 1:length(all_genes)) {
 
     cat(
         "\n### Trait associations\n\n",
-        "| Trait | Avg chi<sup>2</sup> ratio | Avg chi<sup>2</sup> | Max chi<sup>2</sup> | ",
+        '| Trait | <span title="Mean chi^2 across all models for this gene, divided by the mean chi^2 across all models for all genes">Avg chi<sup>2</sup> ratio</span> | <span title="Mean chi^2 across all models for this gene">Avg chi<sup>2</sup></span> | <span title="Highest chi^2 across all models for this gene">Max chi<sup>2</sup></span> | ',
         str_c(with(cur_models, str_glue('<span title="{TISSUE}: {MODALITY}: {ID}">{NUM}</span>')), collapse = " | "),
         " | \n| --- |\n",
         sep = "",
@@ -97,9 +97,9 @@ for (i in 1:length(all_genes)) {
     cat(
         "{: #assoc}\n\n",
         "For each tested trait, stats based on TWAS chi<sup>2</sup> (squared Z-score) for the above models are shown. ",
-        "Avg chi<sup>2</sup> ratio is the mean chi<sup>2</sup> across all models for this gene, divided by the mean chi<sup>2</sup> across all models for all genes. ",
-        "Avg chi<sup>2</sup> is the mean chi<sup>2</sup> across all models for this gene. ",
-        "Max chi<sup>2</sup> is the highest chi<sup>2</sup> across all models for this gene.\n\n",
+        "**Avg chi<sup>2</sup> ratio** is the mean chi<sup>2</sup> across all models for this gene, divided by the mean chi<sup>2</sup> across all models for all genes. ",
+        "**Avg chi<sup>2</sup>** is the mean chi<sup>2</sup> across all models for this gene. ",
+        "**Max chi<sup>2</sup>** is the highest chi<sup>2</sup> across all models for this gene.\n\n",
         "The numbered columns correspond to the **numbered models** in the table above. ",
         "They contain the **TWAS Z-score** for each trait-model pair. ",
         "**Colors** indicate strong Z-scores (below -2 or above 2): lower negative Z-scores are darker blue, higher positive Z-scores are darker red.\n\n",
