@@ -1,7 +1,6 @@
 ---
 title: Usage
 permalink: usage/
-layout: about
 ---
 
 # Usage

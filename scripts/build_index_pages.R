@@ -50,7 +50,7 @@ tbl_traits |>
     write.table(quote = FALSE, row.names = FALSE, col.names = FALSE, sep = " | ", file = fout, append = TRUE)
 
 fout <- "jekyll/models.md"
-cat("---", "title: Models", "permalink: models/", "layout: about", "---\n", sep = "\n", file = fout)
+cat("---", "title: Models", "permalink: models/", "---\n", sep = "\n", file = fout)
 cat("# Models \n\n", sep = "", file = fout, append = TRUE)
 
 cat("| Tissue | Modality | N |", "| --- |", sep = "\n", file = fout, append = TRUE)

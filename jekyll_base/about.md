@@ -1,7 +1,6 @@
 ---
-title: About
+title: About / FAQ
 permalink: about/
-layout: about
 ---
 
 # About

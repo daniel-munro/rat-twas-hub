@@ -1,7 +1,7 @@
-title: Rat TWAS hub
-name: Rat TWAS hub
-description: ""
-meta_description: ""
+title: Rat TWAS Hub
+name: Rat TWAS Hub
+description: "Candidate susceptibility genes for complex traits in outbred rats"
+meta_description: "Candidate susceptibility genes for complex traits in outbred rats"
 
 aboutPage: false
 
@@ -11,14 +11,14 @@ highlighter: rouge
 plugins: [jekyll-paginate]
 paginate: 20
 domain_name: 'twas.ratgtex.org'
-google_analytics: ''
+google_analytics: 'G-0JMW6JE577'
 disqus: false
 disqus_shortname: 'your-disqus-shortname'
 baseurl: '/'
 
 # Details for the RSS feed generator
 url:            ''
-author:         ''
+author:         'Daniel Munro'
 authorTwitter:  false
 
 permalink:       /:year/:title/
