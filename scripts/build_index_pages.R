@@ -1,4 +1,4 @@
-# Load the data and generate the index pages for the traits, models, and genes.
+# Load the data and generate the index pages for the traits, models, genes, and projects.
 
 # Inputs:
 # data/panels.par
@@ -8,12 +8,14 @@
 # data/genes_n_assoc.nfo
 # data/genes_n_models.nfo
 # data/gene_names.tsv
+# data/projects.tsv
 
 # Outputs:
 # jekyll/traits.md
 # jekyll/models.md
 # jekyll/genes.json
 # jekyll/genes.md
+# jekyll/projects.md
 
 suppressPackageStartupMessages(library(tidyverse))
 
@@ -44,15 +46,15 @@ cat("# *", nrow(tbl_traits), "* traits &middot; *",
     n_loci, "* associated loci &middot; *",
     n_genes, "*  gene/trait associations\n\n",
     sep = "", file = fout, append = TRUE)
-cat("| Type | Trait | N | # loci | # indep genes | # total genes | Project | data | ", "| --- |", sep = "\n", file = fout, append = TRUE)
+cat("| Project | Trait | N | # loci | # indep genes | # total genes | data | ", "| --- |", sep = "\n", file = fout, append = TRUE)
 tbl_traits |>
-    select(TYPE, link, N, NUM.LOCI, NUM.JOINT.GENES, NUM.GENES, PROJECT, data_link) |>
+    select(PROJECT, link, N, NUM.LOCI, NUM.JOINT.GENES, NUM.GENES, data_link) |>
+    mutate(PROJECT = str_glue("[{PROJECT}]({{{{ site.baseurl }}}}projects/)")) |>
     write.table(quote = FALSE, row.names = FALSE, col.names = FALSE, sep = " | ", file = fout, append = TRUE)
 
 fout <- "jekyll/models.md"
 cat("---", "title: Models", "permalink: models/", "---\n", sep = "\n", file = fout)
 cat("# Models \n\n", sep = "", file = fout, append = TRUE)
-
 cat("| Tissue | Modality | N |", "| --- |", sep = "\n", file = fout, append = TRUE)
 tbl_panels |>
     select(TISSUE, MODALITY, N) |>
@@ -93,4 +95,22 @@ cat("| Gene | ID | # associated traits | # models |\n", "| --- |\n| |\n", sep = 
 ## Table rows get loaded from genes.json instead
 #write.table(df_genes[,c("link","n.assoc","n.models")],quote=F,row.names=F,col.names=F,sep=' | ',file=fout,append=T)
 cat("{: #genes}\n", file = fout, append = TRUE)
+# ----
+
+## ---- PRINT PROJECT INDEX
+tbl_projects <- read_tsv("data/projects.tsv", col_types = "cccccc")
+fout <- "jekyll/projects.md"
+cat("---", "title: Projects", "permalink: projects/", "---\n", sep = "\n", file = fout)
+cat("# Projects\n\n", sep = "", file = fout, append = TRUE)
+cat(
+    "Each project provided GWAS data for one or more traits.",
+    "For each project, a pruned set of traits is included in the Rat TWAS Hub to reduce redundancy.",
+    "These were chosen by sorting its traits by ascending minimum GWAS p-value, and iteratively selecting traits with genetic correlation of R<sup>2</sup> < 0.5 with all previously selected traits.\n\n",
+    sep = "\n", file = fout, append = TRUE
+)
+cat("| ID | Principal investigator | Title | Animal source |", "| --- |", sep = "\n", file = fout, append = TRUE)
+tbl_projects |>
+    select(id, pi, title, animal_source) |>
+    replace_na(list(pi = "-", title = "-", animal_source = "-")) |>
+    write.table(quote = FALSE, row.names = FALSE, col.names = FALSE, sep = " | ", file = fout, append = TRUE)
 # ----

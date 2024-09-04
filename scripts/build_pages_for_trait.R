@@ -77,7 +77,7 @@ cat("# ", tbl_traits$NAME[i], "\n\n", sep = "", file = fout, append = TRUE)
 if (!is.na(tbl_traits$DESCRIPTION[i])) {
     cat(tbl_traits$DESCRIPTION[i], "\n\n", sep = "", file = fout, append = TRUE)
 }
-cat("Project: ", tbl_traits$PROJECT[i], "\n\n", sep = "", file = fout, append = TRUE)
+cat("Project: [", tbl_traits$PROJECT[i], "]({{ site.baseurl }}projects/)\n\n", sep = "", file = fout, append = TRUE)
 cat(str_glue("`{length(top_models)} significantly associated model{if (length(top_models) == 1) '' else 's'} · {length(top_genes)} unique gene{if (length(top_genes) == 1) '' else 's'}`\n\n"), sep = "", file = fout, append = TRUE)
 
 # ---- Get clumped and conditional loci
