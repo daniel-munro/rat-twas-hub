@@ -25,7 +25,7 @@ Please read this [blog post](http://sashagusev.github.io/2017-10/twas-vulnerabil
 ## Predictive models and weights.
 
 <!-- The predictive models and weight used for all analyses are listed in the [MODELS](/models/){: .border} page and available for download through the [FUSION](http://gusevlab.org/projects/fusion/) web-site. Genotypes are restricted to common, well-imputed HapMap3 SNPs that satisfied standard quality-control thresholds on missingness and hardy-weinberg equilibrium. Typically, gene expression was analyzed with covariates for sex, age, genetic ancestry, and multiple gene expression PCs (specific panel details are presented on the main FUSION web-site). *Note: for analyses of gene expression in tumors local copy number alterations were not modelled, we are evaluating  the best way to adjust for somatic events so these weights may be updated*. -->
-The predictive models for all analyses were generated using the default [Pantry (Pan-transcriptome phenotyping) pipeline](https://github.com/daniel-munro/Pantry). Weights were generated from gene expression and multiple gene expression and genotype PCs as covariates.
+The predictive models for all analyses were generated using the default [Pantry (Pan-transcriptomic phenotyping) pipeline](https://github.com/PejLab/Pantry). Weights were generated from RNA phenotypes and multiple RNA phenotype PCs and genotype PCs as covariates.
 
 ## Interpretation of low significance models.
 
@@ -46,8 +46,6 @@ All transcriptome-wide significant associations are run through the *coloc* colo
 <!-- Hundreds of UK BioBank phenotypes were processed, analyzed, and made openly available by the [Neale lab rapid GWAS release](http://www.nealelab.is/blog/2017/7/19/rapid-gwas-of-thousands-of-phenotypes-for-337000-samples-in-the-uk-biobank), which motivated the development of this interface. The remaining GWAS summary data used here was harmonized by Hilary Finucane ([Finucane et al. Nat Genet 2015](https://www.ncbi.nlm.nih.gov/pubmed/26414678)), Steven Gazal ([Gazal et al. 2017 Nat Genet](https://www.ncbi.nlm.nih.gov/pubmed/28892061)), and Po-Ru Loh ([Loh et al. 2018 biorxiv](https://www.biorxiv.org/content/early/2018/01/04/194944)). -->
 
 <!-- Our analyses would not be possible without GWAS and molecular data collection efforts by the referenced consortia and individuals. We are grateful to the many groups that have made data publicly available and accessible.  -->
-
-The TWAS hub logo is from [André Luiz Gollo](https://thenounproject.com/andreluizgollo/collection/medical-outlined/?i=843273) and the Noun Project.
 
 ## What else can I read about TWAS?
 

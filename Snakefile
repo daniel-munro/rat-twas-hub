@@ -85,7 +85,7 @@ rule twas:
     group: "twas"
     resources:
         mem_mb = 16000,
-        walltime = 16,
+        runtime = "16h",
     shell:
         """
         mkdir -p {params.trait_dir}
