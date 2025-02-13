@@ -364,7 +364,14 @@ for ( i in 1:length(cons.loc.starts) ) {
 			cur.wgt$JOINT = joint.keep[ ge.keep ]
 		
 			# compute correlation of each gene to the top SNP
-			cur.wgt$TOP.SNP.COR = round(t(t( (genos$bed[,cur.keep])[,which.max(snp.z^2),drop=F] ) %*% ge_g.matrix[,ge.keep] / ( N - 1 )),2)
+			if (all(is.na(snp.z))) {
+				top.snp.cor = rep(NA, nrow(cur.wgt))
+			} else {
+				max_idx = which.max(snp.z^2)
+				top.snp.cor = t(t( (genos$bed[,cur.keep])[,max_idx,drop=F] ) %*% ge_g.matrix[,ge.keep] / ( N - 1 ))
+			}
+			cur.wgt$TOP.SNP.COR = round(top.snp.cor, 2)
+
 			write.table( cur.wgt , quote=F , row.names=F , col.names=T , sep='\t' , file=paste(opt$out,".loc_",i,".genes",sep='')  )
 		}
 	}

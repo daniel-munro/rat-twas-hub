@@ -1,19 +1,18 @@
 suppressPackageStartupMessages(library(tidyverse))
 
-descs <- read_tsv("data/GWAS_original/trait_info.tsv", col_types = "ccc")
-
-sample_size <- read_tsv("data/GWAS_original/sample_sizes.tsv",
-                        col_names = c("project", "trait", "N"),
+sample_size <- read_tsv("data/gwas_original/sample_sizes.tsv",
+                        col_names = c("project_id", "trait_id", "N"),
                         col_types = "ccc")
 
-df <- read_tsv("data/GWAS_original/traits_pruned.r2_50.tsv",
-               col_names = c("project", "trait"),
-               col_types = "cc") |>
-  left_join(sample_size, by = c("project", "trait"), relationship = "one-to-one") |>
-  left_join(descs, by = c("project", "trait"), relationship = "one-to-one") |>
-  mutate(OUTPUT = str_glue("data/twas_out/{trait}.dat"),
-         YEAR = "2024",
-         TYPE = project) |>
-  select(OUTPUT, ID = trait, N, REF = project, YEAR, NAME = trait_description, TYPE)
+df <- read_tsv("data/gwas_original/traits.tsv", col_types = "ccccc") |>
+  left_join(sample_size, by = c("project_id", "trait_id"), relationship = "one-to-one") |>
+  mutate(OUTPUT = str_glue("data/twas_out/{trait_id}.dat")) |>
+  select(OUTPUT,
+         ID = trait_id,
+         N,
+         PROJECT = project_id,
+         TAGS = tags,
+         NAME = name,
+         DESCRIPTION = description)
 
 write_tsv(df, "data/traits.par")

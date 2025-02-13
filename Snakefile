@@ -1,6 +1,6 @@
 import pandas as pd
 
-tissues = ["Adipose", "BLA", "Brain", "Eye", "IL", "LHb", "Liver", "NAcc", "NAcc2", "OFC", "PL", "PL2"]
+tissues = ["Adipose", "BLA", "Brain", "Eye", "IL", "LHb", "Liver", "NAcc", "OFC", "PL"]
 modalities = ["alt_polyA", "alt_TSS", "expression", "isoforms", "splicing", "stability"]
 gtf = "data/Rattus_norvegicus.mRatBN7.2.108.gtf"
 wgt_dir = "data/WEIGHTS"
@@ -13,9 +13,9 @@ localrules:
     gene_names,
     all_models_file,
     twas_top,
-    combine_chroms_dat,
+    combine_chroms_assoc,
     combine_chroms_top,
-    combine_chroms_report,
+    combine_chroms_post,
     traits_info,
     genes_n_assoc_info,
     genes_n_models_info,
@@ -25,10 +25,12 @@ wildcard_constraints:
 
 rule all:
     input:
-        # expand("data/twas_out/{trait}/{trait}.{chrom}.post.report", trait=traits, chrom=range(1, 21)),
-        # "data/traits.par.nfo",
-        # "data/genes_n_models.nfo",
-        # "data/genes_n_assoc.nfo",
+        expand("data/twas_out/{trait}.all.tsv", trait=traits),
+        expand("data/twas_out/{trait}.top.tsv", trait=traits),
+        expand("data/twas_out/{trait}.post.tsv", trait=traits),
+        "data/traits.par.nfo",
+        "data/genes_n_models.nfo",
+        "data/genes_n_assoc.nfo",
         "jekyll/traits.md",
         expand("jekyll/data/{trait}.tar.bz2", trait=traits),
 
@@ -68,15 +70,34 @@ rule all_models_file:
         done
         """
 
+rule sumstats:
+    """Convert sumstats files"""
+    input:
+        gwas = lambda w: "data/gwas_original/sumstats/{project}/regressedlr_{trait}_chrgwas{chrom}.mlma.gz".format(
+            project=traits_df.loc[w.trait, "PROJECT"],
+            trait=w.trait,
+            chrom=w.chrom
+        )
+    output:
+        sumstats = "data/gwas/{trait}/{trait}.{chrom}.sumstats"
+    shell:
+        """
+        mkdir -p data/gwas/{wildcards.trait}
+        zcat {input.gwas} | awk 'BEGIN {{OFS="\t"}} \
+            NR==1 {{print $2, $4, $5, "Z"}} \
+            NR>1 && $8 != "inf" {{print "chr"$2, $4, $5, $7/$8}}' \
+            > {output.sumstats}
+        """
+
 rule twas:
     """Run TWAS"""
     input:
         models = "data/all_models.par",
-        sumstats = "data/GWAS/{trait}/{trait}.{chrom}.sumstats",
+        sumstats = "data/gwas/{trait}/{trait}.{chrom}.sumstats",
         panels = "data/panels.par",
         ldref = multiext(f"{ldref_prefix}{{chrom}}", ".bed", ".bim", ".fam"),
     output:
-        dat = "data/twas_out/{trait}/{trait}.{chrom}.dat"
+        assoc = "data/twas_out/{trait}/{trait}.{chrom}.all.tsv"
     params:
         wgt_dir = wgt_dir,
         ldref_prefix = ldref_prefix,
@@ -91,7 +112,7 @@ rule twas:
         mkdir -p {params.trait_dir}
         Rscript scripts/FUSION.assoc_test.R \
             --sumstats {input.sumstats} \
-            --out {output.dat} \
+            --out {output.assoc} \
             --weights {input.models} \
             --weights_dir {params.wgt_dir} \
             --ref_ld_chr {params.ldref_prefix} \
@@ -100,29 +121,29 @@ rule twas:
             --GWASN {params.gwas_n} \
             --PANELN {input.panels}
         """
-        
+
 rule twas_top:
     """Get significant TWAS hits on one chromosome for one trait"""
     input:
         models = "data/all_models.par",
-        dat = "data/twas_out/{trait}/{trait}.{chrom}.dat",
+        assoc = "data/twas_out/{trait}/{trait}.{chrom}.all.tsv",
     output:
-        top = "data/twas_out/{trait}/{trait}.{chrom}.top"
+        top = "data/twas_out/{trait}/{trait}.{chrom}.top.tsv"
     group: "twas"
     shell:
         """
         TOTAL=`wc -l {input.models} | awk '{{ print $1 - 1 }}'`
-        cat {input.dat} | awk -vt=$TOTAL 'NR == 1 || $20 < 0.05/t' > {output.top}
+        cat {input.assoc} | awk -vt=$TOTAL 'NR == 1 || $20 < 0.05/t' > {output.top}
         """
 
 rule twas_post:
     """Run post-processing on TWAS hits on one chromosome for one trait"""
     input:
-        top = "data/twas_out/{trait}/{trait}.{chrom}.top",
-        sumstats = "data/GWAS/{trait}/{trait}.{chrom}.sumstats",
+        top = "data/twas_out/{trait}/{trait}.{chrom}.top.tsv",
+        sumstats = "data/gwas/{trait}/{trait}.{chrom}.sumstats",
         ldref = multiext(f"{ldref_prefix}{{chrom}}", ".bed", ".bim", ".fam"),
     output:
-        report = "data/twas_out/{trait}/{trait}.{chrom}.post.report",
+        post = "data/twas_out/{trait}/{trait}.{chrom}.post.report",
     params:
         ldref_prefix = ldref_prefix,
         out_prefix = "data/twas_out/{trait}/{trait}.{chrom}.post",
@@ -133,7 +154,7 @@ rule twas_post:
     shell:
         """
         if [ $(wc -l < {input.top}) -eq 1 ]; then
-            printf "FILE\tCHR\tP0\tP1\tHIT.GENES\tJOINT.GENES\tBEST.TWAS.P\tBEST.SNP.P\tCOND.SNP.P\tVAR.EXP\n" > {output.report}
+            printf "FILE\tCHR\tP0\tP1\tHIT.GENES\tJOINT.GENES\tBEST.TWAS.P\tBEST.SNP.P\tCOND.SNP.P\tVAR.EXP\n" > {output.post}
         else
             Rscript scripts/FUSION.post_process.R \
                 --sumstats {input.sumstats} \
@@ -148,52 +169,52 @@ rule twas_post:
         fi
         """
 
-rule combine_chroms_dat:
+rule combine_chroms_assoc:
     """Concatenate per-chromosome TWAS results for one trait"""
     input:
-        dats = expand("data/twas_out/{{trait}}/{{trait}}.{chrom}.dat", chrom=range(1, 21))
+        assocs = expand("data/twas_out/{{trait}}/{{trait}}.{chrom}.all.tsv", chrom=range(1, 21))
     output:
-        dat = "data/twas_out/{trait}.dat"
+        assoc = "data/twas_out/{trait}.all.tsv"
     shell:
         """
-        cat {input.dats} | awk 'NR == 1 || $1 != "PANEL"' > {output.dat}
+        cat {input.assocs} | awk 'NR == 1 || $1 != "PANEL"' > {output.assoc}
         """
 
 rule combine_chroms_top:
     """Concatenate per-chromosome significant hits for one trait"""
     input:
-        tops = expand("data/twas_out/{{trait}}/{{trait}}.{chrom}.top", chrom=range(1, 21))
+        tops = expand("data/twas_out/{{trait}}/{{trait}}.{chrom}.top.tsv", chrom=range(1, 21))
     output:
-        top = "data/twas_out/{trait}.top.dat"
+        top = "data/twas_out/{trait}.top.tsv"
     shell:
         """
         cat {input.tops} | awk 'NR == 1 || $1 != "PANEL"' > {output.top}
         """
 
-rule combine_chroms_report:
-    """Concatenate per-chromosome post-TWAS reports for one trait"""
+rule combine_chroms_post:
+    """Concatenate per-chromosome TWAS post-processing reports for one trait"""
     input:
-        reports = expand("data/twas_out/{{trait}}/{{trait}}.{chrom}.post.report", chrom=range(1, 21))
+        posts = expand("data/twas_out/{{trait}}/{{trait}}.{chrom}.post.report", chrom=range(1, 21))
     output:
-        report = "data/twas_out/{trait}.dat.post.report"
+        post = "data/twas_out/{trait}.post.tsv"
     shell:
         """
-        cat {input.reports} | awk 'NR == 1 || $1 != "FILE"' > {output.report}
+        cat {input.posts} | awk 'NR == 1 || $1 != "FILE"' > {output.post}
         """
 
 rule traits_info:
     """Generate traits info file"""
     input:
         traits = "data/traits.par",
-        dats = expand("data/twas_out/{trait}.dat", trait=traits),
-        reports = expand("data/twas_out/{trait}.dat.post.report", trait=traits),
+        assocs = expand("data/twas_out/{trait}.all.tsv", trait=traits),
+        posts = expand("data/twas_out/{trait}.post.tsv", trait=traits),
     output:
         nfo = "data/traits.par.nfo"
     shell:
         """
         tail -n+2 {input.traits} | awk '{{ print $2 }}' | while read id; do
-            avgchisq=`tail -n+2 data/twas_out/$id.dat | awk '{{ print $19^2 }}' | awk 'BEGIN {{ n=0; s=0; }} {{ n++; s += $1; }} END {{ if ( n > 0 ) print s / n; else print "NA"; }}'`
-            cat data/twas_out/$id.dat.post.report | awk -v chi=$avgchisq -v id=$id 'BEGIN {{ loc=0; tothit=0; tot=0; }} $1 != "FILE" {{ tothit += $5; tot+=$6; loc++; }} END {{ print id,loc,tot,tothit,chi }}'
+            avgchisq=`tail -n+2 data/twas_out/$id.all.tsv | awk '{{ print $19^2 }}' | awk 'BEGIN {{ n=0; s=0; }} {{ n++; s += $1; }} END {{ if ( n > 0 ) print s / n; else print "NA"; }}'`
+            cat data/twas_out/$id.post.tsv | awk -v chi=$avgchisq -v id=$id 'BEGIN {{ loc=0; tothit=0; tot=0; }} $1 != "FILE" {{ tothit += $5; tot+=$6; loc++; }} END {{ print id,loc,tot,tothit,chi }}'
         done | awk 'BEGIN {{ print "ID NUM.LOCI NUM.JOINT.GENES NUM.GENES AVG.CHISQ" }} {{ print $0 }}' | tr ' ' '\t' > {output.nfo}
         """
 
@@ -212,13 +233,13 @@ rule genes_n_assoc_info:
     """Count significant TWAS associations per gene"""
     input:
         traits = "data/traits.par",
-        tops = expand("data/twas_out/{trait}.top.dat", trait=traits),
+        tops = expand("data/twas_out/{trait}.top.tsv", trait=traits),
     output:
         nfo = "data/genes_n_assoc.nfo"
     shell:
         """
         tail -n+2 {input.traits} | awk '{{ print $2 }}' | while read id; do
-            tail -n+2 data/twas_out/$id.top.dat | cut -f3 | sed -E 's/[:.].*$//' | uniq | sort | uniq
+            tail -n+2 data/twas_out/$id.top.tsv | cut -f3 | sed -E 's/[:.].*$//' | uniq | sort | uniq
         done | sort | uniq -c | awk '{{ print $2,$1 }}' > {output.nfo}
         """
 
@@ -239,8 +260,8 @@ rule build_jekyll:
 rule compress_twas_data:
     """Compress TWAS results for site download links"""
     input:
-        dat = expand("data/twas_out/{trait}.dat", trait=traits),
-        report = expand("data/twas_out/{trait}.dat.post.report", trait=traits),
+        assoc = expand("data/twas_out/{trait}.all.tsv", trait=traits),
+        post = expand("data/twas_out/{trait}.post.tsv", trait=traits),
     output:
         tar = expand("jekyll/data/{trait}.tar.bz2", trait=traits),
     params:
@@ -249,5 +270,5 @@ rule compress_twas_data:
     shell:
         """
         mkdir -p jekyll/data
-        parallel -j{threads} "cd data/twas_out && tar -cjf ../../jekyll/data/{{}}.tar.bz2 {{}}/ {{}}.dat {{}}.dat.post.report && cd ../.." ::: {params.traits}
+        parallel -j{threads} "cd data/twas_out && tar -cjf ../../jekyll/data/{{}}.tar.bz2 {{}}/ {{}}.all.tsv {{}}.post.tsv && cd ../.." ::: {params.traits}
         """

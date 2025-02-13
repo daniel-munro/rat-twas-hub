@@ -5,8 +5,8 @@
 # data/traits.par
 # data/panels.par
 # data/traits.par.nfo
-# data/twas_out/{trait}.dat
-# data/twas_out/{trait}.dat.post.report
+# data/twas_out/{trait}.all.tsv
+# data/twas_out/{trait}.post.tsv
 
 # Outputs:
 # jekyll/traits/{trait}.md
@@ -77,11 +77,17 @@ cat("# ", tbl_traits$NAME[i], "\n\n", sep = "", file = fout, append = TRUE)
 if (!is.na(tbl_traits$DESCRIPTION[i])) {
     cat(tbl_traits$DESCRIPTION[i], "\n\n", sep = "", file = fout, append = TRUE)
 }
+if (!is.na(tbl_traits$TAGS[i])) {
+    cat("Tags: ", str_replace_all(tbl_traits$TAGS[i], ",", " · "), "\n\n", sep = "", file = fout, append = TRUE)
+}
+
 cat("Project: [", tbl_traits$PROJECT[i], "]({{ site.baseurl }}projects/)\n\n", sep = "", file = fout, append = TRUE)
 cat(str_glue("`{length(top_models)} significantly associated model{if (length(top_models) == 1) '' else 's'} · {length(top_genes)} unique gene{if (length(top_genes) == 1) '' else 's'}`\n\n"), sep = "", file = fout, append = TRUE)
 
 # ---- Get clumped and conditional loci
-cur_clumps <- read_tsv(str_glue("{tbl_traits$OUTPUT[i]}.post.report"), col_types = "ciiiiidddd") |>
+cur_clumps <- read_tsv(
+    str_replace(tbl_traits$OUTPUT[i], ".all.tsv", ".post.tsv"), col_types = "ciiiiidddd"
+) |>
     arrange(CHR, P0) |>
     mutate(VAR.EXP = round(VAR.EXP * 100, 0),
            link = str_glue("*[{seq_len(n())}]({{{{ site.baseurl }}}}traits/{trait}/{seq_len(n())})*"),
@@ -115,6 +121,7 @@ for (ii in seq_len(nrow(cur_clumps))) {
     pos0 <- formatC(cur_clumps$P0[ii], format = "f", big.mark = ",", drop0trailing = TRUE)
     pos1 <- formatC(cur_clumps$P1[ii], format = "f", big.mark = ",", drop0trailing = TRUE)
     cat(str_glue("\n\n# chr{cur_clumps$CHR[ii]}:{pos0}-{pos1}\n\n"), sep = "", file = fout_clump, append = TRUE)
+    cat(str_glue("## Trait: {tbl_traits$NAME[i]}\n\n"), sep = "", file = fout_clump, append = TRUE)
     cat("`Best TWAS P=", cur_clumps$BEST.TWAS.P[ii],
         " · Best GWAS P=", cur_clumps$BEST.SNP.P[ii],
         " conditioned to ", cur_clumps$COND.SNP.P[ii],

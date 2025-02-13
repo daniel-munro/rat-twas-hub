@@ -34,7 +34,6 @@ tbl_traits <- read_tsv("data/traits.par", col_types = "ccicccc") |>
         link = str_glue("[{NAME}]({{{{ site.baseurl }}}}traits/{ID})"),
         data_url = str_glue("{{{{ site.baseurl }}}}data/{ID}.tar.bz2"),
         data_link = str_glue('[ <i class="far fa-file-archive" aria-hidden="true"></i> ]({data_url})'),
-        TYPE = if_else(is.na(TYPE), "?", TYPE),
     ) |>
     left_join(traits_nfo, by = "ID")
 
@@ -104,8 +103,7 @@ cat("---", "title: Projects", "permalink: projects/", "---\n", sep = "\n", file 
 cat("# Projects\n\n", sep = "", file = fout, append = TRUE)
 cat(
     "Each project provided GWAS data for one or more traits.",
-    "For each project, a pruned set of traits is included in the Rat TWAS Hub to reduce redundancy.",
-    "These were chosen by sorting its traits by ascending minimum GWAS p-value, and iteratively selecting traits with genetic correlation of R<sup>2</sup> < 0.5 with all previously selected traits.\n\n",
+    "Only traits from the original studies with sufficient information and biological interpretability are included in this portal.",
     sep = "\n", file = fout, append = TRUE
 )
 cat("| ID | Principal investigator | Title | Animal source |", "| --- |", sep = "\n", file = fout, append = TRUE)
