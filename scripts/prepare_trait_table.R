@@ -6,7 +6,7 @@ sample_size <- read_tsv("data/gwas_original/sample_sizes.tsv",
 
 df <- read_tsv("data/gwas_original/traits.tsv", col_types = "ccccc") |>
   left_join(sample_size, by = c("project_id", "trait_id"), relationship = "one-to-one") |>
-  mutate(OUTPUT = str_glue("data/twas_out/{trait_id}.dat")) |>
+  mutate(OUTPUT = str_glue("data/twas_out/{trait_id}.all.tsv")) |>
   select(OUTPUT,
          ID = trait_id,
          N,

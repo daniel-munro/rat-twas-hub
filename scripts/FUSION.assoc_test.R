@@ -225,7 +225,11 @@ for ( w in 1:nrow(wgtlist) ) {
 				cat( "WARNING : " , unlist(wgtlist[w,]) , "had" , sum(cur.miss) , "/" , length(cur.miss) , "non-overlapping GWAS Z-scores, skipping this gene.\n")
 				cur.FAIL = TRUE
 			} else {
-				cur.wgt =  cur.LD[cur.miss,!cur.miss] %*% solve( cur.LD[!cur.miss,!cur.miss] + 0.1 * diag(sum(!cur.miss)) )
+				# cur.wgt =  cur.LD[cur.miss,!cur.miss] %*% solve( cur.LD[!cur.miss,!cur.miss] + 0.1 * diag(sum(!cur.miss)) )
+				# cur.wgt =  cur.LD[cur.miss,!cur.miss] %*% solve(Matrix::Matrix( cur.LD[!cur.miss,!cur.miss] + 0.1 * Matrix::Diagonal(sum(!cur.miss)) ))
+				chol_decomp = chol(cur.LD[!cur.miss,!cur.miss] + 0.1 * Matrix::Diagonal(sum(!cur.miss)))
+                cur.wgt = cur.LD[cur.miss,!cur.miss] %*% backsolve(chol_decomp, forwardsolve(t(chol_decomp), diag(ncol(chol_decomp))))
+
 				cur.impz = cur.wgt %*% cur.Z[!cur.miss]
 				cur.r2pred = diag( cur.wgt %*% cur.LD[!cur.miss,!cur.miss] %*% t(cur.wgt) )
 				cur.Z[cur.miss] = cur.impz / sqrt(cur.r2pred)

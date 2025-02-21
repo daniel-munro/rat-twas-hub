@@ -1,16 +1,16 @@
 # For one trait, for each gene, write summary stats and Z-score per model to the table in that gene's markdown file.
 
 # Inputs:
-# data/twas_out/{trait}.dat
+# data/twas_out/{trait}.all.tsv
 
 # Outputs:
 # jekyll/genes/{gene}.md (append)
 
-DAT=$1
+OUT=$1
 TRAIT_LINK=$2
 AVG_CHISQ=$3
 
-cat $DAT \
+cat $OUT \
 | tail -n+2 \
 | awk '{ print NR,$3,$19 }' \
 | awk '{ $2 = gensub(/[:.].*$/, "", "g", $2); print }' \

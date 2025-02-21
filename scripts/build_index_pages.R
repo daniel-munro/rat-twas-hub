@@ -103,7 +103,7 @@ cat("---", "title: Projects", "permalink: projects/", "---\n", sep = "\n", file 
 cat("# Projects\n\n", sep = "", file = fout, append = TRUE)
 cat(
     "Each project provided GWAS data for one or more traits.",
-    "Only traits from the original studies with sufficient information and biological interpretability are included in this portal.",
+    "Only traits from the original studies with sufficient information and biological interpretability are included in this portal.\n\n",
     sep = "\n", file = fout, append = TRUE
 )
 cat("| ID | Principal investigator | Title | Animal source |", "| --- |", sep = "\n", file = fout, append = TRUE)
