@@ -13,4 +13,4 @@ cat data/gwas_original/traits.tsv | tail -n+2 | while read line; do
 done
 
 # Add sample sizes to other trait info to make traits.par
-Rscript scripts/prepare_trait_table.R
+Rscript scripts/prepare/prepare_trait_table.R

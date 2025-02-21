@@ -89,7 +89,7 @@ for (i in 1:length(all_genes)) {
 
 # iterate over each trait and count the number of significant genes
 for (i in 1:nrow(tbl_traits)) {
-    system(str_glue('bash scripts/add_trait_to_gene_pages.sh {tbl_traits$OUTPUT[i]} "{tbl_traits$link[i]}" {tbl_traits$AVG.CHISQ[i]}\n'))
+    system(str_glue('bash scripts/site/add_trait_to_gene_pages.sh {tbl_traits$OUTPUT[i]} "{tbl_traits$link[i]}" {tbl_traits$AVG.CHISQ[i]}\n'))
     cat(i, "\n")
 }
 

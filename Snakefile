@@ -12,6 +12,7 @@ traits = traits_df.index.tolist()
 localrules:
     gene_names,
     all_models_file,
+    sumstats,
     twas_top,
     combine_chroms_assoc,
     combine_chroms_top,
@@ -110,7 +111,7 @@ rule twas:
     shell:
         """
         mkdir -p {params.trait_dir}
-        Rscript scripts/FUSION.assoc_test.R \
+        Rscript scripts/twas/FUSION.assoc_test.R \
             --sumstats {input.sumstats} \
             --out {output.assoc} \
             --weights {input.models} \
@@ -156,7 +157,7 @@ rule twas_post:
         if [ $(wc -l < {input.top}) -eq 1 ]; then
             printf "FILE\tCHR\tP0\tP1\tHIT.GENES\tJOINT.GENES\tBEST.TWAS.P\tBEST.SNP.P\tCOND.SNP.P\tVAR.EXP\n" > {output.post}
         else
-            Rscript scripts/FUSION.post_process.R \
+            Rscript scripts/twas/FUSION.post_process.R \
                 --sumstats {input.sumstats} \
                 --input {input.top} \
                 --out {params.out_prefix} \
@@ -254,8 +255,10 @@ rule build_jekyll:
         traits_page = "jekyll/traits.md",
         trait_pages = expand("jekyll/traits/{trait}.md", trait=traits),
     threads: 16
+    resources:
+        mem_mb = 32000,
     shell:
-        "bash scripts/build_jekyll.sh {threads}"
+        "bash scripts/site/build_jekyll.sh {threads}"
 
 rule compress_twas_data:
     """Compress TWAS results for site download links"""
