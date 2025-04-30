@@ -4,9 +4,6 @@ set -e
 
 THREADS=$1
 
-# Need -p because Snakemake will create the output file's directory already
-mkdir -p jekyll
-cp -r jekyll_base/* jekyll/
 mkdir -p jekyll/traits jekyll/genes jekyll/data
 
 echo "Building trait pages..."
