@@ -16,7 +16,7 @@ function makePlotly( x, y , y2 , txt ){
 	{name: 'marg', data: [{x: x, y: y , ids: txt }]},
 	{name: 'cond', data: [{x: x, y: y2, ids: txt }]}
 	];
-	Plotly.plot(
+	Plotly.newPlot(
 		'graph',
 		[{
 		  x: frames[0].data[0].x,

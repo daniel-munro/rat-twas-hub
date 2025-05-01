@@ -1,38 +1,24 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  {% include headers.html %}
-  
-  <script src="{{ site.baseurl }}assets/js/manhattan.js"></script>
-	<script type="text/javascript" class="init">
-		$(document).ready(function() {
- 			$('table#models').DataTable( {
-   				lengthChange: false,
-   				paging: false,
-   				info: false,
-   				searching: true,
-   				order: [[ 16, 'des' ], [ 12, 'asc' ]],
-   				"language": {
-    				search: '<i class="fa fa-search" aria-hidden="true"></i>'
-    			},
-    			"columnDefs": [ { "className": "dt-left dt-head-left", "targets": [0,1,2,3] },{ "className": "dt-right", "targets": '_all' } ]  
+---
+layout: base
+---
 
-  			} );	  						
-		} );
-	</script>
-</head>
-<body>
-	
-  {% include navigation.html %}
+{{ content }}
 
-  <section id="wrapper" class="{% if page.profile %}home{% endif %}">
-    {{ content }}
+<script src="{{ site.baseurl }}assets/js/manhattan.js"></script>
+<script type="text/javascript" class="init">
+    $(document).ready(function() {
+        $('table#models').DataTable( {
+            lengthChange: false,
+            paging: false,
+            info: false,
+            searching: true,
+            order: [[ 16, 'des' ], [ 12, 'asc' ]],
+            "language": {
+                search: '<i class="fa fa-search" aria-hidden="true"></i>'
+            },
+            "columnDefs": [ { "className": "dt-left dt-head-left", "targets": [0,1,2,3] },{ "className": "dt-right", "targets": '_all' } ]  
 
-  {% include footer.html %}
-  </section>
-  {% include scripts.html %}
-</body>
-</html>
-
-
+        } );
+    } );
+</script>
 

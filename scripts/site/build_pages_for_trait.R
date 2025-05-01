@@ -98,13 +98,13 @@ clump_mod <- vector()
 for (ii in seq_len(nrow(cur_clumps))) {
     cur_genes_tbl <- read_tsv(str_glue("{cur_clumps$FILE[ii]}.genes"),
                               col_types = "ccciiidcdcdddiicdddddddddld") |>
-        mutate(num = 1:n(),
+        mutate(num = seq_len(n()),
                gene_id = gene_id(ID),
-               link = str_glue("*[{gene_names[gene_id]}]({{{{ site.baseurl }}}}genes/{gene_id})*")) |>
+               link = str_glue("[{gene_names[gene_id]}]({{{{ site.baseurl }}}}genes/{gene_id})")) |>
     left_join(select(tbl_panels, PANEL, TISSUE, MODALITY), by = "PANEL")
     
     cur_genes <- sort(unique(cur_genes_tbl$gene_id[cur_genes_tbl$JOINT]))
-    cur_genes <- str_c("*", str_c(str_glue("[{gene_names[cur_genes]}]({{{{ site.baseurl }}}}genes/{cur_genes})"), collapse = " "), "*")
+    cur_genes <- str_c(str_glue("[{gene_names[cur_genes]}]({{{{ site.baseurl }}}}genes/{cur_genes})"), collapse = " ")
     cur_clumps$genes[ii] <- cur_genes
     
     clump_mod <- unique(c(clump_mod, cur_genes_tbl$FILE[cur_genes_tbl$JOINT]))
@@ -128,7 +128,7 @@ for (ii in seq_len(nrow(cur_clumps))) {
         "`\n\n", sep = "", file = fout_clump, append = TRUE)
     
     system(str_glue("cp {cur_clumps$FILE[ii]}.cond.csv jekyll/traits/{trait}/{ii}.cond.csv"))
-    cat("<script>", "\n", 'Plotly.d3.csv("../', ii, '.cond.csv"', ", function(data){ processData(data) } );", "\n", '</script><div id="graph"></div>', "\n", sep = "", file = fout_clump, append = TRUE)
+    cat('<div id="graph"></div>\n<script>\nfetch("../', ii, '.cond.csv").then(response => response.text()).then(csvText => { const data = d3.csvParse(csvText); processData(data); });\n</script>\n', sep = "", file = fout_clump, append = TRUE)
     # BCAC.1.post.loc_10.cond.csv
     
     cat("\n### Associated models\n\n", sep = "", file = fout_clump, append = TRUE)

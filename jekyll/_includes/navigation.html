@@ -1,8 +1,33 @@
-<nav class="main-nav">
-	<div class="logo"><a href="{{ site.baseurl }}"><img src="{{ site.baseurl }}/assets/images/logo.png" width="30px"> <strong style="color: #6e4717">Rat</strong> TWAS <b>Hub</b></a></div>
-    <a class="button" href="{{ site.baseurl }}about">About / FAQ</a> 
-    <a class="button" href="{{ site.baseurl }}usage">Usage</a> 
-    <a class="button" href="{{ site.baseurl }}models">Models</a>
-    <a class="button fill" href="{{ site.baseurl }}genes"><i class="fa fa-dna" aria-hidden="true"></i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Genes</a>
-    <a class="button fill" href="{{ site.baseurl }}traits"><i class="fa fa-list-ul" aria-hidden="true"></i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Traits</a>
+<style>
+</style>
+
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="{{ site.baseurl }}">
+            <img src="{{ site.baseurl }}assets/images/logo.png" width="30" height="30" class="d-inline-block align-text-top me-2">
+            <strong style="color: #6e4717">Rat</strong> TWAS Hub
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item">
+                    <a class="nav-link btn btn-primary" href="{{ site.baseurl }}traits"><i class="fa fa-list-ul" aria-hidden="true"></i> Traits</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link btn btn-primary" href="{{ site.baseurl }}genes"><i class="fa fa-dna" aria-hidden="true"></i> Genes</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ site.baseurl }}models">Models</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ site.baseurl }}usage">Usage</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ site.baseurl }}about">About / FAQ</a>
+                </li>
+            </ul>
+        </div>
+    </div>
 </nav>

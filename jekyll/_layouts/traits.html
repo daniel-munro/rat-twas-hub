@@ -1,37 +1,23 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  {% include headers.html %}
+---
+layout: base
+---
 
-	<script type="text/javascript" class="init">
-		$(document).ready(function() {
-			$('table').DataTable( {
-   				lengthChange: false,
-   				paging: false,
-   				info: false,
-   				"language": {
-    				search: '<i class="fa fa-search fa-2x" aria-hidden="true"></i>'
-    			},
-    			"columnDefs": [
-					{ "className": "dt-left dt-head-left", "targets": [0,1,6] },
-					{ "className": "dt-right", "targets": '_all' }
-				],
-				"order": [[ 3, "desc" ]]
-  			} );
-		} );
-	</script>
-</head>
-<body>
-	
-  {% include navigation.html %}
+{{ content }}
 
-  <section id="wrapper" class="main">
-    {{ content }}
-  {% include footer.html %}
-  </section>
-  {% include scripts.html %}
-</body>
-</html>
-
-
-
+<script type="text/javascript" class="init">
+    $(document).ready(function() {
+        $('table').DataTable( {
+            lengthChange: false,
+            paging: false,
+            info: false,
+            "language": {
+                search: '<i class="fa fa-search fa-2x" aria-hidden="true"></i>'
+            },
+            "columnDefs": [
+                { "className": "dt-left dt-head-left", "targets": [0,1,6] },
+                { "className": "dt-right", "targets": '_all' }
+            ],
+            "order": [[ 3, "desc" ]]
+        } );
+    } );
+</script>
