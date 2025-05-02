@@ -123,22 +123,22 @@ orthologs <- orthologs |>
     mutate(
         human_symbol_link = if_else(
             human_has_model,
-            str_glue('<em><a href=\\"http://twas-hub.org/genes/{human_symbol}\\">{human_symbol}</a></em>'),
+            str_glue('<a href=\\"http://twas-hub.org/genes/{human_symbol}\\">{human_symbol}</a>'),
             human_symbol
         ),
         human_id_link = if_else(
             human_has_model,
-            str_glue('<em><a href=\\"http://twas-hub.org/genes/{human_symbol}\\">{human_id}</a></em>'),
+            str_glue('<a href=\\"http://twas-hub.org/genes/{human_symbol}\\">{human_id}</a>'),
             human_id
         ),
         rat_symbol_link = if_else(
             rat_has_model,
-            str_glue('<em><a href=\\"../genes/{rat_id}\\">{rat_symbol}</a></em>'),
+            str_glue('<a href=\\"../genes/{rat_id}\\">{rat_symbol}</a>'),
             rat_symbol
         ),
         rat_id_link = if_else(
             rat_has_model,
-            str_glue('<em><a href=\\"../genes/{rat_id}\\">{rat_id}</a></em>'),
+            str_glue('<a href=\\"../genes/{rat_id}\\">{rat_id}</a>'),
             rat_id
         ),
         line = str_glue('["{human_symbol_link}","{human_id_link}","{rat_symbol_link}","{rat_id_link}",{human_assoc},{rat_assoc}]')

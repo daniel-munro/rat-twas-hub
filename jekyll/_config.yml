@@ -70,5 +70,5 @@ exclude:
   - package-lock.json
   - package.json
   - README.md
+  - data/   # Large, upload directly instead
   # - genes/  # Exclude for testing
-  # - data/   # Exclude for testing

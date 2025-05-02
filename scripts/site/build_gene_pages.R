@@ -51,7 +51,9 @@ all_genes <- sort(unique(tbl_models$gene_id))
 for (i in 1:length(all_genes)) {
     fout <- str_glue("jekyll/genes/{all_genes[i]}.md")
     cat("---\n", "title: ", gene_names[all_genes[i]], "\npermalink: genes/", all_genes[i], "/ \nlayout: gene\n", "---\n\n", sep = "", file = fout)
-    cat("## [Hub]({{ site.baseurl }}) : [Genes]({{ site.baseurl }}genes)\n\n", file = fout, append = TRUE)
+    cat("{: .breadcrumb}\n",
+        "[Hub]({{ site.baseurl }}) : [Genes]({{ site.baseurl }}genes)\n\n",
+        sep = "", file = fout, append = TRUE)
     cat("# ", gene_names[all_genes[i]], "\n", sep = "", file = fout, append = TRUE)
     
     # WGT	ID	CHR	P0	P1	ID	NSNPS	HSQ	HSQ.SE	HSQ.PV	TOP1.R2	BLUP.R2	ENET.R2	BSLMM.R2	LASSO.R2	TOP1.PV	BLUP.PV	ENET.PV	BSLMM.PV	LASSO.PV

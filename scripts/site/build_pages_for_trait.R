@@ -82,7 +82,7 @@ if (!is.na(tbl_traits$TAGS[i])) {
 }
 
 cat("Project: [", tbl_traits$PROJECT[i], "]({{ site.baseurl }}projects/)\n\n", sep = "", file = fout, append = TRUE)
-cat(str_glue("`{length(top_models)} significantly associated model{if (length(top_models) == 1) '' else 's'} · {length(top_genes)} unique gene{if (length(top_genes) == 1) '' else 's'}`\n\n"), sep = "", file = fout, append = TRUE)
+cat(str_glue("{{: .text-center }}\n`{length(top_models)} significantly associated model{if (length(top_models) == 1) '' else 's'} · {length(top_genes)} unique gene{if (length(top_genes) == 1) '' else 's'}`\n\n"), sep = "", file = fout, append = TRUE)
 
 # ---- Get clumped and conditional loci
 cur_clumps <- read_tsv(
@@ -90,7 +90,7 @@ cur_clumps <- read_tsv(
 ) |>
     arrange(CHR, P0) |>
     mutate(VAR.EXP = round(VAR.EXP * 100, 0),
-           link = str_glue("*[{seq_len(n())}]({{{{ site.baseurl }}}}traits/{trait}/{seq_len(n())})*"),
+           link = str_glue("[{seq_len(n())}]({{{{ site.baseurl }}}}traits/{trait}/{seq_len(n())})"),
            genes = "")
 
 # load clumped genes
@@ -111,7 +111,10 @@ for (ii in seq_len(nrow(cur_clumps))) {
     
     fout_clump <- str_glue("jekyll/traits/{trait}/{ii}.md")
     cat(str_glue('---\ntitle: "{tbl_traits$NAME[i]}"\npermalink: traits/{trait}/{ii}/\nlayout: locus\n---\n\n'), sep = "", file = fout_clump)
-    cat("## [Hub]({{ site.baseurl }}) : [Traits]({{ site.baseurl }}traits) : ", tbl_traits$link[i], " : ", sep = "", file = fout_clump, append = TRUE)
+    cat("{: .breadcrumb}\n",
+        "[Hub]({{ site.baseurl }}) : [Traits]({{ site.baseurl }}traits) : ",
+        tbl_traits$link[i], " : ",
+        sep = "", file = fout_clump, append = TRUE)
     if (ii > 1) {
         cat(str_glue(" [ ← ]({{{{ site.baseurl }}}}traits/{trait}/{ii-1}) "), sep = "", file = fout_clump, append = TRUE)
     }
@@ -122,7 +125,8 @@ for (ii in seq_len(nrow(cur_clumps))) {
     pos1 <- formatC(cur_clumps$P1[ii], format = "f", big.mark = ",", drop0trailing = TRUE)
     cat(str_glue("\n\n# chr{cur_clumps$CHR[ii]}:{pos0}-{pos1}\n\n"), sep = "", file = fout_clump, append = TRUE)
     cat(str_glue("## Trait: {tbl_traits$NAME[i]}\n\n"), sep = "", file = fout_clump, append = TRUE)
-    cat("`Best TWAS P=", cur_clumps$BEST.TWAS.P[ii],
+    cat("{: .text-center}\n",
+        "`Best TWAS P=", cur_clumps$BEST.TWAS.P[ii],
         " · Best GWAS P=", cur_clumps$BEST.SNP.P[ii],
         " conditioned to ", cur_clumps$COND.SNP.P[ii],
         "`\n\n", sep = "", file = fout_clump, append = TRUE)
@@ -192,7 +196,7 @@ for (ii in 1:nrow(tbl_traits)) {
                 tst <- data.frame("est" = 0, "p.value" = 1)
             }
             genes <- sort(unique(gene_id(pleio$ID)))
-            genes_link <- str_c("*", str_c(str_glue("[{gene_names[genes]}]({{{{ site.baseurl }}}}genes/{genes})"), collapse=" "), "*")
+            genes_link <- str_c(str_glue("[{gene_names[genes]}]({{{{ site.baseurl }}}}genes/{genes})"), collapse=" ")
             n_genes_twas <- pleio |>
                 filter(TWAS.P.y < 0.05 / n) |>
                 with(length(unique(gene_id(ID))))

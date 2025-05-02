@@ -34,6 +34,7 @@ tbl_traits <- read_tsv("data/traits.par", col_types = "ccicccc") |>
         link = str_glue("[{NAME}]({{{{ site.baseurl }}}}traits/{ID})"),
         data_url = str_glue("{{{{ site.baseurl }}}}data/{ID}.tar.bz2"),
         data_link = str_glue('[ <i class="far fa-file-archive" aria-hidden="true"></i> ]({data_url})'),
+        project_link = str_glue("[{PROJECT}]({{{{ site.baseurl }}}}projects/)"),
     ) |>
     left_join(traits_nfo, by = "ID")
 
@@ -41,14 +42,14 @@ fout <- "jekyll/traits.md"
 cat("---", "title: Traits", "permalink: traits/", "layout: traits", "---\n", sep = "\n", file = fout)
 n_loci <- formatC(sum(tbl_traits$NUM.LOCI), format = "f", big.mark = ",", drop0trailing = TRUE)
 n_genes <- formatC(sum(tbl_traits$NUM.GENES), format = "f", big.mark = ",", drop0trailing = TRUE)
-cat("# *", nrow(tbl_traits), "* traits &middot; *",
-    n_loci, "* associated loci &middot; *",
-    n_genes, "*  gene/trait associations\n\n",
+cat("{: .text-center }\n### **",
+    nrow(tbl_traits), "** traits &middot; **",
+    n_loci, "** associated loci &middot; **",
+    n_genes, "**  gene/trait associations\n\n",
     sep = "", file = fout, append = TRUE)
-cat("| Project | Trait | N | # loci | # indep genes | # total genes | data | ", "| --- |", sep = "\n", file = fout, append = TRUE)
+cat("| Trait | N | # loci | # indep genes | # total genes | Project | data | ", "| --- |", sep = "\n", file = fout, append = TRUE)
 tbl_traits |>
-    select(PROJECT, link, N, NUM.LOCI, NUM.JOINT.GENES, NUM.GENES, data_link) |>
-    mutate(PROJECT = str_glue("[{PROJECT}]({{{{ site.baseurl }}}}projects/)")) |>
+    select(link, N, NUM.LOCI, NUM.JOINT.GENES, NUM.GENES, project_link, data_link) |>
     write.table(quote = FALSE, row.names = FALSE, col.names = FALSE, sep = " | ", file = fout, append = TRUE)
 
 fout <- "jekyll/models.md"
@@ -89,7 +90,7 @@ fout <- "jekyll/genes.md"
 cat("---", "title: Genes", "permalink: genes/", "layout: genes", "---\n", sep = "\n", file = fout)
 n_genes <- formatC(nrow(df_genes), format = "f", big.mark = ",", drop0trailing = TRUE)
 n_models <- formatC(sum(df_genes$n.models), format = "f", big.mark = ",", drop0trailing = TRUE)
-cat(str_glue("# *{n_genes}* genes &middot; *{n_models}* models\n\n\n"), sep = "", file = fout, append = TRUE)
+cat(str_glue("{: .text-center }\n### **{n_genes}** genes &middot; **{n_models}** models\n\n\n"), sep = "", file = fout, append = TRUE)
 cat("| Gene | ID | # associated traits | # models |\n", "| --- |\n| |\n", sep = "", file = fout, append = TRUE)
 ## Table rows get loaded from genes.json instead
 #write.table(df_genes[,c("link","n.assoc","n.models")],quote=F,row.names=F,col.names=F,sep=' | ',file=fout,append=T)
