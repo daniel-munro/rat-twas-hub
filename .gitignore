@@ -1,14 +1,12 @@
 .DS_Store
 .snakemake
 data/
+jekyll/_data/
 jekyll/_site/
 jekyll/data/
 jekyll/cross-species.json
 jekyll/genes/
 jekyll/genes.json
-jekyll/genes.md
-jekyll/models.md
-jekyll/projects.md
 jekyll/traits/
 jekyll/traits.md
 jekyll.tar.gz

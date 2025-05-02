@@ -6,19 +6,21 @@ layout: base
 
 <script src="{{ site.baseurl }}assets/js/manhattan.js"></script>
 <script type="text/javascript" class="init">
-    $(document).ready(function() {
-        $('table#models').DataTable( {
+    $(document).ready(function () {
+        $('table#models').DataTable({
             lengthChange: false,
             paging: false,
             info: false,
             searching: true,
-            order: [[ 16, 'des' ], [ 12, 'asc' ]],
-            "language": {
+            scrollX: true,
+            language: {
                 search: '<i class="fa fa-search" aria-hidden="true"></i>'
             },
-            "columnDefs": [ { "className": "dt-left dt-head-left", "targets": [0,1,2,3] },{ "className": "dt-right", "targets": '_all' } ]  
-
-        } );
-    } );
+            columnDefs: [
+                { className: "dt-left dt-head-left", targets: [1, 2, 3, 4, 7, 17] },
+                { className: "dt-right dt-head-right", targets: [0, 5, 6, 8, 9, 10, 11, 12, 13, 14, 15, 16] },
+            ],
+            order: [[13, 'asc']],
+        });
+    });
 </script>
-

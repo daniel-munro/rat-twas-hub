@@ -124,7 +124,7 @@ for (ii in seq_len(nrow(cur_clumps))) {
     pos0 <- formatC(cur_clumps$P0[ii], format = "f", big.mark = ",", drop0trailing = TRUE)
     pos1 <- formatC(cur_clumps$P1[ii], format = "f", big.mark = ",", drop0trailing = TRUE)
     cat(str_glue("\n\n# chr{cur_clumps$CHR[ii]}:{pos0}-{pos1}\n\n"), sep = "", file = fout_clump, append = TRUE)
-    cat(str_glue("## Trait: {tbl_traits$NAME[i]}\n\n"), sep = "", file = fout_clump, append = TRUE)
+    cat(str_glue("{: .text-center}\nTrait: {tbl_traits$NAME[i]}\n\n"), sep = "", file = fout_clump, append = TRUE)
     cat("{: .text-center}\n",
         "`Best TWAS P=", cur_clumps$BEST.TWAS.P[ii],
         " · Best GWAS P=", cur_clumps$BEST.SNP.P[ii],

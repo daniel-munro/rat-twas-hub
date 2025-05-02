@@ -1,70 +1,3 @@
-div.dataTables_wrapper  div.dataTables_filter {
-  width: 100%;
-  float: right;
-  text-align: right;
-  margin-top: -58px;
-  margin-right: 8px;
-}
-div.dataTables_wrapper  div.dataTables_filter input {
-  width: 250px;
-  border: 0;
-  border-bottom: 2px solid #ccc;
-  padding: 5px;
-  font-size: 15px;
-  margin: 0 0 15px 10px;
-  border-style: solid;
-}
-
-table#pleiotropic th,
-table#pleiotropic td { white-space: nowrap; }
-
-/* #wrapper.main div.dataTables_wrapper  div.dataTables_filter {
-  width: 100%;
-  text-align: center;
-  margin: 30px 0;
-}
-#wrapper.main div.dataTables_wrapper  div.dataTables_filter input {
-  width: 500px;
-  border: 0;
-  padding: 10px;
-  font-size: 30px;
-  margin: 0 0 15px 30px;
-  border-radius: 3px;
-  border: 1px solid #DDD;
-  box-shadow: rgba(29,31,129,0.1) 0 0 1em;
-} */
-
-/* #wrapper.about {
-  max-width: 800px;
-  text-align: justify;
-  margin: 0 auto;
-  font-size: 20px;
-} */
-
-table thead th {
-  white-space: pre-wrap;
-}
-
-table td {
-  vertical-align: middle;
-}
-
-table#assoc { 
-  font-size: 11px;
-  margin: 0;
-  color: black;
-  width: 100%;
-}
-table#assoc a {
-  font-size: 13px;
-}
-
-table.flat {
-  border: 1px solid #eee;
-  font-size: 15px;
-}
-
-/* Base */
 html, body { height: 100%; }
 
 .navbar-brand {
@@ -145,29 +78,16 @@ td em a {
   line-height: 30px;
   margin: 0 5px 0 0;
 }
+
 td em a:hover {
   border: 1px solid #5694f1;
   color: #0e4aa3;
-}
-  
-#title {
-  display: inline-block;
-  line-height: 100%;
-  font-weight: 500;
-  font-size: 19px;
-  margin: 0;
-  padding-bottom: 20px;
 }
 
 .description {
   float: right;
   font: italic 14px/1.4em Georgia,serif;
   color: #aaa;
-}
-
-.post header {
-  text-align:center;
-
 }
 
 h1 {
@@ -199,24 +119,15 @@ code {
 }
 
 table {
-  width: 100%;
-  margin: 40px 0;
-  border-collapse: collapse;
-  font-size: 13px;
-  line-height: 1.5em;
+  font-size: 0.9rem;
 }
 
-th,td {
-  text-align: left;
-  padding-right: 20px;
-  vertical-align: top;
+table td {
+	white-space: nowrap;
 }
 
-table td,td {
-  border-spacing: none;
-  border-style: solid;
-  padding: 10px 15px;
-  border-width: 1px 0 0 0;
+table#projects td {
+  white-space: normal;
 }
 
 tr>td {

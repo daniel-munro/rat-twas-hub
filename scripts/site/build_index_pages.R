@@ -1,30 +1,25 @@
 # Load the data and generate the index pages for the traits, models, genes, and projects.
 
 # Inputs:
-# data/panels.par
 # data/traits.par
 # data/traits.par.nfo
 # data/all_models.par
 # data/genes_n_assoc.nfo
 # data/genes_n_models.nfo
 # data/gene_names.tsv
-# data/projects.tsv
 
 # Outputs:
 # jekyll/traits.md
-# jekyll/models.md
 # jekyll/genes.json
-# jekyll/genes.md
-# jekyll/projects.md
+# jekyll/_data/genes_stats.yml
 
 suppressPackageStartupMessages(library(tidyverse))
+library(yaml)
 
 gene_id <- function(pheno_ID) {
     # Extract gene ID from RNA phenotype ID
     str_extract(pheno_ID, "^[^:.]+")
 }
-
-tbl_panels <- read_tsv("data/panels.par", col_types = "ccccci")
 
 # ---- PRINT TRAIT INDEX
 traits_nfo <- read_tsv("data/traits.par.nfo", col_types = "ciiid")
@@ -52,15 +47,6 @@ tbl_traits |>
     select(link, N, NUM.LOCI, NUM.JOINT.GENES, NUM.GENES, project_link, data_link) |>
     write.table(quote = FALSE, row.names = FALSE, col.names = FALSE, sep = " | ", file = fout, append = TRUE)
 
-fout <- "jekyll/models.md"
-cat("---", "title: Models", "permalink: models/", "---\n", sep = "\n", file = fout)
-cat("# Models \n\n", sep = "", file = fout, append = TRUE)
-cat("| Tissue | Modality | N |", "| --- |", sep = "\n", file = fout, append = TRUE)
-tbl_panels |>
-    select(TISSUE, MODALITY, N) |>
-    write.table(quote = FALSE, row.names = FALSE, col.names = FALSE, sep = " | ", file = fout, append = TRUE)
-# ----
-
 ## Make genes.json
 all_genes <- read_tsv("data/all_models.par", col_types = cols(ID = "c", .default = "-")) |>
     mutate(gene_id = gene_id(ID)) |>
@@ -73,10 +59,10 @@ genes_n_models <- read_delim("data/genes_n_models.nfo", delim = " ", col_types =
 gene_names <- read_tsv("data/gene_names.tsv", col_types = "cc") |>
     deframe()
 
-df_genes <- tibble(gene = all_genes) |>#, n.models = 0, n.assoc = 0)
+df_genes <- tibble(gene = all_genes) |>
     mutate(n.assoc = genes_n_assoc[gene],
            n.models = genes_n_models[gene],
-           gene_link = str_glue('<em><a href=\\"./{gene}\\">{gene_names[gene]}</a></em>')) |>
+           gene_link = str_glue('<a href=\\"./{gene}\\">{gene_names[gene]}</a>')) |>
     replace_na(list(n.assoc = 0, n.models = 0))
 
 cat('{\n"data":[\n',
@@ -85,31 +71,10 @@ cat('{\n"data":[\n',
     sep = "",
     file = "jekyll/genes.json")
 
-# ---- PRINT GENE INDEX
-fout <- "jekyll/genes.md"
-cat("---", "title: Genes", "permalink: genes/", "layout: genes", "---\n", sep = "\n", file = fout)
-n_genes <- formatC(nrow(df_genes), format = "f", big.mark = ",", drop0trailing = TRUE)
-n_models <- formatC(sum(df_genes$n.models), format = "f", big.mark = ",", drop0trailing = TRUE)
-cat(str_glue("{: .text-center }\n### **{n_genes}** genes &middot; **{n_models}** models\n\n\n"), sep = "", file = fout, append = TRUE)
-cat("| Gene | ID | # associated traits | # models |\n", "| --- |\n| |\n", sep = "", file = fout, append = TRUE)
-## Table rows get loaded from genes.json instead
-#write.table(df_genes[,c("link","n.assoc","n.models")],quote=F,row.names=F,col.names=F,sep=' | ',file=fout,append=T)
-cat("{: #genes}\n", file = fout, append = TRUE)
-# ----
-
-## ---- PRINT PROJECT INDEX
-tbl_projects <- read_tsv("data/projects.tsv", col_types = "cccccc")
-fout <- "jekyll/projects.md"
-cat("---", "title: Projects", "permalink: projects/", "---\n", sep = "\n", file = fout)
-cat("# Projects\n\n", sep = "", file = fout, append = TRUE)
-cat(
-    "Each project provided GWAS data for one or more traits.",
-    "Only traits from the original studies with sufficient information and biological interpretability are included in this portal.\n\n",
-    sep = "\n", file = fout, append = TRUE
+# ---- STATS FOR GENE INDEX
+gene_stats <- list(
+  n_genes = formatC(nrow(df_genes), format = "f", big.mark = ",", drop0trailing = TRUE),
+  n_models = formatC(sum(df_genes$n.models), format = "f", big.mark = ",", drop0trailing = TRUE)
 )
-cat("| ID | Principal investigator | Title | Animal source |", "| --- |", sep = "\n", file = fout, append = TRUE)
-tbl_projects |>
-    select(id, pi, title, animal_source) |>
-    replace_na(list(pi = "-", title = "-", animal_source = "-")) |>
-    write.table(quote = FALSE, row.names = FALSE, col.names = FALSE, sep = " | ", file = fout, append = TRUE)
-# ----
+dir.create("jekyll/_data", showWarnings = FALSE, recursive = TRUE)
+yaml::write_yaml(gene_stats, file = "jekyll/_data/genes_stats.yml")

@@ -5,19 +5,21 @@ layout: base
 {{ content }}
 
 <script type="text/javascript" class="init">
-    $(document).ready(function() {
-        $('table').DataTable( {
+    $(document).ready(function () {
+        $('table').DataTable({
             lengthChange: false,
             paging: false,
             info: false,
-            "language": {
+            searching: true,
+            scrollX: true,
+            language: {
                 search: '<i class="fa fa-search fa-2x" aria-hidden="true"></i>'
             },
-            "columnDefs": [
-                { "className": "dt-left dt-head-left", "targets": [0,1,6] },
-                { "className": "dt-right", "targets": '_all' }
+            columnDefs: [
+                { className: "dt-left dt-head-left", targets: [0, 1, 6] },
+                { className: "dt-right dt-head-right", targets: [2, 3, 4, 5] },
             ],
-            "order": [[ 3, "desc" ]]
-        } );
-    } );
+            order: [[3, 'desc']]
+        });
+    });
 </script>

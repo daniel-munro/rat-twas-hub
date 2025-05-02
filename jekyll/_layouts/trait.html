@@ -5,42 +5,53 @@ layout: base
 {{ content }}
 
 <script type="text/javascript" class="init">
-    $(document).ready(function() {
-        $('table#panels').DataTable( {
-            lengthChange: false,
-            paging: false,
-            info: false,
-            scrollY: 200,
-            order: [[4, 'des']],
-            "language": {
-                search: '<i class="fa fa-search" aria-hidden="true"></i>'
-            },
-            "columnDefs": [ { "className": "dt-left dt-head-left", "targets": [0,1] },{ "className": "dt-right", "targets": '_all' } ]  
-        } );
-        $('table#pleiotropic').DataTable( {
+    $(document).ready(function () {
+        $('table#loci').DataTable({
             lengthChange: false,
             paging: false,
             info: false,
             searching: true,
-            "scrollX": "100%",
-            "scrollY": 400,
-            autoWidth: false,
-            order: [[1, 'des']],
-            "language": {
+            scrollX: true,
+            language: {
                 search: '<i class="fa fa-search" aria-hidden="true"></i>'
             },
-            "columnDefs": [ { "className": "dt-left dt-head-left", "targets": [0,7] },{ "className": "dt-right", "targets": '_all' } ]  
-        } );
-        $('table#loci').DataTable( {
-            lengthChange: false,
-            paging: false,
-            info: false,
-            searching: true,
+            columnDefs: [
+                { className: "dt-left dt-head-left", targets: [0, 10] },
+                { className: "dt-right dt-head-right", targets: [1, 2, 3, 4, 5, 6, 7, 8, 9] },
+            ],
             order: [[0, 'asc']],
-            "language": {
+        });
+        $('table#pleiotropic').DataTable({
+            lengthChange: false,
+            paging: false,
+            info: false,
+            searching: true,
+            scrollX: true,
+            scrollY: 400,
+            autoWidth: false,
+            language: {
                 search: '<i class="fa fa-search" aria-hidden="true"></i>'
             },
-            "columnDefs": [ { "className": "dt-left dt-head-left", "targets": [0,10] },{ "className": "dt-right", "targets": '_all' } ] 
-        } );
-    } );
+            columnDefs: [
+                { className: "dt-left dt-head-left", targets: [0, 7] },
+                { className: "dt-right dt-head-right", targets: [1, 2, 3, 4, 5, 6] },
+            ],
+            order: [[1, 'des']],
+        });
+        $('table#panels').DataTable({
+            lengthChange: false,
+            paging: false,
+            info: false,
+            searching: true,
+            scrollY: 400,
+            language: {
+                search: '<i class="fa fa-search" aria-hidden="true"></i>'
+            },
+            columnDefs: [
+                { className: "dt-left dt-head-left", targets: [0, 1] },
+                { className: "dt-right dt-head-right", targets: [2, 3, 4] },
+            ],
+            order: [[4, 'des']],
+        });
+    });
 </script>

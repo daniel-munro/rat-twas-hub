@@ -48,7 +48,7 @@ tbl_traits <- read_tsv("data/traits.par", col_types = "ccicccc") |>
 # iterate and make each gene file
 all_genes <- sort(unique(tbl_models$gene_id))
 
-for (i in 1:length(all_genes)) {
+for (i in seq_along(all_genes)) {
     fout <- str_glue("jekyll/genes/{all_genes[i]}.md")
     cat("---\n", "title: ", gene_names[all_genes[i]], "\npermalink: genes/", all_genes[i], "/ \nlayout: gene\n", "---\n\n", sep = "", file = fout)
     cat("{: .breadcrumb}\n",
@@ -61,7 +61,7 @@ for (i in 1:length(all_genes)) {
     cat("| # | tissue | modality | RNA phenotype | h<sup>2</sup> | h<sup>2</sup> se | h<sup>2</sup> P | eQTL R<sup>2</sup> | BLUP R<sup>2</sup> | ENET R<sup>2</sup> | LASSO R<sup>2</sup> | eQTL P | BLUP P | ENET P | LASSO P |\n| --- |\n", sep = "", file = fout, append = TRUE)
     cur_models <- tbl_models |>
         filter(gene_id == all_genes[i]) |>
-        mutate(NUM = 1:n())
+        mutate(NUM = seq_len(n()))
     cur_models |>
         select(NUM, TISSUE, MODALITY, ID, HSQ, HSQ.SE, HSQ.PV, TOP1.R2, BLUP.R2,
                ENET.R2, LASSO.R2, TOP1.PV, BLUP.PV, ENET.PV, LASSO.PV) |>

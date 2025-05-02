@@ -4,7 +4,7 @@ set -e
 
 THREADS=$1
 
-mkdir -p jekyll/traits jekyll/genes jekyll/data
+mkdir -p jekyll/traits jekyll/genes jekyll/data jekyll/_data
 
 echo "Building trait pages..."
 N_TRAITS=`wc -l data/traits.par | awk '{ print $1 - 1 }'`
@@ -16,5 +16,7 @@ Rscript scripts/site/build_cross_species.R
 
 echo "Building index pages..."
 Rscript scripts/site/build_index_pages.R
+cp data/projects.tsv jekyll/_data/
+cp data/panels.par jekyll/_data/panels.tsv
 
 echo "Done building jekyll files."
