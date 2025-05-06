@@ -14,8 +14,8 @@ echo "Building gene pages..."
 Rscript scripts/site/build_gene_pages.R
 Rscript scripts/site/build_cross_species.R
 
-echo "Building index pages..."
-Rscript scripts/site/build_index_pages.R
+echo "Building summary data..."
+Rscript scripts/site/build_summary_data.R
 cp data/projects.tsv jekyll/_data/
 cp data/panels.par jekyll/_data/panels.tsv
 

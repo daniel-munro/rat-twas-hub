@@ -1,4 +1,4 @@
-# Load the results of a single trait and generate a markdown file for the trait page and each of its hit loci
+# Load the results of a single trait and generate the basic markdown pages (frontmatter only) for the trait page and each of its hit loci, along with data tables for Jekyll to render in the pages.
 
 # Inputs:
 # data/gene_names.tsv
@@ -11,6 +11,9 @@
 # Outputs:
 # jekyll/traits/{trait}.md
 # jekyll/traits/{trait}/{locus}.md
+# jekyll/_data/trait_loci/{trait}.tsv
+# jekyll/_data/trait_pleio/{trait}.tsv
+# jekyll/_data/trait_panels/{trait}.tsv
 
 suppressPackageStartupMessages(library(tidyverse))
 
@@ -38,7 +41,6 @@ gene_names <- read_tsv("data/gene_names.tsv", col_types = "cc") |>
 traits_nfo <- read_tsv("data/traits.par.nfo", col_types = "ciiid")
 
 tbl_traits <- read_tsv("data/traits.par", col_types = "ccicccc") |>
-    mutate(link = str_glue("[{NAME}]({{{{ site.baseurl }}}}traits/{ID})")) |>
     left_join(traits_nfo, by = "ID")
 
 cat("reading data/panels.par\n")
@@ -68,29 +70,32 @@ df_cur_models <- cur |>
 
 # ---- PRINT TRAIT PAGE
 
-fout <- str_glue("jekyll/traits/{trait}.md")
+fout_page <- str_glue("jekyll/traits/{trait}.md")
+fout_loci <- str_glue("jekyll/_data/trait_loci/{trait}.tsv")
+fout_pleio <- str_glue("jekyll/_data/trait_pleio/{trait}.tsv")
+fout_panels <- str_glue("jekyll/_data/trait_panels/{trait}.tsv")
+
 system(str_glue("mkdir -p jekyll/traits/{trait}"))
+system(str_glue("mkdir -p jekyll/_data/trait_loci"))
+system(str_glue("mkdir -p jekyll/_data/trait_pleio"))
+system(str_glue("mkdir -p jekyll/_data/trait_panels"))
 
-cat("---\n", 'title: "', tbl_traits$NAME[i], '"\npermalink: traits/', trait, "/\nlayout: trait\n", "---\n\n", sep = "", file = fout)
-cat("## [Hub]({{ site.baseurl }}) : [Traits]({{ site.baseurl }}traits/)\n\n", file = fout, append = TRUE)
-cat("# ", tbl_traits$NAME[i], "\n\n", sep = "", file = fout, append = TRUE)
-if (!is.na(tbl_traits$DESCRIPTION[i])) {
-    cat(tbl_traits$DESCRIPTION[i], "\n\n", sep = "", file = fout, append = TRUE)
-}
-if (!is.na(tbl_traits$TAGS[i])) {
-    cat("Tags: ", str_replace_all(tbl_traits$TAGS[i], ",", " · "), "\n\n", sep = "", file = fout, append = TRUE)
-}
-
-cat("Project: [", tbl_traits$PROJECT[i], "]({{ site.baseurl }}projects/)\n\n", sep = "", file = fout, append = TRUE)
-cat(str_glue("{{: .text-center }}\n`{length(top_models)} significantly associated model{if (length(top_models) == 1) '' else 's'} · {length(top_genes)} unique gene{if (length(top_genes) == 1) '' else 's'}`\n\n"), sep = "", file = fout, append = TRUE)
+page <- c(
+    "---",
+    str_glue('title: "{tbl_traits$NAME[i]}"'),
+    str_glue('permalink: traits/{trait}/'),
+    "layout: trait",
+    str_glue("id: {trait}"),
+    "---"
+)
+write_lines(page, fout_page)
 
 # ---- Get clumped and conditional loci
 cur_clumps <- read_tsv(
     str_replace(tbl_traits$OUTPUT[i], ".all.tsv", ".post.tsv"), col_types = "ciiiiidddd"
 ) |>
     arrange(CHR, P0) |>
-    mutate(VAR.EXP = round(VAR.EXP * 100, 0),
-           link = str_glue("[{seq_len(n())}]({{{{ site.baseurl }}}}traits/{trait}/{seq_len(n())})"),
+    mutate(locus_num = seq_len(n()),
            genes = "")
 
 # load clumped genes
@@ -100,11 +105,11 @@ for (ii in seq_len(nrow(cur_clumps))) {
                               col_types = "ccciiidcdcdddiicdddddddddld") |>
         mutate(num = seq_len(n()),
                gene_id = gene_id(ID),
-               link = str_glue("[{gene_names[gene_id]}]({{{{ site.baseurl }}}}genes/{gene_id})")) |>
+               link = str_glue("<a href='{{{{ site.baseurl }}}}genes/{gene_id}'>{gene_names[gene_id]}</a>")) |>
     left_join(select(tbl_panels, PANEL, TISSUE, MODALITY), by = "PANEL")
     
     cur_genes <- sort(unique(cur_genes_tbl$gene_id[cur_genes_tbl$JOINT]))
-    cur_genes <- str_c(str_glue("[{gene_names[cur_genes]}]({{{{ site.baseurl }}}}genes/{cur_genes})"), collapse = " ")
+    cur_genes <- str_c(str_glue("<a href='{{{{ site.baseurl }}}}genes/{cur_genes}'>{gene_names[cur_genes]}</a>"), collapse = " ")
     cur_clumps$genes[ii] <- cur_genes
     
     clump_mod <- unique(c(clump_mod, cur_genes_tbl$FILE[cur_genes_tbl$JOINT]))
@@ -124,7 +129,7 @@ for (ii in seq_len(nrow(cur_clumps))) {
     pos0 <- formatC(cur_clumps$P0[ii], format = "f", big.mark = ",", drop0trailing = TRUE)
     pos1 <- formatC(cur_clumps$P1[ii], format = "f", big.mark = ",", drop0trailing = TRUE)
     cat(str_glue("\n\n# chr{cur_clumps$CHR[ii]}:{pos0}-{pos1}\n\n"), sep = "", file = fout_clump, append = TRUE)
-    cat(str_glue("{: .text-center}\nTrait: {tbl_traits$NAME[i]}\n\n"), sep = "", file = fout_clump, append = TRUE)
+    cat(str_glue("{{}: .text-center}}\nTrait: {tbl_traits$NAME[i]}\n\n"), sep = "", file = fout_clump, append = TRUE)
     cat("{: .text-center}\n",
         "`Best TWAS P=", cur_clumps$BEST.TWAS.P[ii],
         " · Best GWAS P=", cur_clumps$BEST.SNP.P[ii],
@@ -159,27 +164,27 @@ for (ii in seq_len(nrow(cur_clumps))) {
     )
 }
 
-if (nrow(cur_clumps) > 0) {
-    cat("\n### Significant Loci\n\n", sep = "", file = fout, append = TRUE)
-    cat('| # | chr | <span title="Physical position of the start of the locus">p0</span> | <span title="Physical position of the end of the locus">p1</span> | # assoc genes | <span title="number of models selected by step-wise conditional analysis"># joint models</span> | best TWAS P | best SNP P | cond SNP P | % var exp | joint genes |\n| --- |\n', sep = "", file = fout, append = TRUE)
-    cur_clumps |>
-        select(link, CHR, P0, P1, HIT.GENES, JOINT.GENES, BEST.TWAS.P, BEST.SNP.P, COND.SNP.P, VAR.EXP, genes) |>
-        as.data.frame() |>
-        format(digits = 2) |>
-        write.table(quote = FALSE, row.names = FALSE, col.names = FALSE, sep = " | ", file = fout, append = TRUE)
-    cat(
-        "{: #loci}\n\n",
-        "**p0**: physical position of the start of the locus. ",
-        "**p1**: physical position of the end of the locus. ",
-        "**# joint models**: number of models selected by step-wise conditional analysis.\n\n",
-        file = fout, append = TRUE
-    )
-}
+cur_clumps |>
+    mutate(VAR.EXP = round(VAR.EXP * 100, 0)) |>
+    select(
+        locus_num,
+        chr = CHR,
+        p0 = P0,
+        p1 = P1,
+        hit_genes = HIT.GENES,
+        joint_genes = JOINT.GENES,
+        best_twas_p = BEST.TWAS.P,
+        best_snp_p = BEST.SNP.P,
+        cond_snp_p = COND.SNP.P,
+        var_exp = VAR.EXP,
+        genes
+    ) |>
+    mutate(across(where(is.numeric), ~ round(.x, 2))) |>
+    write_tsv(fout_loci)
 
 # ---- Get pleiotropic loci
 n_pleiot <- 0
-for (ii in 1:nrow(tbl_traits)) {
-    # cat(ii, "\n")
+for (ii in seq_len(nrow(tbl_traits))) {
     if ((ii != i) && length(top_models) > 0) {
         other_cur <- read_tsv(
             tbl_traits$OUTPUT[ii],
@@ -196,18 +201,20 @@ for (ii in 1:nrow(tbl_traits)) {
                 tst <- data.frame("est" = 0, "p.value" = 1)
             }
             genes <- sort(unique(gene_id(pleio$ID)))
-            genes_link <- str_c(str_glue("[{gene_names[genes]}]({{{{ site.baseurl }}}}genes/{genes})"), collapse=" ")
+            genes_link <- str_c(str_glue("<a href='{{{{ site.baseurl }}}}genes/{genes}'>{gene_names[genes]}</a>"), collapse=" ")
             n_genes_twas <- pleio |>
                 filter(TWAS.P.y < 0.05 / n) |>
                 with(length(unique(gene_id(ID))))
-            df_tmp <- data.frame("link" = tbl_traits$link[ii],
-                                 "chisq.ratio" = round(mean(pleio$TWAS.Z.y^2, na.rm = TRUE) / tbl_traits$AVG.CHISQ[ii], 2),
-                                 "num.genes" = length(genes),
-                                 "num.genes.twas" = n_genes_twas,
-                                 "pct.genes.twas" = round(100 * n_genes_twas / tbl_traits$NUM.JOINT.GENES[i], 1), # Replaced 3 with i
-                                 "corr" = round(tst$est, 2),
-                                 "p.val" = tst$p.value,
-                                 "genes" = genes_link)
+            df_tmp <- data.frame(
+                trait_id = tbl_traits$ID[ii],
+                chisq_ratio = round(mean(pleio$TWAS.Z.y^2, na.rm = TRUE) / tbl_traits$AVG.CHISQ[ii], 2),
+                num_genes = length(genes),
+                num_genes_twas = n_genes_twas,
+                pct_genes_twas = round(100 * n_genes_twas / tbl_traits$NUM.JOINT.GENES[i], 1), # Replaced 3 with i
+                corr = round(tst$est, 2),
+                p_val = tst$p.value,
+                genes = genes_link
+            )
             if (n_pleiot == 0) {
                 df_pleiot <- df_tmp
             } else {
@@ -218,34 +225,28 @@ for (ii in 1:nrow(tbl_traits)) {
     }
 }
 
-if (n_pleiot != 0) {
-    cat("### Pleiotropic Associations\n\n", sep = "", file = fout, append = TRUE)
-    cat('| Trait | <span title="Average Chi^2 statistic for the selected genes in the secondary trait, divided by the average statistic for all genes in the secondary trait.">chisq ratio</span> | <span title="Shared significant genes at Bonferroni correction"># genes<sup>+</sup></span> | <span title="Shared significant genes at transcriptome-wide significance"># genes<sup>++</sup></span> | <span title="Number of [++] genes as a percentage of primary trait\'s total joint genes.">% genes<sup>++</sup></span> | <span title="Correlation of effect sizes across the [+] genes">corr</span> | corr P | genes |', '| --- |', sep = "\n", file = fout, append = TRUE)
-    df_pleiot |>
-        replace_na(list(pct.genes.twas = 0)) |>
-        as.data.frame() |>
-        format(digits = 2) |>
-        write.table(quote = FALSE, row.names = FALSE, col.names = FALSE, sep = " | ", file = fout, append = TRUE)
-    cat(
-        "{: #pleiotropic}\n\n",
-        "**chisq ratio**: Average Chi<sup>2</sup> statistic for the selected genes in the secondary trait, divided by the average statistic for all genes in the secondary trait. ",
-        "**# genes<sup>+</sup>**: Shared significant genes at Bonferroni correction. ",
-        "**# genes<sup>++</sup>**: Shared significant genes at transcriptome-wide significance. ",
-        "**% genes<sup>++</sup>**: Number of [++] genes as a percentage of primary trait's total joint genes. ",
-        "**corr**: Correlation of effect sizes across the [+] genes.\n\n",
-        file = fout, append = TRUE
-    )
-}
+df_pleiot |>
+    replace_na(list(pct_genes_twas = 0)) |>
+    select(
+        trait_id,
+        chisq_ratio,
+        num_genes,
+        num_genes_twas,
+        pct_genes_twas,
+        corr,
+        p_val,
+        genes
+    ) |>
+    mutate(across(where(is.numeric), ~ round(.x, 2))) |>
+    write_tsv(fout_pleio)
 
-cat("### Associations by panel\n\n", sep = "", file = fout, append = TRUE)
-cat('| tissue | modality | # hits | % hits/tests | <span title="Average Chi^2 across all models in this panel for this trait">avg chisq</span> |', "| --- |", sep = "\n", file = fout, append = TRUE)
 df_cur_models |>
-    select(TISSUE, MODALITY, num.hits, pct.hits, avg.chisq) |>
-    as.data.frame() |>
-    format(digits = 2) |>
-    write.table(quote = FALSE, row.names = FALSE, col.names = FALSE, sep = " | ", file = fout, append = TRUE)
-cat(
-    "{: #panels}\n\n",
-    "**avg chisq**: Average Chi<sup>2</sup> (squared Z-score) across all models in this panel for this trait. ",
-    file = fout, append = TRUE
-)
+    select(
+        tissue = TISSUE,
+        modality = MODALITY,
+        num_hits = num.hits,
+        pct_hits = pct.hits,
+        avg_chisq = avg.chisq
+    ) |>
+    mutate(across(where(is.numeric), ~ round(.x, 2))) |>
+    write_tsv(fout_panels)
