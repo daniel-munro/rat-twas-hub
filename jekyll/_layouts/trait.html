@@ -2,7 +2,137 @@
 layout: base
 ---
 
-{{ content }}
+{% assign trait = site.data.traits | where: "ID", page.id | first %}
+{% capture title %}test{{ trait.NAME }}{% endcapture %}
+
+<p class="breadcrumb">
+  <a href="{{ site.baseurl }}">Hub</a> : <a href="{{ site.baseurl }}traits/">Traits</a>
+</p>
+
+<h1>{{ trait.NAME }}</h1>
+
+{% if trait.DESCRIPTION != "NA" %}
+<p>{{ trait.DESCRIPTION }}</p>
+{% endif %}
+
+<p>Tags: {{ trait.TAGS | replace: ",", " · " }}</p>
+
+<p>Project: <a href="{{ site.baseurl }}projects/">{{ trait.PROJECT }}</a></p>
+
+<p class="text-center">
+    <strong>{{ trait.NUM_LOCI }}</strong> {% if trait.NUM_LOCI == 1 %}locus{% else %}loci{% endif %} · 
+    <strong>{{ trait.NUM_JOINT_GENES }}</strong> gene{% if trait.NUM_JOINT_GENES != 1 %}s{% endif %} with independent associations · 
+    <strong>{{ trait.NUM_GENES }}</strong> total associated gene{% if trait.NUM_GENES != 1 %}s{% endif %}
+</p>
+
+<h3>Significant Loci</h3>
+
+<table id="loci">
+  <thead>
+    <tr>
+      <th>#</th>
+      <th>chr</th>
+      <th><span title="Physical position of the start of the locus">p0</span></th>
+      <th><span title="Physical position of the end of the locus">p1</span></th>
+      <th># assoc genes</th>
+      <th><span title="number of models selected by step-wise conditional analysis"># joint models</span></th>
+      <th>best TWAS P</th>
+      <th>best SNP P</th>
+      <th>cond SNP P</th>
+      <th>% var exp</th>
+      <th>joint genes</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% assign loci = site.data.trait_loci[page.id] %}
+    {% for locus in loci %}
+    <tr>
+      <td><em><a href="{{ site.baseurl }}traits/{{ page.id }}/{{ locus.locus_num }}">{{ locus.locus_num }}</a></em></td>
+      <td>{{ locus.chr }}</td>
+      <td>{{ locus.p0 }}</td>
+      <td>{{ locus.p1 }}</td>
+      <td>{{ locus.hit_genes }}</td>
+      <td>{{ locus.joint_genes }}</td>
+      <td>{{ locus.best_twas_p }}</td>
+      <td>{{ locus.best_snp_p }}</td>
+      <td>{{ locus.cond_snp_p }}</td>
+      <td>{{ locus.var_exp }}</td>
+      <td><em>{{ locus.genes }}</em></td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<p>
+  <strong>p0</strong>: physical position of the start of the locus.  <strong>p1</strong>: physical position of the end of the locus.  <strong># joint models</strong>: number of models selected by step-wise conditional analysis.
+</p>
+
+<h3>Pleiotropic Associations</h3>
+
+<table id="pleiotropic">
+  <thead>
+    <tr>
+      <th>Trait</th>
+      <th><span title="Average Chi^2 statistic for the selected genes in the secondary trait, divided by the average statistic for all genes in the secondary trait.">chisq ratio</span></th>
+      <th><span title="Shared significant genes at Bonferroni correction"># genes<sup>+</sup></span></th>
+      <th><span title="Shared significant genes at transcriptome-wide significance"># genes<sup>++</sup></span></th>
+      <th><span title="Number of [++] genes as a percentage of primary trait's total joint genes.">% genes<sup>++</sup></span></th>
+      <th><span title="Correlation of effect sizes across the [+] genes">corr</span></th>
+      <th>corr P</th>
+      <th>genes</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% assign pleio = site.data.trait_pleio[page.id] %}
+    {% for row in pleio %}
+    {% assign trait2 = site.data.traits | where: "ID", row.trait_id | first %}
+    <tr>
+      <td><a href="{{ site.baseurl }}traits/{{ row.trait_id }}">{{ trait2.NAME }}</a></td>
+      <td>{{ row.chisq_ratio }}</td>
+      <td>{{ row.num_genes }}</td>
+      <td>{{ row.num_genes_twas }}</td>
+      <td>{{ row.pct_genes_twas }}</td>
+      <td>{{ row.corr }}</td>
+      <td>{{ row.p_val }}</td>
+      <td><em>{{ row.genes }}</em></td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<p>
+  <strong>chisq ratio</strong>: Average Chi<sup>2</sup> statistic for the selected genes in the secondary trait, divided by the average statistic for all genes in the secondary trait.  <strong># genes<sup>+</sup></strong>: Shared significant genes at Bonferroni correction.  <strong># genes<sup>++</sup></strong>: Shared significant genes at transcriptome-wide significance.  <strong>% genes<sup>++</sup></strong>: Number of [++] genes as a percentage of primary trait's total joint genes.  <strong>corr</strong>: Correlation of effect sizes across the [+] genes.
+</p>
+
+<h3>Associations by panel</h3>
+
+<table id="panels">
+  <thead>
+    <tr>
+      <th>tissue</th>
+      <th>modality</th>
+      <th># hits</th>
+      <th>% hits/tests</th>
+      <th><span title="Average Chi^2 across all models in this panel for this trait">avg chisq</span></th>
+    </tr>
+  </thead>
+  <tbody>
+    {% assign panels = site.data.trait_panels[page.id] %}
+    {% for row in panels %}
+    <tr>
+      <td>{{ row.tissue }}</td>
+      <td>{{ row.modality }}</td>
+      <td>{{ row.num_hits }}</td>
+      <td>{{ row.pct_hits }}</td>
+      <td>{{ row.avg_chisq }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<p>
+  <strong>avg chisq</strong>: Average Chi<sup>2</sup> (squared Z-score) across all models in this panel for this trait.
+</p>
 
 <script type="text/javascript" class="init">
     $(document).ready(function () {
@@ -36,7 +166,7 @@ layout: base
                 { className: "dt-left dt-head-left", targets: [0, 7] },
                 { className: "dt-right dt-head-right", targets: [1, 2, 3, 4, 5, 6] },
             ],
-            order: [[1, 'des']],
+            order: [[6, 'asc']],
         });
         $('table#panels').DataTable({
             lengthChange: false,

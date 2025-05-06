@@ -5,7 +5,7 @@ layout: default
 ---
 
 {: .text-center}
-### **{{ site.data.genes_stats.n_genes }}** genes &middot; **{{ site.data.genes_stats.n_models }}** models
+### **{{ site.data.stats.n_genes }}** genes &middot; **{{ site.data.stats.n_models }}** models
 
 To search for human genes, try the [cross-species search](#cross-species).
 
@@ -27,28 +27,36 @@ Each row is an ortholog pair or a gene that has no ortholog in the other species
 <script type="text/javascript" class="init">
     $(document).ready(function () {
         $('table#genes').DataTable({
-            "ajax": '{{ site.baseurl }}genes.json',
+            ajax: '{{ site.baseurl }}genes.json',
             lengthChange: false,
-            "language": {
+            language: {
                 search: '<i class="fa fa-search fa-2x" aria-hidden="true"></i>'
             },
+            layout: {
+                top: 'search',
+                topEnd: null,
+            },
             columnDefs: [
-                { "targets": [0, 1], "className": "dt-left dt-head-left" },
-                { "targets": [2, 3], "className": "dt-right dt-head-right" },
-                { "targets": [2, 3], "searchable": false },
+                { targets: [0, 1], className: "dt-left dt-head-left" },
+                { targets: [2, 3], className: "dt-right dt-head-right" },
+                { targets: [2, 3], searchable: false },
             ],
             order: [[2, 'desc']],
         });
         $('table#cross-species').DataTable({
-            "ajax": '{{ site.baseurl }}cross-species.json',
+            ajax: '{{ site.baseurl }}cross-species.json',
             lengthChange: false,
-            "language": {
+            language: {
                 search: '<i class="fa fa-search fa-2x" aria-hidden="true"></i>'
             },
+            layout: {
+                top: 'search',
+                topEnd: null,
+            },
             columnDefs: [ 
-                { "targets": [0, 1, 2, 3], "className": "dt-left dt-head-left" },
-                { "targets": [4, 5], "className": "dt-right dt-head-right" },
-                { "targets": [4, 5] , "searchable": false },
+                { targets: [0, 1, 2, 3], className: "dt-left dt-head-left" },
+                { targets: [4, 5], className: "dt-right dt-head-right" },
+                { targets: [4, 5], searchable: false },
             ],
             order: [[5, 'desc']],
         });
