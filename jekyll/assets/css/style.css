@@ -84,6 +84,11 @@ td em a:hover {
   color: #0e4aa3;
 }
 
+:target, :target td {
+  background-color: #fff3cd !important;
+  transition: background-color 0.5s ease;
+}
+
 .description {
   float: right;
   font: italic 14px/1.4em Georgia,serif;

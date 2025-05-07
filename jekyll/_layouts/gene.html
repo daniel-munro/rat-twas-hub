@@ -1,8 +1,94 @@
 ---
 layout: base
 ---
- 
-{{ content }}
+
+<p class="breadcrumb">
+  <a href="{{ site.baseurl }}">Hub</a> : <a href="{{ site.baseurl }}genes">Genes</a>
+</p>
+
+<h1>{{ page.title }}</h1>
+
+<h3>Models</h3>
+
+<table id="models">
+  <thead>
+    <tr>
+      <th>#</th>
+      <th>tissue</th>
+      <th>modality</th>
+      <th>RNA phenotype</th>
+      <th>h<sup>2</sup></th>
+      <th>h<sup>2</sup> se</th>
+      <th>h<sup>2</sup> P</th>
+      <th>eQTL R<sup>2</sup></th>
+      <th>BLUP R<sup>2</sup></th>
+      <th>ENET R<sup>2</sup></th>
+      <th>LASSO R<sup>2</sup></th>
+      <th>eQTL P</th>
+      <th>BLUP P</th>
+      <th>ENET P</th>
+      <th>LASSO P</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% assign models = site.data.gene_models[page.id] %}
+    {% for model in models %}
+    <tr>
+      <td>{{ model.num }}</td>
+      <td>{{ model.tissue }}</td>
+      <td>{{ model.modality }}</td>
+      <td>{{ model.id }}</td>
+      <td>{{ model.hsq }}</td>
+      <td>{{ model.hsq_se }}</td>
+      <td>{{ model.hsq_pv }}</td>
+      <td>{{ model.eqtl_r2 }}</td>
+      <td>{{ model.blup_r2 }}</td>
+      <td>{{ model.enet_r2 }}</td>
+      <td>{{ model.lasso_r2 }}</td>
+      <td>{{ model.eqtl_pv }}</td>
+      <td>{{ model.blup_pv }}</td>
+      <td>{{ model.enet_pv }}</td>
+      <td>{{ model.lasso_pv }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<p>
+  All models for this gene with cis-heritability P-value &lt;0.01 were tested and are shown here.  In each tissue, the gene can have zero, one, or multiple RNA phenotypes for each RNA modality.  After the heritability statistics, subsequent columns show cross-validation performance (R<sup>2</sup> and P-value) of each modeling method.
+</p>
+
+<h3>Trait associations</h3>
+
+<table id="assoc">
+  <thead>
+    <tr>
+      <th>Trait</th>
+      <th><span title="Mean chi^2 across all models for this gene, divided by the mean chi^2 across all models for all genes">Avg chi<sup>2</sup> ratio</span></th>
+      <th><span title="Mean chi^2 across all models for this gene">Avg chi<sup>2</sup></span></th>
+      <th><span title="Highest chi^2 across all models for this gene">Max chi<sup>2</sup></span></th>
+      {% for model in models %}
+      <th><span title="{{ model.tissue }}: {{ model.modality }}: {{ model.id }}">{{ model.num }}</span></th>
+      {% endfor %}
+    </tr>
+  </thead>
+  <tbody>
+    {{ content }}
+  </tbody>
+</table>
+
+<p>
+  For each tested trait, stats based on TWAS chi<sup>2</sup> (squared Z-score) for the above models are shown.
+  <strong>Avg chi<sup>2</sup> ratio</strong> is the mean chi<sup>2</sup> across all models for this gene, divided by the mean chi<sup>2</sup> across all models for all genes.
+  <strong>Avg chi<sup>2</sup></strong> is the mean chi<sup>2</sup> across all models for this gene.
+  <strong>Max chi<sup>2</sup></strong> is the highest chi<sup>2</sup> across all models for this gene.
+</p>
+
+<p>
+  The numbered columns correspond to the <strong></strong>numbered models</strong> in the table above.
+  They contain the <strong>TWAS Z-score</strong> for each trait-model pair.
+  <strong>Colors</strong> indicate strong Z-scores (below -2 or above 2): lower negative Z-scores are darker blue, higher positive Z-scores are darker red.
+</p>
 
 <script type="text/javascript" class="init">
     $(document).ready(function () {

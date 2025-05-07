@@ -3,7 +3,6 @@ layout: base
 ---
 
 {% assign trait = site.data.traits | where: "ID", page.id | first %}
-{% capture title %}test{{ trait.NAME }}{% endcapture %}
 
 <p class="breadcrumb">
   <a href="{{ site.baseurl }}">Hub</a> : <a href="{{ site.baseurl }}traits/">Traits</a>
@@ -17,7 +16,7 @@ layout: base
 
 <p>Tags: {{ trait.TAGS | replace: ",", " · " }}</p>
 
-<p>Project: <a href="{{ site.baseurl }}projects/">{{ trait.PROJECT }}</a></p>
+<p>Project: <a href="{{ site.baseurl }}projects/#{{ trait.PROJECT }}">{{ trait.PROJECT }}</a></p>
 
 <p class="text-center">
     <strong>{{ trait.NUM_LOCI }}</strong> {% if trait.NUM_LOCI == 1 %}locus{% else %}loci{% endif %} · 
@@ -57,7 +56,16 @@ layout: base
       <td>{{ locus.best_snp_p }}</td>
       <td>{{ locus.cond_snp_p }}</td>
       <td>{{ locus.var_exp }}</td>
-      <td><em>{{ locus.genes }}</em></td>
+      <td>
+        <em>
+          {% assign gene_ids = locus.genes | split: ',' %}
+          {% for gene_id in gene_ids %}
+            {% assign gene_name = site.data.gene_names[gene_id] %}
+            <a href="{{ site.baseurl }}genes/{{ gene_id }}">{{ gene_name }}</a>
+            {% unless forloop.last %} {% endunless %}
+          {% endfor %}
+        </em>
+      </td>
     </tr>
     {% endfor %}
   </tbody>
@@ -94,7 +102,16 @@ layout: base
       <td>{{ row.pct_genes_twas }}</td>
       <td>{{ row.corr }}</td>
       <td>{{ row.p_val }}</td>
-      <td><em>{{ row.genes }}</em></td>
+      <td>
+        <em>
+          {% assign gene_ids = row.genes | split: ',' %}
+          {% for gene_id in gene_ids %}
+            {% assign gene_name = site.data.gene_names[gene_id] %}
+          <a href="{{ site.baseurl }}genes/{{ gene_id }}">{{ gene_name }}</a>
+            {% unless forloop.last %} {% endunless %}
+          {% endfor %}
+        </em>
+      </td>
     </tr>
     {% endfor %}
   </tbody>

@@ -1,3 +1,14 @@
+# Build cross-species ortholog table
+
+# Inputs:
+# data/cross_species/genes.models.nfo
+# data/genes_n_models.nfo
+# data/cross_species/genes.nfo
+# data/genes_n_assoc.nfo
+
+# Outputs:
+# jekyll/cross-species.json
+
 library(biomaRt)
 suppressPackageStartupMessages(library(tidyverse))
 

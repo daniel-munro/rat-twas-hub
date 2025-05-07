@@ -20,7 +20,7 @@ Only traits from the original studies with sufficient information and biological
     </thead>
     <tbody>
       {% for project in site.data.projects %}
-      <tr>
+      <tr id="{{ project.id }}">
         <td>{{ project.id | default: '-' }}</td>
         <td>{{ project.pi | default: '-' }}</td>
         <td>{{ project.title | default: '-' }}</td>

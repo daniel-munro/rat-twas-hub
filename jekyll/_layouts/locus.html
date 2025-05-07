@@ -2,10 +2,101 @@
 layout: base
 ---
 
-{{ content }}
+{% assign trait = site.data.traits | where: "ID", page.trait_id | first %}
+{% assign loci = site.data.trait_loci[page.trait_id] %}
+{% assign locus = loci | where: "locus_num", page.locus_num | first %}
+
+<p class="breadcrumb">
+  <a href="{{ site.baseurl }}">Hub</a> : <a href="{{ site.baseurl }}traits/">Traits</a>
+  : <a href="{{ site.baseurl }}traits/{{ trait.ID }}">{{ trait.NAME }}</a>
+  {% if page.locus_num > 1 %}
+  : <a href="{{ site.baseurl }}traits/{{ trait.ID }}/{{ page.locus_num | minus: 1 }}">←</a>
+  {% endif %}
+  {% if page.locus_num < loci.size %}
+  : <a href="{{ site.baseurl }}traits/{{ trait.ID }}/{{ page.locus_num | plus: 1 }}">→</a>
+  {% endif %}
+</p>
+
+<h1>chr{{ locus.chr }}:{{ page.pos0 }}-{{ page.pos1 }}</h1>
+
+<h2>Trait: {{ trait.NAME }}</h2>
+
+<p class="text-center">
+  Best TWAS P=<strong>{{ locus.best_twas_p }}</strong> · 
+  Best GWAS P=<strong>{{ locus.best_snp_p }}</strong> conditioned to <strong>{{ locus.cond_snp_p }}</strong>
+</p>
+
+<div id="graph"></div>
+
+<h3>Associated models</h3>
+
+<table id="models">
+  <thead>
+    <tr>
+      <th>#</th>
+      <th>Tissue</th>
+      <th>Gene</th>
+      <th>Modality</th>
+      <th>RNA phenotype</th>
+      <th><span title="Heritability estimate for the given transcriptomic model">h2</span></th>
+      <th>eQTL R2</th>
+      <th>model</th>
+      <th># weights</th>
+      <th>model R2</th>
+      <th>model R2 P</th>
+      <th>eQTL GWAS Z</th>
+      <th>TWAS Z</th>
+      <th>TWAS P</th>
+      <th>Top SNP corr</th>
+      <th><span title="Posterior probability of two distinct causal variants">PP3</span></th>
+      <th><span title="Posterior probability of a single shared causal variant">PP4</span></th>
+      <th><span title="Whether the RNA phenotype is in the joint model">joint</span></th>
+    </tr>
+  </thead>
+  <tbody>
+    {% assign locus_num_str = page.locus_num | append: "" %}
+    {% assign models = site.data.locus_models[page.trait_id][locus_num_str] %}
+    {% for model in models %}
+    {% assign gene_name = site.data.gene_names[model.gene_id] %}
+    <tr>
+      <td>{{ model.num }}</td>
+      <td>{{ model.tissue }}</td>
+      <td><em><a href="{{ site.baseurl }}genes/{{ model.gene_id }}">{{ gene_name }}</a></em></td>
+      <td>{{ model.modality }}</td>
+      <td>{{ model.id }}</td>
+      <td>{{ model.hsq }}</td>
+      <td>{{ model.eqtl_r2 }}</td>
+      <td>{{ model.model }}</td>
+      <td>{{ model.nwgt }}</td>
+      <td>{{ model.modelcv_r2 }}</td>
+      <td>{{ model.modelcv_pv }}</td>
+      <td>{{ model.eqtl_gwas_z }}</td>
+      <td>{{ model.twas_z }}</td>
+      <td>{{ model.twas_p }}</td>
+      <td>{{ model.top_snp_corr }}</td>
+      <td>{{ model.coloc_pp3 }}</td>
+      <td>{{ model.coloc_pp4 }}</td>
+      <td>{{ model.joint }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<p>
+  <strong>h2</strong>: Heritability estimate for the given transcriptomic model.
+  <strong>PP3</strong>: Posterior probability of two distinct causal variants.
+  <strong>PP4</strong>: Posterior probability of a single shared causal variant.
+  <strong>joint</strong>: Whether the RNA phenotype is in the joint model.
+</p>
 
 <script src="{{ site.baseurl }}assets/js/manhattan.js"></script>
 <script type="text/javascript" class="init">
+    fetch("../{{ page.locus_num }}.cond.csv")
+        .then(response => response.text())
+        .then(csvText => {
+            const data = d3.csvParse(csvText);
+            processData(data);
+        });
     $(document).ready(function () {
         $('table#models').DataTable({
             lengthChange: false,
