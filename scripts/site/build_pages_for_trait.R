@@ -7,28 +7,36 @@
 # data/traits.par.nfo
 # data/twas_out/{trait}.all.tsv
 # data/twas_out/{trait}.post.tsv
+# data/twas_out/{trait}/{trait}.{chrom}.post.loc_{locus}.cond.csv
 
 # Outputs:
 # jekyll/traits/{trait}.md
 # jekyll/traits/{trait}/{locus}.md
+# jekyll/traits/{trait}/{locus}.cond.csv
 # jekyll/_data/trait_loci/{trait}.tsv
 # jekyll/_data/trait_pleio/{trait}.tsv
 # jekyll/_data/trait_panels/{trait}.tsv
+# jekyll/_data/locus_models/{trait}/{locus}.tsv
 
 suppressPackageStartupMessages(library(tidyverse))
 
-gene_id <- function(pheno_ID) {
+pheno_to_gene_id <- function(pheno_id) {
     # Extract gene ID from RNA phenotype ID
-    str_extract(pheno_ID, "^[^:.]+")
+    str_extract(pheno_id, "^[^:.]+")
 }
 
-shorten_ids <- function(ID, modality) {
+shorten_ids <- function(id, modality) {
     # Remove extra information from RNA phenotype IDs
     case_when(
-        modality %in% c("alternative polyA", "alternative TSS", "isoform ratio") ~ str_extract(ID, "[^:.]+$"),
-        modality == "intron excision ratio" ~ str_c("chr", ID |> str_replace("^[^:]+:", "") |> str_replace(":[^:]+$", "")),
-        .default = ID
+        modality %in% c("alternative polyA", "alternative TSS", "isoform ratio") ~ str_extract(id, "[^:.]+$"),
+        modality == "intron excision ratio" ~ str_c("chr", id |> str_replace("^[^:]+:", "") |> str_replace(":[^:]+$", "")),
+        .default = id
     )
+}
+
+gene_links <- function(gene_ids) {
+    # Use single quotes in the string because double quotes in TSV data cause problems with Jekyll
+    str_glue("<a href='{{{{ site.baseurl }}}}genes/{gene_ids}'>{gene_names[gene_ids]}</a>")
 }
 
 arg <- commandArgs(trailingOnly = TRUE)
@@ -43,28 +51,26 @@ traits_nfo <- read_tsv("data/traits.par.nfo", col_types = "ciiid")
 tbl_traits <- read_tsv("data/traits.par", col_types = "ccicccc") |>
     left_join(traits_nfo, by = "ID")
 
-cat("reading data/panels.par\n")
 tbl_panels <- read_tsv("data/panels.par", col_types = "ccccci")
 
 # Count the number of significant genes for the trait
-i <- i_trait
-trait <- tbl_traits$ID[i]
+trait <- tbl_traits$ID[i_trait]
 
-cat("reading", tbl_traits$OUTPUT[i], "\n")
-cur <- read_tsv(
-    tbl_traits$OUTPUT[i],
+cat("reading", tbl_traits$OUTPUT[i_trait], "\n")
+trait_assocs <- read_tsv(
+    tbl_traits$OUTPUT[i_trait],
     col_types = cols(PANEL = "c", FILE = "c", ID = "c", TWAS.Z = "d", TWAS.P = "d", .default = "-")
 ) |>
     filter(!is.na(TWAS.P))
 
-n <- nrow(cur)
-top_models <- which(cur$TWAS.P < 0.05 / n)
-top_genes <- unique(gene_id(cur$ID[top_models]))
+n_models <- nrow(trait_assocs)
+top_models <- which(trait_assocs$TWAS.P < 0.05 / n_models)
+top_genes <- unique(pheno_to_gene_id(trait_assocs$ID[top_models]))
 
-df_cur_models <- cur |>
-    summarise(avg.chisq = mean(TWAS.Z^2, na.rm = TRUE),
-              num.hits = sum(TWAS.P < 0.05 / n, na.rm = TRUE),
-              pct.hits = 100 * mean(TWAS.P < 0.05 / n, na.rm = TRUE),
+trait_panels <- trait_assocs |>
+    summarise(avg_chisq = mean(TWAS.Z^2, na.rm = TRUE),
+              num_hits = sum(TWAS.P < 0.05 / n_models, na.rm = TRUE),
+              pct_hits = 100 * mean(TWAS.P < 0.05 / n_models, na.rm = TRUE),
               .by = PANEL) |>
     left_join(tbl_panels, by = "PANEL")
 
@@ -80,92 +86,97 @@ system(str_glue("mkdir -p jekyll/_data/trait_loci"))
 system(str_glue("mkdir -p jekyll/_data/trait_pleio"))
 system(str_glue("mkdir -p jekyll/_data/trait_panels"))
 
-page <- c(
+c(
     "---",
-    str_glue('title: "{tbl_traits$NAME[i]}"'),
-    str_glue('permalink: traits/{trait}/'),
+    str_glue('title: "{tbl_traits$NAME[i_trait]}"'),
+    str_glue("permalink: traits/{trait}/"),
     "layout: trait",
     str_glue("id: {trait}"),
     "---"
-)
-write_lines(page, fout_page)
+) |>
+    write_lines(fout_page)
 
 # ---- Get clumped and conditional loci
-cur_clumps <- read_tsv(
-    str_replace(tbl_traits$OUTPUT[i], ".all.tsv", ".post.tsv"), col_types = "ciiiiidddd"
+trait_loci <- read_tsv(
+    str_replace(tbl_traits$OUTPUT[i_trait], ".all.tsv", ".post.tsv"), col_types = "ciiiiidddd"
 ) |>
     arrange(CHR, P0) |>
     mutate(locus_num = seq_len(n()),
            genes = "")
 
-# load clumped genes
-clump_mod <- vector()
-for (ii in seq_len(nrow(cur_clumps))) {
-    cur_genes_tbl <- read_tsv(str_glue("{cur_clumps$FILE[ii]}.genes"),
-                              col_types = "ccciiidcdcdddiicdddddddddld") |>
+for (i_locus in seq_len(nrow(trait_loci))) {
+    print(i_locus)
+    fout_locus_page <- str_glue("jekyll/traits/{trait}/{i_locus}.md")
+    fout_locus_models <- str_glue("jekyll/_data/locus_models/{trait}/{i_locus}.tsv")
+
+    system(str_glue("mkdir -p jekyll/_data/locus_models/{trait}"))
+    system(str_glue("cp {trait_loci$FILE[i_locus]}.cond.csv jekyll/traits/{trait}/{i_locus}.cond.csv"))
+
+    locus_models <- read_tsv(
+        str_glue("{trait_loci$FILE[i_locus]}.genes"),
+        col_types = "ccciiidcdcdddiicdddddddddld"
+    ) |>
         mutate(num = seq_len(n()),
-               gene_id = gene_id(ID),
-               link = str_glue("<a href='{{{{ site.baseurl }}}}genes/{gene_id}'>{gene_names[gene_id]}</a>")) |>
+               gene_id = pheno_to_gene_id(ID),
+               gene_link = gene_links(gene_id)) |>
     left_join(select(tbl_panels, PANEL, TISSUE, MODALITY), by = "PANEL")
     
-    cur_genes <- sort(unique(cur_genes_tbl$gene_id[cur_genes_tbl$JOINT]))
-    cur_genes <- str_c(str_glue("<a href='{{{{ site.baseurl }}}}genes/{cur_genes}'>{gene_names[cur_genes]}</a>"), collapse = " ")
-    cur_clumps$genes[ii] <- cur_genes
+    locus_joint_genes <- sort(unique(locus_models$gene_id[locus_models$JOINT]))
+    trait_loci$genes[i_locus] <- str_c(gene_links(locus_joint_genes), collapse = " ")
     
-    clump_mod <- unique(c(clump_mod, cur_genes_tbl$FILE[cur_genes_tbl$JOINT]))
+    pos0 <- formatC(trait_loci$P0[i_locus], format = "f", big.mark = ",", drop0trailing = TRUE)
+    pos1 <- formatC(trait_loci$P1[i_locus], format = "f", big.mark = ",", drop0trailing = TRUE)
+    c(
+        "---",
+        str_glue('title: "{tbl_traits$NAME[i_trait]}"'),
+        str_glue("permalink: traits/{trait}/{i_locus}/"),
+        "layout: locus",
+        str_glue("trait_id: {trait}"),
+        str_glue("locus_num: {i_locus}"),
+        str_glue("pos0: {pos0}"),
+        str_glue("pos1: {pos1}"),
+        "---"
+    ) |>
+        write_lines(fout_locus_page)
     
-    fout_clump <- str_glue("jekyll/traits/{trait}/{ii}.md")
-    cat(str_glue('---\ntitle: "{tbl_traits$NAME[i]}"\npermalink: traits/{trait}/{ii}/\nlayout: locus\n---\n\n'), sep = "", file = fout_clump)
-    cat("{: .breadcrumb}\n",
-        "[Hub]({{ site.baseurl }}) : [Traits]({{ site.baseurl }}traits) : ",
-        tbl_traits$link[i], " : ",
-        sep = "", file = fout_clump, append = TRUE)
-    if (ii > 1) {
-        cat(str_glue(" [ ← ]({{{{ site.baseurl }}}}traits/{trait}/{ii-1}) "), sep = "", file = fout_clump, append = TRUE)
-    }
-    if (ii < nrow(cur_clumps)) {
-        cat(str_glue(" [ → ]({{{{ site.baseurl }}}}traits/{trait}/{ii+1})"), sep = "", file = fout_clump, append = TRUE)
-    }
-    pos0 <- formatC(cur_clumps$P0[ii], format = "f", big.mark = ",", drop0trailing = TRUE)
-    pos1 <- formatC(cur_clumps$P1[ii], format = "f", big.mark = ",", drop0trailing = TRUE)
-    cat(str_glue("\n\n# chr{cur_clumps$CHR[ii]}:{pos0}-{pos1}\n\n"), sep = "", file = fout_clump, append = TRUE)
-    cat(str_glue("{{}: .text-center}}\nTrait: {tbl_traits$NAME[i]}\n\n"), sep = "", file = fout_clump, append = TRUE)
-    cat("{: .text-center}\n",
-        "`Best TWAS P=", cur_clumps$BEST.TWAS.P[ii],
-        " · Best GWAS P=", cur_clumps$BEST.SNP.P[ii],
-        " conditioned to ", cur_clumps$COND.SNP.P[ii],
-        "`\n\n", sep = "", file = fout_clump, append = TRUE)
-    
-    system(str_glue("cp {cur_clumps$FILE[ii]}.cond.csv jekyll/traits/{trait}/{ii}.cond.csv"))
-    cat('<div id="graph"></div>\n<script>\nfetch("../', ii, '.cond.csv").then(response => response.text()).then(csvText => { const data = d3.csvParse(csvText); processData(data); });\n</script>\n', sep = "", file = fout_clump, append = TRUE)
-    # BCAC.1.post.loc_10.cond.csv
-    
-    cat("\n### Associated models\n\n", sep = "", file = fout_clump, append = TRUE)
-    cat('| # | Tissue | Gene | Modality | RNA phenotype | <span title="Heritability estimate for the given transcriptomic model">h2</span> | eQTL R2 | model | # weights | model R2 | model R2 P | eQTL GWAS Z | TWAS Z | TWAS P | Top SNP corr | <span title="Posterior probability of two distinct causal variants">PP3</span> | <span title="Posterior probability of a single shared causal variant">PP4</span> | <span title="Whether the RNA phenotype is in the joint model">joint</span> |', "| --- |", sep = "\n", file = fout_clump, append = TRUE)
-    
-    cur_genes_tbl |>
-        mutate(COLOC.PP3 = round(COLOC.PP3, 2),
-               COLOC.PP4 = round(COLOC.PP4, 2),
-               MODELCV.R2 = round(MODELCV.R2, 2),
-               HSQ = round(HSQ, 2),
-               EQTL.R2 = round(EQTL.R2, 2)) |>
-        select(num, TISSUE, link, MODALITY, ID, HSQ, EQTL.R2, MODEL, NWGT, MODELCV.R2, MODELCV.PV, EQTL.GWAS.Z, TWAS.Z, TWAS.P, TOP.SNP.COR, COLOC.PP3, COLOC.PP4, JOINT) |>
-        mutate(ID = shorten_ids(ID, MODALITY)) |>
-        as.data.frame() |>
-        format(digits = 2) |>
-        write.table(quote = FALSE, row.names = FALSE, col.names = FALSE, sep = " | ", file = fout_clump, append = TRUE)
-    cat(
-        "{: #models}\n\n",
-        "**h2**: Heritability estimate for the given transcriptomic model. ",
-        "**PP3**: Posterior probability of two distinct causal variants. ",
-        "**PP4**: Posterior probability of a single shared causal variant. ",
-        "**joint**: Whether the RNA phenotype is in the joint model.\n\n",
-        file = fout_clump, append = TRUE
-    )
+    locus_models |>
+        select(
+            num,
+            tissue = TISSUE,
+            gene_link,
+            modality = MODALITY,
+            id = ID,
+            hsq = HSQ,
+            eqtl_r2 = EQTL.R2,
+            model = MODEL,
+            nwgt = NWGT,
+            modelcv_r2 = MODELCV.R2,
+            modelcv_pv = MODELCV.PV,
+            eqtl_gwas_z = EQTL.GWAS.Z,
+            twas_z = TWAS.Z,
+            twas_p = TWAS.P,
+            top_snp_corr = TOP.SNP.COR,
+            coloc_pp3 = COLOC.PP3,
+            coloc_pp4 = COLOC.PP4,
+            joint = JOINT,
+        ) |>
+        mutate(
+            id = shorten_ids(id, modality),
+            hsq = round(hsq, 2),
+            eqtl_r2 = round(eqtl_r2, 2),
+            modelcv_r2 = round(modelcv_r2, 2),
+            modelcv_pv = format(modelcv_pv, digits = 3, scientific = TRUE),
+            eqtl_gwas_z = round(eqtl_gwas_z, 2),
+            twas_z = round(twas_z, 2),
+            twas_p = format(twas_p, digits = 3, scientific = TRUE),
+            top_snp_corr = round(top_snp_corr, 2),
+            coloc_pp3 = round(coloc_pp3, 2),
+            coloc_pp4 = round(coloc_pp4, 2),
+        ) |>
+        write_tsv(fout_locus_models)
 }
 
-cur_clumps |>
-    mutate(VAR.EXP = round(VAR.EXP * 100, 0)) |>
+trait_loci |>
     select(
         locus_num,
         chr = CHR,
@@ -177,50 +188,59 @@ cur_clumps |>
         best_snp_p = BEST.SNP.P,
         cond_snp_p = COND.SNP.P,
         var_exp = VAR.EXP,
-        genes
+        genes,
     ) |>
-    mutate(across(where(is.numeric), ~ round(.x, 2))) |>
+    mutate(
+        best_twas_p = format(best_twas_p, digits = 3, scientific = TRUE),
+        best_snp_p = format(best_snp_p, digits = 3, scientific = TRUE),
+        cond_snp_p = format(cond_snp_p, digits = 3, scientific = TRUE),
+        var_exp = round(var_exp * 100, 0),
+    ) |>
     write_tsv(fout_loci)
 
-# ---- Get pleiotropic loci
-n_pleiot <- 0
-for (ii in seq_len(nrow(tbl_traits))) {
-    if ((ii != i) && length(top_models) > 0) {
-        other_cur <- read_tsv(
-            tbl_traits$OUTPUT[ii],
+# ---- Get pleiotropic associations
+df_pleiot <- tibble(
+    trait_id = character(),
+    chisq_ratio = numeric(),
+    num_genes = integer(),
+    num_genes_twas = integer(),
+    pct_genes_twas = numeric(),
+    corr = numeric(),
+    p_val = numeric(),
+    genes = character()
+)
+
+for (i_trait2 in seq_len(nrow(tbl_traits))) {
+    # print(i_trait2)
+    if ((i_trait2 != i_trait) && length(top_models) > 0) {
+        trait2_assocs <- read_tsv(
+            tbl_traits$OUTPUT[i_trait2],
             col_types = cols(FILE = "c", ID = "c", TWAS.Z = "d", TWAS.P = "d", .default = "-")
         ) |>
             filter(!is.na(TWAS.P))
-        pleio <- inner_join(cur, other_cur, by = c("FILE", "ID"), relationship = "one-to-one") |>
-            filter(TWAS.P.x < 0.05 / n,
+        pleio <- inner_join(trait_assocs, trait2_assocs, by = c("FILE", "ID"), relationship = "one-to-one") |>
+            filter(TWAS.P.x < 0.05 / n_models,
                    TWAS.P.y < 0.05 / length(top_models))
         if (nrow(pleio) > 0) {
             if(nrow(pleio) >= 4) {
                 tst <- with(pleio, cor.test(TWAS.Z.x, TWAS.Z.y))
             } else {
-                tst <- data.frame("est" = 0, "p.value" = 1)
+                tst <- tibble(est = 0, p.value = 1)
             }
-            genes <- sort(unique(gene_id(pleio$ID)))
-            genes_link <- str_c(str_glue("<a href='{{{{ site.baseurl }}}}genes/{genes}'>{gene_names[genes]}</a>"), collapse=" ")
+            genes <- sort(unique(pheno_to_gene_id(pleio$ID)))
             n_genes_twas <- pleio |>
-                filter(TWAS.P.y < 0.05 / n) |>
-                with(length(unique(gene_id(ID))))
-            df_tmp <- data.frame(
-                trait_id = tbl_traits$ID[ii],
-                chisq_ratio = round(mean(pleio$TWAS.Z.y^2, na.rm = TRUE) / tbl_traits$AVG.CHISQ[ii], 2),
+                filter(TWAS.P.y < 0.05 / n_models) |>
+                with(length(unique(pheno_to_gene_id(ID))))
+            df_pleiot <- bind_rows(df_pleiot, tibble(
+                trait_id = tbl_traits$ID[i_trait2],
+                chisq_ratio = mean(pleio$TWAS.Z.y^2, na.rm = TRUE) / tbl_traits$AVG.CHISQ[i_trait2],
                 num_genes = length(genes),
                 num_genes_twas = n_genes_twas,
-                pct_genes_twas = round(100 * n_genes_twas / tbl_traits$NUM.JOINT.GENES[i], 1), # Replaced 3 with i
-                corr = round(tst$est, 2),
+                pct_genes_twas = round(100 * n_genes_twas / tbl_traits$NUM.JOINT.GENES[i_trait], 1),
+                corr = tst$est,
                 p_val = tst$p.value,
-                genes = genes_link
-            )
-            if (n_pleiot == 0) {
-                df_pleiot <- df_tmp
-            } else {
-                df_pleiot <- rbind(df_pleiot, df_tmp)
-            }
-            n_pleiot <- nrow(df_pleiot)
+                genes = str_c(gene_links(genes), collapse = " ")
+            ))
         }
     }
 }
@@ -235,18 +255,25 @@ df_pleiot |>
         pct_genes_twas,
         corr,
         p_val,
-        genes
+        genes,
     ) |>
-    mutate(across(where(is.numeric), ~ round(.x, 2))) |>
+    mutate(
+        chisq_ratio = round(chisq_ratio, 2),
+        corr = round(corr, 2),
+        p_val = format(p_val, digits = 3, scientific = TRUE),
+    ) |>
     write_tsv(fout_pleio)
 
-df_cur_models |>
+trait_panels |>
     select(
         tissue = TISSUE,
         modality = MODALITY,
-        num_hits = num.hits,
-        pct_hits = pct.hits,
-        avg_chisq = avg.chisq
+        num_hits,
+        pct_hits,
+        avg_chisq,
     ) |>
-    mutate(across(where(is.numeric), ~ round(.x, 2))) |>
+    mutate(
+        pct_hits = round(pct_hits, 1),
+        avg_chisq = round(avg_chisq, 2),
+    ) |>
     write_tsv(fout_panels)

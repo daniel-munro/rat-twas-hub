@@ -32,7 +32,11 @@ rule all:
         "data/traits.par.nfo",
         "data/genes_n_models.nfo",
         "data/genes_n_assoc.nfo",
-        "jekyll/traits.md",
+        "jekyll/genes.json",
+        "jekyll/_data/panels.tsv",
+        "jekyll/_data/projects.tsv",
+        "jekyll/_data/stats.yml",
+        "jekyll/_data/traits.tsv",
         expand("jekyll/data/{trait}.tar.bz2", trait=traits),
 
 rule gene_names:
@@ -251,8 +255,11 @@ rule build_jekyll:
         genes_models = "data/genes_n_models.nfo",
         genes_assoc = "data/genes_n_assoc.nfo",
     output:
-        genes_page = "jekyll/genes.md",
-        traits_page = "jekyll/traits.md",
+        panels_tsv = "jekyll/_data/panels.tsv",
+        projects_tsv = "jekyll/_data/projects.tsv",
+        stats_yml = "jekyll/_data/stats.yml",
+        trait_tsv = "jekyll/_data/traits.tsv",
+        genes_json = "jekyll/genes.json",
         trait_pages = expand("jekyll/traits/{trait}.md", trait=traits),
     threads: 16
     resources:
