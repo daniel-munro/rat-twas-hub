@@ -12,10 +12,10 @@ parallel -j$THREADS --joblog data/twas_out/report.log Rscript scripts/site/build
 
 echo "Building gene pages..."
 Rscript scripts/site/build_gene_pages.R
-Rscript scripts/site/build_cross_species.R
 
 echo "Building summary data..."
 Rscript scripts/site/build_summary_data.R
+Rscript scripts/site/build_cross_species.R
 cp data/projects.tsv jekyll/_data/
 cp data/panels.par jekyll/_data/panels.tsv
 

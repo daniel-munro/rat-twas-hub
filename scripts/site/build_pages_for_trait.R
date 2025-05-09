@@ -1,7 +1,6 @@
 # Load the results of a single trait and generate the basic markdown pages (frontmatter only) for the trait page and each of its hit loci, along with data tables for Jekyll to render in the pages.
 
 # Inputs:
-# data/gene_names.tsv
 # data/traits.par
 # data/panels.par
 # data/traits.par.nfo
@@ -34,17 +33,8 @@ shorten_ids <- function(id, modality) {
     )
 }
 
-gene_links <- function(gene_ids) {
-    # Use single quotes in the string because double quotes in TSV data cause problems with Jekyll
-    str_glue("<a href='{{{{ site.baseurl }}}}genes/{gene_ids}'>{gene_names[gene_ids]}</a>")
-}
-
 arg <- commandArgs(trailingOnly = TRUE)
 i_trait <- as.numeric(arg[1])
-
-# Load gene names since Ensembl IDs were used for TWAS
-gene_names <- read_tsv("data/gene_names.tsv", col_types = "cc") |>
-    deframe()
 
 traits_nfo <- read_tsv("data/traits.par.nfo", col_types = "ciiid")
 
@@ -117,12 +107,11 @@ for (i_locus in seq_len(nrow(trait_loci))) {
         col_types = "ccciiidcdcdddiicdddddddddld"
     ) |>
         mutate(num = seq_len(n()),
-               gene_id = pheno_to_gene_id(ID),
-               gene_link = gene_links(gene_id)) |>
+               gene_id = pheno_to_gene_id(ID)) |>
     left_join(select(tbl_panels, PANEL, TISSUE, MODALITY), by = "PANEL")
     
     locus_joint_genes <- sort(unique(locus_models$gene_id[locus_models$JOINT]))
-    trait_loci$genes[i_locus] <- str_c(gene_links(locus_joint_genes), collapse = " ")
+    trait_loci$genes[i_locus] <- str_c(locus_joint_genes, collapse = ",")
     
     pos0 <- formatC(trait_loci$P0[i_locus], format = "f", big.mark = ",", drop0trailing = TRUE)
     pos1 <- formatC(trait_loci$P1[i_locus], format = "f", big.mark = ",", drop0trailing = TRUE)
@@ -133,8 +122,8 @@ for (i_locus in seq_len(nrow(trait_loci))) {
         "layout: locus",
         str_glue("trait_id: {trait}"),
         str_glue("locus_num: {i_locus}"),
-        str_glue("pos0: {pos0}"),
-        str_glue("pos1: {pos1}"),
+        str_glue('pos0: "{pos0}"'),
+        str_glue('pos1: "{pos1}"'),
         "---"
     ) |>
         write_lines(fout_locus_page)
@@ -143,7 +132,7 @@ for (i_locus in seq_len(nrow(trait_loci))) {
         select(
             num,
             tissue = TISSUE,
-            gene_link,
+            gene_id,
             modality = MODALITY,
             id = ID,
             hsq = HSQ,
@@ -239,7 +228,7 @@ for (i_trait2 in seq_len(nrow(tbl_traits))) {
                 pct_genes_twas = round(100 * n_genes_twas / tbl_traits$NUM.JOINT.GENES[i_trait], 1),
                 corr = tst$est,
                 p_val = tst$p.value,
-                genes = str_c(gene_links(genes), collapse = " ")
+                genes = str_c(genes, collapse = ",")
             ))
         }
     }

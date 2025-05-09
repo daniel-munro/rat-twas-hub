@@ -27,10 +27,6 @@ shorten_ids <- function(ID, modality) {
     )
 }
 
-# Load gene names since Ensembl IDs were used for TWAS
-gene_names <- read_tsv("data/gene_names.tsv", col_types = "cc") |>
-    deframe()
-
 tbl_panels <- read_tsv("data/panels.par", col_types = "ccccci")
 
 tbl_models <- read_tsv("data/all_models.par", col_types = "ccciiiiddddddddddddd") |>
@@ -46,6 +42,12 @@ tbl_traits <- read_tsv("data/traits.par", col_types = "ccicccc") |>
 
 # iterate and make each gene file
 all_genes <- sort(unique(tbl_models$gene_id))
+
+# Load gene names since Ensembl IDs were used for TWAS
+gene_names <- read_tsv("data/gene_names.tsv", col_types = "cc") |>
+    complete(ID = all_genes) |>
+    mutate(NAME = if_else(is.na(NAME), ID, NAME)) |>
+    deframe()
 
 for (i in seq_along(all_genes)) {
     g_id <- all_genes[i]
