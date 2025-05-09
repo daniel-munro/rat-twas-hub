@@ -29,19 +29,18 @@ layout: base
 <table id="loci">
   <thead>
     <tr>
-      <th>#</th>
-      <th>chr</th>
-      <th><span title="Physical position of the start of the locus">p0</span></th>
-      <th><span title="Physical position of the end of the locus">p1</span></th>
-      <th># assoc genes</th>
-      <th><span title="number of models selected by step-wise conditional analysis"># joint models</span></th>
-      <th>best TWAS P</th>
-      <th>best SNP P</th>
-      <th>cond SNP P</th>
-      <th>% var exp</th>
-      <th>joint genes</th>
-    </tr>
-  </thead>
+      <th data-bs-toggle="tooltip" data-bs-placement="top" title="Locus number (sorted by genomic position)">#</th>
+      <th data-bs-toggle="tooltip" data-bs-placement="top" title="Chromosome">Chr</th>
+      <th data-bs-toggle="tooltip" data-bs-placement="top" title="Physical position of the start of the locus">Start pos</th>
+      <th data-bs-toggle="tooltip" data-bs-placement="top" title="Physical position of the end of the locus">End pos</th>
+      <th data-bs-toggle="tooltip" data-bs-placement="top" title="Number of genes with significant associations in this locus"># assoc genes</th>
+      <th data-bs-toggle="tooltip" data-bs-placement="top" title="Number of transcriptomic models selected by step-wise conditional analysis"># joint models</th>
+      <th data-bs-toggle="tooltip" data-bs-placement="top" title="Lowest TWAS P-value across all models in this locus">Best TWAS P</th>
+      <th data-bs-toggle="tooltip" data-bs-placement="top" title="Lowest GWAS P-value across all models in this locus">Best GWAS P</th>
+      <th data-bs-toggle="tooltip" data-bs-placement="top" title="Lowest GWAS P-value after conditioning on the TWAS associations in this locus">Cond GWAS P</th>
+      <th data-bs-toggle="tooltip" data-bs-placement="top" title="Genes selected by step-wise conditional analysis">Joint genes</th>
+    </tr>  
+  </thead>  
   <tbody>
     {% assign loci = site.data.trait_loci[page.id] %}
     {% for locus in loci %}
@@ -55,7 +54,6 @@ layout: base
       <td>{{ locus.best_twas_p }}</td>
       <td>{{ locus.best_snp_p }}</td>
       <td>{{ locus.cond_snp_p }}</td>
-      <td>{{ locus.var_exp }}</td>
       <td>
         <em>
           {% assign gene_ids = locus.genes | split: ',' %}
@@ -63,31 +61,27 @@ layout: base
             {% assign gene_name = site.data.gene_names[gene_id] %}
             <a href="{{ site.baseurl }}genes/{{ gene_id }}">{{ gene_name }}</a>
             {% unless forloop.last %} {% endunless %}
-          {% endfor %}
-        </em>
-      </td>
-    </tr>
+          {% endfor %}  
+        </em>  
+      </td>  
+    </tr>  
     {% endfor %}
-  </tbody>
-</table>
-
-<p>
-  <strong>p0</strong>: physical position of the start of the locus.  <strong>p1</strong>: physical position of the end of the locus.  <strong># joint models</strong>: number of models selected by step-wise conditional analysis.
-</p>
+  </tbody>  
+</table>  
 
 <h3>Pleiotropic Associations</h3>
 
 <table id="pleiotropic">
   <thead>
     <tr>
-      <th>Trait</th>
-      <th><span title="Average Chi^2 statistic for the selected genes in the secondary trait, divided by the average statistic for all genes in the secondary trait.">chisq ratio</span></th>
-      <th><span title="Shared significant genes at Bonferroni correction"># genes<sup>+</sup></span></th>
-      <th><span title="Shared significant genes at transcriptome-wide significance"># genes<sup>++</sup></span></th>
-      <th><span title="Number of [++] genes as a percentage of primary trait's total joint genes.">% genes<sup>++</sup></span></th>
-      <th><span title="Correlation of effect sizes across the [+] genes">corr</span></th>
-      <th>corr P</th>
-      <th>genes</th>
+      <th data-bs-toggle="tooltip" data-bs-placement="top" title="Trait being compared to this page's trait">Trait</th>
+      <th data-bs-toggle="tooltip" data-bs-placement="top" title="Average Chi<sup>2</sup> statistic for the selected genes in the secondary trait, divided by the average statistic for all genes in the secondary trait.">Chi<sup>2</sup> ratio</th>
+      <th data-bs-toggle="tooltip" data-bs-placement="top" title="Number of shared significant genes at Bonferroni significance"># genes<sup>+</sup></th>
+      <th data-bs-toggle="tooltip" data-bs-placement="top" title="Number of shared significant genes at transcriptome-wide significance"># genes<sup>++</sup></th>
+      <th data-bs-toggle="tooltip" data-bs-placement="top" title="Number of [++] genes as a percentage of primary trait's total joint genes.">% genes<sup>++</sup></th>
+      <th data-bs-toggle="tooltip" data-bs-placement="top" title="Correlation of effect sizes across the [+] genes">Corr</th>
+      <th data-bs-toggle="tooltip" data-bs-placement="top" title="P-value for correlation of effect sizes across the [+] genes">Corr P</th>
+      <th data-bs-toggle="tooltip" data-bs-placement="top" title="Shared significant genes at Bonferroni significance">Genes</th>
     </tr>
   </thead>
   <tbody>
@@ -117,20 +111,16 @@ layout: base
   </tbody>
 </table>
 
-<p>
-  <strong>chisq ratio</strong>: Average Chi<sup>2</sup> statistic for the selected genes in the secondary trait, divided by the average statistic for all genes in the secondary trait.  <strong># genes<sup>+</sup></strong>: Shared significant genes at Bonferroni correction.  <strong># genes<sup>++</sup></strong>: Shared significant genes at transcriptome-wide significance.  <strong>% genes<sup>++</sup></strong>: Number of [++] genes as a percentage of primary trait's total joint genes.  <strong>corr</strong>: Correlation of effect sizes across the [+] genes.
-</p>
-
 <h3>Associations by panel</h3>
 
 <table id="panels">
   <thead>
     <tr>
-      <th>tissue</th>
-      <th>modality</th>
-      <th># hits</th>
-      <th>% hits/tests</th>
-      <th><span title="Average Chi^2 across all models in this panel for this trait">avg chisq</span></th>
+      <th data-bs-toggle="tooltip" data-bs-placement="top" title="Tissue">Tissue</th>
+      <th data-bs-toggle="tooltip" data-bs-placement="top" title="Modality of RNA variation">RNA modality</th>
+      <th data-bs-toggle="tooltip" data-bs-placement="top" title="Number of hits for this trait across all models in this panel"># hits</th>
+      <th data-bs-toggle="tooltip" data-bs-placement="top" title="Percentage of models with hits (out of 100)">% hits/tests</th>
+      <th data-bs-toggle="tooltip" data-bs-placement="top" title="Average Chi<sup>2</sup> (squared Z-score) across all models in this panel for this trait">Avg chisq</th>
     </tr>
   </thead>
   <tbody>
@@ -147,10 +137,6 @@ layout: base
   </tbody>
 </table>
 
-<p>
-  <strong>avg chisq</strong>: Average Chi<sup>2</sup> (squared Z-score) across all models in this panel for this trait.
-</p>
-
 <script type="text/javascript" class="init">
     $(document).ready(function () {
         $('table#loci').DataTable({
@@ -162,9 +148,17 @@ layout: base
             language: {
                 search: '<i class="fa fa-search" aria-hidden="true"></i>'
             },
+            layout: {
+                topStart: function() {
+                    let div = document.createElement('div');
+                    div.className = 'small';
+                    div.innerHTML = '<i class="fas fa-info-circle"></i> Hover over column headers to see descriptions';
+                    return div;
+                }
+            },
             columnDefs: [
-                { className: "dt-left dt-head-left", targets: [0, 10] },
-                { className: "dt-right dt-head-right", targets: [1, 2, 3, 4, 5, 6, 7, 8, 9] },
+                { className: "dt-left dt-head-left", targets: [0, 9] },
+                { className: "dt-right dt-head-right", targets: [1, 2, 3, 4, 5, 6, 7, 8] },
             ],
             order: [[0, 'asc']],
         });
@@ -178,6 +172,14 @@ layout: base
             autoWidth: false,
             language: {
                 search: '<i class="fa fa-search" aria-hidden="true"></i>'
+            },
+            layout: {
+                topStart: function() {
+                    let div = document.createElement('div');
+                    div.className = 'small';
+                    div.innerHTML = '<i class="fas fa-info-circle"></i> Hover over column headers to see descriptions';
+                    return div;
+                }
             },
             columnDefs: [
                 { className: "dt-left dt-head-left", targets: [0, 7] },
@@ -193,6 +195,14 @@ layout: base
             scrollY: 400,
             language: {
                 search: '<i class="fa fa-search" aria-hidden="true"></i>'
+            },
+            layout: {
+                topStart: function() {
+                    let div = document.createElement('div');
+                    div.className = 'small';
+                    div.innerHTML = '<i class="fas fa-info-circle"></i> Hover over column headers to see descriptions';
+                    return div;
+                }
             },
             columnDefs: [
                 { className: "dt-left dt-head-left", targets: [0, 1] },

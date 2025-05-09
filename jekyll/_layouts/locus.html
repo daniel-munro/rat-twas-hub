@@ -33,24 +33,18 @@ layout: base
 <table id="models">
   <thead>
     <tr>
-      <th>#</th>
-      <th>Tissue</th>
-      <th>Gene</th>
-      <th>Modality</th>
-      <th>RNA phenotype</th>
-      <th><span title="Heritability estimate for the given transcriptomic model">h2</span></th>
-      <th>eQTL R2</th>
-      <th>model</th>
-      <th># weights</th>
-      <th>model R2</th>
-      <th>model R2 P</th>
-      <th>eQTL GWAS Z</th>
-      <th>TWAS Z</th>
-      <th>TWAS P</th>
-      <th>Top SNP corr</th>
-      <th><span title="Posterior probability of two distinct causal variants">PP3</span></th>
-      <th><span title="Posterior probability of a single shared causal variant">PP4</span></th>
-      <th><span title="Whether the RNA phenotype is in the joint model">joint</span></th>
+      <th data-bs-toggle="tooltip" data-bs-placement="top" title="Tissue">Tissue</th>
+      <th data-bs-toggle="tooltip" data-bs-placement="top" title="Gene">Gene</th>
+      <th data-bs-toggle="tooltip" data-bs-placement="top" title="Modality of RNA variation">RNA modality</th>
+      <th data-bs-toggle="tooltip" data-bs-placement="top" title="RNA phenotype, e.g. the affected isoform or splice junction">RNA phenotype</th>
+      <th data-bs-toggle="tooltip" data-bs-placement="top" title="Heritability estimate for the RNA phenotype">h<sup>2</sup></th>
+      <th data-bs-toggle="tooltip" data-bs-placement="top" title="Number of variants used in the transcriptomic prediction model"># weights</th>
+      <th data-bs-toggle="tooltip" data-bs-placement="top" title="Cross-validation R<sup>2</sup> of the transcriptomic prediction model">Model R<sup>2</sup></th>
+      <th data-bs-toggle="tooltip" data-bs-placement="top" title="Cross-validation P-value of the transcriptomic prediction model">Model R<sup>2</sup> P</th>
+      <th data-bs-toggle="tooltip" data-bs-placement="top" title="TWAS Z-score">TWAS Z</th>
+      <th data-bs-toggle="tooltip" data-bs-placement="top" title="TWAS P-value">TWAS P</th>
+      <th data-bs-toggle="tooltip" data-bs-placement="top" title="Posterior probability of a single shared causal variant (PP4 from coloc)">Coloc P</th>
+      <th data-bs-toggle="tooltip" data-bs-placement="top" title="Whether the RNA phenotype was selected in the joint model">Joint</th>
     </tr>
   </thead>
   <tbody>
@@ -59,35 +53,22 @@ layout: base
     {% for model in models %}
     {% assign gene_name = site.data.gene_names[model.gene_id] %}
     <tr>
-      <td>{{ model.num }}</td>
       <td>{{ model.tissue }}</td>
       <td><em><a href="{{ site.baseurl }}genes/{{ model.gene_id }}">{{ gene_name }}</a></em></td>
       <td>{{ model.modality }}</td>
       <td>{{ model.id }}</td>
       <td>{{ model.hsq }}</td>
-      <td>{{ model.eqtl_r2 }}</td>
-      <td>{{ model.model }}</td>
       <td>{{ model.nwgt }}</td>
       <td>{{ model.modelcv_r2 }}</td>
       <td>{{ model.modelcv_pv }}</td>
-      <td>{{ model.eqtl_gwas_z }}</td>
       <td>{{ model.twas_z }}</td>
       <td>{{ model.twas_p }}</td>
-      <td>{{ model.top_snp_corr }}</td>
-      <td>{{ model.coloc_pp3 }}</td>
       <td>{{ model.coloc_pp4 }}</td>
       <td>{{ model.joint }}</td>
     </tr>
     {% endfor %}
   </tbody>
 </table>
-
-<p>
-  <strong>h2</strong>: Heritability estimate for the given transcriptomic model.
-  <strong>PP3</strong>: Posterior probability of two distinct causal variants.
-  <strong>PP4</strong>: Posterior probability of a single shared causal variant.
-  <strong>joint</strong>: Whether the RNA phenotype is in the joint model.
-</p>
 
 <script src="{{ site.baseurl }}assets/js/manhattan.js"></script>
 <script type="text/javascript" class="init">
@@ -107,11 +88,19 @@ layout: base
             language: {
                 search: '<i class="fa fa-search" aria-hidden="true"></i>'
             },
+            layout: {
+                topStart: function() {
+                    let div = document.createElement('div');
+                    div.className = 'small';
+                    div.innerHTML = '<i class="fas fa-info-circle"></i> Hover over column headers to see descriptions';
+                    return div;
+                }
+            },
             columnDefs: [
-                { className: "dt-left dt-head-left", targets: [1, 2, 3, 4, 7, 17] },
-                { className: "dt-right dt-head-right", targets: [0, 5, 6, 8, 9, 10, 11, 12, 13, 14, 15, 16] },
+                { className: "dt-left dt-head-left", targets: [0, 1, 2, 3, 11] },
+                { className: "dt-right dt-head-right", targets: [4, 5, 6, 7, 8, 9, 10] },
             ],
-            order: [[13, 'asc']],
+            order: [[9, 'asc']],
         });
     });
 </script>

@@ -11,13 +11,13 @@ layout: base
   <table class="table table-hover">
     <thead>
       <tr>
-        <th>Trait</th>
-        <th>N</th>
-        <th># loci</th>
-        <th># indep. genes</th>
-        <th># total genes</th>
-        <th>Project</th>
-        <th>Data</th>
+        <th data-bs-toggle="tooltip" data-bs-placement="top" title="Trait">Trait</th>
+        <th data-bs-toggle="tooltip" data-bs-placement="top" title="Number of individuals in the GWAS">N</th>
+        <th data-bs-toggle="tooltip" data-bs-placement="top" title="Number of associated genomic loci"># loci</th>
+        <th data-bs-toggle="tooltip" data-bs-placement="top" title="Number of independent genes selected in the per-locus joint analyses"># indep. genes</th>
+        <th data-bs-toggle="tooltip" data-bs-placement="top" title="Total number of genes with significant associations"># total genes</th>
+        <th data-bs-toggle="tooltip" data-bs-placement="top" title="Project that produced the GWAS data">Project</th>
+        <th data-bs-toggle="tooltip" data-bs-placement="top" title="Link to download the FUSION TWAS association data">Data</th>
       </tr>
     </thead>
     <tbody>
@@ -48,8 +48,12 @@ layout: base
                 search: '<i class="fa fa-search fa-2x" aria-hidden="true"></i>'
             },
             layout: {
-                topStart: 'search',
-                topEnd: null,
+                topStart: function() {
+                    let div = document.createElement('div');
+                    div.className = 'small';
+                    div.innerHTML = '<i class="fas fa-info-circle"></i> Hover over column headers to see descriptions';
+                    return div;
+                }
             },
             columnDefs: [
                 { className: "dt-left dt-head-left", targets: [0, 5, 6] },

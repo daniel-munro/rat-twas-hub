@@ -10,24 +10,28 @@ layout: base
 
 <h3>Models</h3>
 
+<p>
+  All models for this gene with <strong>cis-heritability P-value &lt;0.01</strong> were tested and are shown here.  In each tissue, a gene can have zero, one, or multiple RNA phenotypes for each RNA modality.  After the heritability statistics, subsequent columns show cross-validation performance (R<sup>2</sup> and P-value) of each modeling method.  The best-performing method for each models is used for TWAS.
+</p>
+ 
 <table id="models">
   <thead>
     <tr>
-      <th>#</th>
-      <th>tissue</th>
-      <th>modality</th>
-      <th>RNA phenotype</th>
-      <th>h<sup>2</sup></th>
-      <th>h<sup>2</sup> se</th>
-      <th>h<sup>2</sup> P</th>
-      <th>eQTL R<sup>2</sup></th>
-      <th>BLUP R<sup>2</sup></th>
-      <th>ENET R<sup>2</sup></th>
-      <th>LASSO R<sup>2</sup></th>
-      <th>eQTL P</th>
-      <th>BLUP P</th>
-      <th>ENET P</th>
-      <th>LASSO P</th>
+      <th data-bs-toggle="tooltip" data-bs-placement="top" title="Model number (sorted alphabetically by tissue and modality)">#</th>
+      <th data-bs-toggle="tooltip" data-bs-placement="top" title="Tissue">Tissue</th>
+      <th data-bs-toggle="tooltip" data-bs-placement="top" title="Modality of RNA variation">Modality</th>
+      <th data-bs-toggle="tooltip" data-bs-placement="top" title="RNA phenotype, e.g. the affected isoform or splice junction">RNA phenotype</th>
+      <th data-bs-toggle="tooltip" data-bs-placement="top" title="Heritability estimate for the RNA phenotype">h<sup>2</sup></th>
+      <th data-bs-toggle="tooltip" data-bs-placement="top" title="Standard error of the heritability estimate">h<sup>2</sup> SE</th>
+      <th data-bs-toggle="tooltip" data-bs-placement="top" title="P-value of the heritability estimate">h<sup>2</sup> P</th>
+      <th data-bs-toggle="tooltip" data-bs-placement="top" title="xQTL method R<sup>2</sup>">xQTL R<sup>2</sup></th>
+      <th data-bs-toggle="tooltip" data-bs-placement="top" title="BLUP method R<sup>2</sup>">BLUP R<sup>2</sup></th>
+      <th data-bs-toggle="tooltip" data-bs-placement="top" title="ENET method R<sup>2</sup>">ENET R<sup>2</sup></th>
+      <th data-bs-toggle="tooltip" data-bs-placement="top" title="LASSO method R<sup>2</sup>">LASSO R<sup>2</sup></th>
+      <th data-bs-toggle="tooltip" data-bs-placement="top" title="xQTL method P-value">xQTL P</th>
+      <th data-bs-toggle="tooltip" data-bs-placement="top" title="BLUP method P-value">BLUP P</th>
+      <th data-bs-toggle="tooltip" data-bs-placement="top" title="ENET method P-value">ENET P</th>
+      <th data-bs-toggle="tooltip" data-bs-placement="top" title="LASSO method P-value">LASSO P</th>
     </tr>
   </thead>
   <tbody>
@@ -54,41 +58,30 @@ layout: base
   </tbody>
 </table>
 
-<p>
-  All models for this gene with cis-heritability P-value &lt;0.01 were tested and are shown here.  In each tissue, the gene can have zero, one, or multiple RNA phenotypes for each RNA modality.  After the heritability statistics, subsequent columns show cross-validation performance (R<sup>2</sup> and P-value) of each modeling method.
-</p>
-
 <h3>Trait associations</h3>
+
+<p>
+  The numbered columns correspond to the <strong>numbered models</strong> in the table above.
+  They contain the <strong>TWAS Z-score</strong> for each trait-model pair.
+  <strong>Colors</strong> indicate strong Z-scores (below -2 or above 2): lower negative Z-scores are darker blue, higher positive Z-scores are darker red.
+</p>
 
 <table id="assoc">
   <thead>
     <tr>
-      <th>Trait</th>
-      <th><span title="Mean chi^2 across all models for this gene, divided by the mean chi^2 across all models for all genes">Avg chi<sup>2</sup> ratio</span></th>
-      <th><span title="Mean chi^2 across all models for this gene">Avg chi<sup>2</sup></span></th>
-      <th><span title="Highest chi^2 across all models for this gene">Max chi<sup>2</sup></span></th>
+      <th data-bs-toggle="tooltip" data-bs-placement="top" title="Trait">Trait</th>
+      <th data-bs-toggle="tooltip" data-bs-placement="top" title="Mean chi<sup>2</sup> across all models for this gene, divided by the mean chi<sup>2</sup> across all models for all genes">Avg chi<sup>2</sup> ratio</th>
+      <th data-bs-toggle="tooltip" data-bs-placement="top" title="Mean chi<sup>2</sup> across all models for this gene">Avg chi<sup>2</sup></th>
+      <th data-bs-toggle="tooltip" data-bs-placement="top" title="Highest chi<sup>2</sup> across all models for this gene">Max chi<sup>2</sup></th>
       {% for model in models %}
-      <th><span title="{{ model.tissue }}: {{ model.modality }}: {{ model.id }}">{{ model.num }}</span></th>
+      <th data-bs-toggle="tooltip" data-bs-placement="top" title="{{ model.tissue }}: {{ model.modality }}: {{ model.id }}">{{ model.num }}</th>
       {% endfor %}
     </tr>
   </thead>
   <tbody>
     {{ content }}
-  </tbody>
+</tbody>
 </table>
-
-<p>
-  For each tested trait, stats based on TWAS chi<sup>2</sup> (squared Z-score) for the above models are shown.
-  <strong>Avg chi<sup>2</sup> ratio</strong> is the mean chi<sup>2</sup> across all models for this gene, divided by the mean chi<sup>2</sup> across all models for all genes.
-  <strong>Avg chi<sup>2</sup></strong> is the mean chi<sup>2</sup> across all models for this gene.
-  <strong>Max chi<sup>2</sup></strong> is the highest chi<sup>2</sup> across all models for this gene.
-</p>
-
-<p>
-  The numbered columns correspond to the <strong></strong>numbered models</strong> in the table above.
-  They contain the <strong>TWAS Z-score</strong> for each trait-model pair.
-  <strong>Colors</strong> indicate strong Z-scores (below -2 or above 2): lower negative Z-scores are darker blue, higher positive Z-scores are darker red.
-</p>
 
 <script type="text/javascript" class="init">
     $(document).ready(function () {
@@ -101,9 +94,17 @@ layout: base
             language: {
                 search: '<i class="fa fa-search" aria-hidden="true"></i>'
             },
+            layout: {
+                topStart: function() {
+                    let div = document.createElement('div');
+                    div.className = 'small';
+                    div.innerHTML = '<i class="fas fa-info-circle"></i> Hover over column headers to see descriptions';
+                    return div;
+                }
+            },
             columnDefs: [
-                { className: "dt-left dt-head-left", targets: [0, 1, 2] },
-                { className: "dt-right dt-head-right", targets: '_all' },
+                { className: "dt-left dt-head-left", targets: [0, 1, 2, 3] },
+                { className: "dt-right dt-head-right", targets: [4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14] },
             ]
         });
         $('table#assoc').DataTable({
@@ -116,6 +117,14 @@ layout: base
             order: [[1, 'des']],
             language: {
                 search: '<i class="fa fa-search" aria-hidden="true"></i>'
+            },
+            layout: {
+                topStart: function() {
+                    let div = document.createElement('div');
+                    div.className = 'small';
+                    div.innerHTML = '<i class="fas fa-info-circle"></i> Hover over column headers to see descriptions';
+                    return div;
+                }
             },
             columnDefs: [
                 {
