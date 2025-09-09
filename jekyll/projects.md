@@ -15,6 +15,7 @@ Only traits from the original studies with sufficient information and biological
         <th>ID</th>
         <th>Principal investigator</th>
         <th>Title</th>
+        <th>Publication</th>
         <th>Animal source</th>
       </tr>
     </thead>
@@ -24,6 +25,11 @@ Only traits from the original studies with sufficient information and biological
         <td>{{ project.id | default: '-' }}</td>
         <td>{{ project.pi | default: '-' }}</td>
         <td>{{ project.title | default: '-' }}</td>
+        {% if project.pub_title and project.pub_title != '' %}
+        <td><a href="{{ project.pub_url }}">{{ project.pub_title }}</a></td>
+        {% else %}
+        <td>-</td>
+        {% endif %}
         <td>{{ project.animal_source | default: '-' }}</td>
       </tr>
       {% endfor %}

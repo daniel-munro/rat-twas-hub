@@ -28,7 +28,7 @@ Please read this [blog post](http://sashagusev.github.io/2017-10/twas-vulnerabil
 
 #### Predictive models and weights.
 
-The predictive models for all analyses were generated using the default [Pantry (Pan-transcriptomic phenotyping) pipeline](https://github.com/PejLab/Pantry). Weights were generated from all available RNA phenotypes, and multiple RNA phenotype PCs and genotype PCs were used as covariates.
+The predictive models for all analyses were generated using the default [Pantry (Pan-transcriptomic phenotyping) pipeline](https://github.com/PejLab/Pantry). Weights were generated from all available RNA phenotypes, and multiple RNA phenotype PCs and genotype PCs were used as covariates. See the [RatGTEx Portal](https://ratgtex.org) for information on the RNA-seq data sources and processing.
 
 #### Interpretation of low significance models.
 
@@ -65,6 +65,7 @@ HS Rat RNA-seq datasets used for the transcriptomic models were produced by mult
 
 ## Change Log
 
+| 2025-09-08 | Added tag-based trait filtering and GWAS source publications |
 | 2025-05-09 | Improved UI and table info, added cross-species gene search |
 | 2025-02-12 | Added traits (281 total), improved trait metadata, and merged same-tissue datasets |
 | 2024-09-03 | Added page with table of source projects |
