@@ -7,7 +7,7 @@ layout: default
 {: .text-center}
 ### **{{ site.data.stats.n_genes }}** genes &middot; **{{ site.data.stats.n_models }}** models
 
-To search for human genes, try the [cross-species search](#cross-species).
+Genes with at least one TWAS model are shown. There is a TWAS model for each significantly heritable RNA phenotype (one or more per gene) in each tissue. To search for human genes, try the [cross-species search](#cross-species).
 
 {: #genes}
 | Gene | ID | # associated traits | # models |

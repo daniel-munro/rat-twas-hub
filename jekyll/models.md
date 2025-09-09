@@ -11,7 +11,7 @@ permalink: models/
       <tr>
         <th>Tissue</th>
         <th>Modality</th>
-        <th>N</th>
+        <th>Sample size</th>
       </tr>
     </thead>
     <tbody>

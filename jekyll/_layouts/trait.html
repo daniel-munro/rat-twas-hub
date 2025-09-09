@@ -18,10 +18,14 @@ layout: base
 
 <p>Project: <a href="{{ site.baseurl }}projects/#{{ trait.PROJECT }}">{{ trait.PROJECT }}</a></p>
 
+{% assign num_loci = trait.NUM_LOCI | plus: 0 %}
+{% assign num_joint_genes = trait.NUM_JOINT_GENES | plus: 0 %}
+{% assign num_genes = trait.NUM_GENES | plus: 0 %}
+
 <p class="text-center">
-    <strong>{{ trait.NUM_LOCI }}</strong> {% if trait.NUM_LOCI == 1 %}locus{% else %}loci{% endif %} · 
-    <strong>{{ trait.NUM_JOINT_GENES }}</strong> gene{% if trait.NUM_JOINT_GENES != 1 %}s{% endif %} with independent associations · 
-    <strong>{{ trait.NUM_GENES }}</strong> total associated gene{% if trait.NUM_GENES != 1 %}s{% endif %}
+  <strong>{{ trait.NUM_LOCI }}</strong> {% if num_loci == 1 %}locus{% else %}loci{% endif %} · 
+  <strong>{{ trait.NUM_JOINT_GENES }}</strong> gene{% if num_joint_genes != 1 %}s{% endif %} with independent associations · 
+  <strong>{{ trait.NUM_GENES }}</strong> total associated gene{% if num_genes != 1 %}s{% endif %}
 </p>
 
 <h3>Significant Loci</h3>
