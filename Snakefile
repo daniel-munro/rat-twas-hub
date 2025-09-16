@@ -251,7 +251,11 @@ rule genes_n_assoc_info:
 rule build_jekyll:
     """Generate the Jekyll files."""
     input:
+        traits = "data/traits.par",
         traits_info = "data/traits.par.nfo",
+        models = "data/all_models.par",
+        panels = "data/panels.par",
+        gene_names = "data/gene_names.tsv",
         genes_models = "data/genes_n_models.nfo",
         genes_assoc = "data/genes_n_assoc.nfo",
     output:
@@ -260,6 +264,7 @@ rule build_jekyll:
         stats_yml = "jekyll/_data/stats.yml",
         trait_tsv = "jekyll/_data/traits.tsv",
         genes_json = "jekyll/genes.json",
+        gene_names = "jekyll/_data/gene_names.yml",
         trait_pages = expand("jekyll/traits/{trait}.md", trait=traits),
     threads: 16
     resources:

@@ -7,12 +7,14 @@
 # data/genes_n_assoc.nfo
 # data/genes_n_models.nfo
 # data/gene_names.tsv
+# data/panels.par
 
 # Outputs:
 # jekyll/_data/traits.tsv
-# jekyll/_data/genes.tsv
+# jekyll/_data/genes.json
 # jekyll/_data/gene_names.yml
 # jekyll/_data/stats.yml
+# jekyll/_data/panels.tsv
 
 suppressPackageStartupMessages(library(tidyverse))
 library(yaml)
@@ -80,3 +82,17 @@ gene_stats <- list(
 )
 dir.create("jekyll/_data", showWarnings = FALSE, recursive = TRUE)
 yaml::write_yaml(gene_stats, file = "jekyll/_data/stats.yml")
+
+## Make panels.tsv with model counts
+
+panels <- readr::read_tsv("data/panels.par", col_types = "cccccc")
+
+panel_counts <- read_tsv(
+  "data/all_models.par", col_types = cols(PANEL = "c", .default = "-")
+) |>
+  count(PANEL, name = "N_MODELS")
+
+panels_out <- panels |>
+  left_join(panel_counts, by = "PANEL", relationship = "one-to-one")
+
+write_tsv(panels_out, "jekyll/_data/panels.tsv")

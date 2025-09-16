@@ -17,6 +17,5 @@ echo "Building summary data..."
 Rscript scripts/site/build_summary_data.R
 Rscript scripts/site/build_cross_species.R
 cp data/projects.tsv jekyll/_data/
-cp data/panels.par jekyll/_data/panels.tsv
 
 echo "Done building jekyll files."
