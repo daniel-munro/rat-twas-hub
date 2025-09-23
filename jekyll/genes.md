@@ -10,16 +10,16 @@ layout: default
 Genes with at least one TWAS model are shown. There is a TWAS model for each significantly heritable RNA phenotype (one or more per gene) in each tissue. To search for human genes, try the [cross-species search](#cross-species).
 
 {: #genes}
-| Gene | ID | # associated traits | # models |
-| --- | --- | --- | --- |
-| | | | |
+| Gene | # associated traits | # models |
+| --- | --- | --- |
+| | | |
 
 {: #cross-species}
 ## Cross-species gene search
 
 Each row is an ortholog pair or a gene that has no ortholog in the other species. Rat gene symbols/IDs with links point to the gene entries in this Rat TWAS Hub, while human gene symbols/IDs with links point to the gene entries in the human [TWAS Hub](http://twas-hub.org). Symbols/IDs without links are not included in the TWAS hub of that species.
 
-{: #cross-species .display}
+{: #cross-species-table .display}
 | Human Symbol | Human ID | Rat Symbol | Rat ID | Human Assoc. | Rat Assoc. |
 |---|---|---|---|---|---|
 | | | | | | |
@@ -37,13 +37,13 @@ Each row is an ortholog pair or a gene that has no ortholog in the other species
                 topEnd: null,
             },
             columnDefs: [
-                { targets: [0, 1], className: "dt-left dt-head-left" },
-                { targets: [2, 3], className: "dt-right dt-head-right" },
-                { targets: [2, 3], searchable: false },
+                { targets: [0], className: "dt-left dt-head-left" },
+                { targets: [1, 2], className: "dt-right dt-head-right" },
+                { targets: [1, 2], searchable: false },
             ],
-            order: [[2, 'desc']],
+            order: [[1, 'desc']],
         });
-        $('table#cross-species').DataTable({
+        $('table#cross-species-table').DataTable({
             ajax: '{{ site.baseurl }}cross-species.json',
             lengthChange: false,
             language: {

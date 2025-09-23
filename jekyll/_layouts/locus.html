@@ -17,7 +17,7 @@ layout: base
   {% endif %}
 </p>
 
-<h1>chr{{ locus.chr }}:{{ page.pos0 }}-{{ page.pos1 }}</h1>
+<h1>{{ locus.chr }}:{{ page.pos0 }}-{{ page.pos1 }}</h1>
 
 <h2>Trait: {{ trait.NAME }}</h2>
 
@@ -51,10 +51,9 @@ layout: base
     {% assign locus_num_str = page.locus_num | append: "" %}
     {% assign models = site.data.locus_models[page.trait_id][locus_num_str] %}
     {% for model in models %}
-    {% assign gene_name = site.data.gene_names[model.gene_id] %}
     <tr>
       <td>{{ model.tissue }}</td>
-      <td><em><a href="{{ site.baseurl }}genes/{{ model.gene_id }}">{{ gene_name }}</a></em></td>
+      <td><em><a href="{{ site.baseurl }}genes/{{ model.gene_id }}">{{ model.gene_id }}</a></em></td>
       <td>{{ model.modality }}</td>
       <td>{{ model.id }}</td>
       <td>{{ model.hsq }}</td>

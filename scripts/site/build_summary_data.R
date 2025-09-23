@@ -6,22 +6,20 @@
 # data/all_models.par
 # data/genes_n_assoc.nfo
 # data/genes_n_models.nfo
-# data/gene_names.tsv
 # data/panels.par
 
 # Outputs:
 # jekyll/_data/traits.tsv
 # jekyll/_data/genes.json
-# jekyll/_data/gene_names.yml
 # jekyll/_data/stats.yml
 # jekyll/_data/panels.tsv
 
 suppressPackageStartupMessages(library(tidyverse))
 library(yaml)
 
-gene_id <- function(pheno_ID) {
+gene_id <- function(pheno_id) {
   # Extract gene ID from RNA phenotype ID
-  str_extract(pheno_ID, "^[^:.]+")
+  stringr::str_replace(pheno_id, "__.+$", "")
 }
 
 ## Print trait index
@@ -45,31 +43,19 @@ genes_n_assoc <- read_delim("data/genes_n_assoc.nfo", delim = " ", col_types = "
 genes_n_models <- read_delim("data/genes_n_models.nfo", delim = " ", col_types = "ci", col_names = FALSE) |>
   deframe()
 
-# Load gene names since Ensembl IDs were used for TWAS
-gene_names <- read_tsv("data/gene_names.tsv", col_types = "cc") |>
-  deframe()
-
 df_genes <- tibble(gene_id = all_genes) |>
   mutate(
     n_assoc = genes_n_assoc[gene_id],
     n_models = genes_n_models[gene_id],
-    gene_name = gene_names[gene_id],
-    gene_name = if_else(is.na(gene_name), gene_id, gene_name),
-    gene_link = str_glue('<em><a href=\\"./{gene_id}\\">{gene_name}</a></em>'),
+    gene_link = str_glue('<em><a href=\\"./{gene_id}\\">{gene_id}</a></em>'),
   ) |>
   replace_na(list(n_assoc = 0, n_models = 0))
 
 cat('{\n"data":[\n',
-    str_c(str_glue('["{df_genes$gene_link}","{df_genes$gene_id}",{df_genes$n_assoc},{df_genes$n_models}]'), collapse = ",\n"),
+    str_c(str_glue('["{df_genes$gene_link}",{df_genes$n_assoc},{df_genes$n_models}]'), collapse = ",\n"),
     "]\n}",
     sep = "",
     file = "jekyll/genes.json")
-
-df_genes |>
-  select(gene_id, gene_name) |>
-  deframe() |>
-  as.list() |>
-  yaml::write_yaml(file = "jekyll/_data/gene_names.yml")
 
 ## Stats for trait and gene index pages
 

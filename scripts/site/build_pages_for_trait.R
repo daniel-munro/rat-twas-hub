@@ -21,30 +21,38 @@ suppressPackageStartupMessages(library(tidyverse))
 
 pheno_to_gene_id <- function(pheno_id) {
   # Extract gene ID from RNA phenotype ID
-  str_extract(pheno_id, "^[^:.]+")
+  stringr::str_replace(pheno_id, "__.+$", "")
 }
 
-shorten_ids <- function(id, modality) {
+shorten_ids <- function(pheno_id, modality) {
   # Remove extra information from RNA phenotype IDs
-  case_when(
-    modality %in% c("alternative polyA", "alternative TSS", "isoform ratio") ~ str_extract(id, "[^:.]+$"),
-    modality == "intron excision ratio" ~ str_c("chr", id |> str_replace("^[^:]+:", "") |> str_replace(":[^:]+$", "")),
-    .default = id
+  # alternative TSS/polyA:            {gene_id}__grp_{grp#}_{up|down}stream_{transcript_id}      -> {transcript_id}
+  # gene expression & mRNA stability: {gene_id}                                                  -> {gene_id}
+  # intron excision ratio:            {gene_id}__{chrom}_{pos1}_{pos2}_clu_{cluster_id}_{strand} -> {chrom}_{pos1}_{pos2}
+  # isoform ratio:                    {gene_id}__{transcript_id}                                 -> {transcript_id}
+  dplyr::case_when(
+    modality %in% c("alternative TSS", "alternative polyA") ~ pheno_id |> stringr::str_replace("^.+stream_", ""),
+    modality == "intron excision ratio" ~ pheno_id |> stringr::str_replace("^.+__", "") |> stringr::str_replace("_clu_.+$", ""),
+    modality == "isoform ratio" ~ pheno_id |> stringr::str_replace("^.+__", ""),
+    .default = pheno_id
   )
 }
 
 arg <- commandArgs(trailingOnly = TRUE)
-i_trait <- as.numeric(arg[1])
+trait <- as.character(arg[1])
 
 traits_nfo <- read_tsv("data/traits.par.nfo", col_types = "ciiid")
 
 tbl_traits <- read_tsv("data/traits.par", col_types = "ccicccc") |>
   left_join(traits_nfo, by = "ID")
 
-tbl_panels <- read_tsv("data/panels.par", col_types = "ccccci")
+# Determine the index of the requested trait_id and validate
+i_trait <- match(trait, tbl_traits$ID)
+if (is.na(i_trait)) {
+  stop(stringr::str_glue("Trait ID '{trait}' not found in data/traits.par"))
+}
 
-# Count the number of significant genes for the trait
-trait <- tbl_traits$ID[i_trait]
+tbl_panels <- read_tsv("data/panels.par", col_types = "ccccci")
 
 cat("reading", tbl_traits$OUTPUT[i_trait], "\n")
 trait_assocs <- read_tsv(
@@ -88,9 +96,11 @@ c(
 
 # ---- Get clumped and conditional loci
 trait_loci <- read_tsv(
-  str_replace(tbl_traits$OUTPUT[i_trait], ".all.tsv", ".post.tsv"), col_types = "ciiiiidddd"
+  str_replace(tbl_traits$OUTPUT[i_trait], ".all.tsv", ".post.tsv"), col_types = "cciiiidddd"
 ) |>
-  arrange(CHR, P0) |>
+  mutate(chr_num = as.integer(str_replace(CHR, "chr", ""))) |>
+  arrange(chr_num, P0) |>
+  select(-chr_num) |>
   mutate(locus_num = seq_len(n()),
          genes = "")
 
@@ -104,7 +114,7 @@ for (i_locus in seq_len(nrow(trait_loci))) {
   
   locus_models <- read_tsv(
     str_glue("{trait_loci$FILE[i_locus]}.genes"),
-    col_types = "ccciiidcdcdddiicdddddddddld"
+    col_types = "cccciidcdcdddiicdddddddddld"
   ) |>
     mutate(num = seq_len(n()),
            gene_id = pheno_to_gene_id(ID)) |>

@@ -62,8 +62,7 @@ layout: base
         <em>
           {% assign gene_ids = locus.genes | split: ',' %}
           {% for gene_id in gene_ids %}
-            {% assign gene_name = site.data.gene_names[gene_id] %}
-            <a href="{{ site.baseurl }}genes/{{ gene_id }}">{{ gene_name }}</a>
+            <a href="{{ site.baseurl }}genes/{{ gene_id }}">{{ gene_id }}</a>
             {% unless forloop.last %} {% endunless %}
           {% endfor %}  
         </em>  
@@ -104,8 +103,7 @@ layout: base
         <em>
           {% assign gene_ids = row.genes | split: ',' %}
           {% for gene_id in gene_ids %}
-            {% assign gene_name = site.data.gene_names[gene_id] %}
-          <a href="{{ site.baseurl }}genes/{{ gene_id }}">{{ gene_name }}</a>
+          <a href="{{ site.baseurl }}genes/{{ gene_id }}">{{ gene_id }}</a>
             {% unless forloop.last %} {% endunless %}
           {% endfor %}
         </em>

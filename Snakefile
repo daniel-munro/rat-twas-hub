@@ -1,16 +1,15 @@
 import pandas as pd
 
-tissues = ["Adipose", "BLA", "Brain", "Eye", "IL", "LHb", "Liver", "NAcc", "OFC", "PL"]
+tissues = ["Adipose", "BLA", "Brain", "Eye", "IL", "LHb", "Liver", "NAcc", "OFC", "PL", "pVTA", "RMTg"]
 modalities = ["alt_polyA", "alt_TSS", "expression", "isoforms", "splicing", "stability"]
-gtf = "data/Rattus_norvegicus.mRatBN7.2.108.gtf"
+gtf = "data/GCF_015227675.2_mRatBN7.2_genomic.chr.filt.gtf"
 wgt_dir = "data/WEIGHTS"
-ldref_prefix = "data/LDREF/Brain_rn7."
+ldref_prefix = "data/LDREF/Brain_v3."
 
 traits_df = pd.read_csv("data/traits.par", sep="\t", index_col=1)
 traits = traits_df.index.tolist()
 
 localrules:
-    gene_names,
     all_models_file,
     sumstats,
     twas_top,
@@ -20,9 +19,10 @@ localrules:
     traits_info,
     genes_n_assoc_info,
     genes_n_models_info,
+    jekyll_copy_projects,
 
 wildcard_constraints:
-    trait="[^/]+"
+    trait="[^/.]+"
 
 rule all:
     input:
@@ -38,18 +38,9 @@ rule all:
         "jekyll/_data/stats.yml",
         "jekyll/_data/traits.tsv",
         expand("jekyll/data/{trait}.tar.bz2", trait=traits),
-
-rule gene_names:
-    """Add gene names since Ensembl IDs were used in TWAS"""
-    input:
-        gtf = gtf
-    output:
-        tsv = "data/gene_names.tsv"
-    shell:
-        """
-        echo -e "ID\tNAME" > {output.tsv}
-        perl -nle '/gene_id "([^"]+)".+gene_name "([^"]+)"/ && print "$1\t$2"' {input.gtf} | sort | uniq >> {output.tsv}
-        """
+        expand("jekyll/traits/{trait}.md", trait=traits),
+        "jekyll/cross-species.json",
+        "jekyll/_data/gene_pages.done",
 
 rule all_models_file:
     """Create table of all models"""
@@ -100,9 +91,9 @@ rule twas:
         models = "data/all_models.par",
         sumstats = "data/gwas/{trait}/{trait}.{chrom}.sumstats",
         panels = "data/panels.par",
-        ldref = multiext(f"{ldref_prefix}{{chrom}}", ".bed", ".bim", ".fam"),
+        ldref = multiext(f"{ldref_prefix}chr{{chrom}}", ".bed", ".bim", ".fam"),
     output:
-        assoc = "data/twas_out/{trait}/{trait}.{chrom}.all.tsv"
+        assoc = "data/twas_out/{trait}/{trait}.chr{chrom}.all.tsv"
     params:
         wgt_dir = wgt_dir,
         ldref_prefix = ldref_prefix,
@@ -121,7 +112,7 @@ rule twas:
             --weights {input.models} \
             --weights_dir {params.wgt_dir} \
             --ref_ld_chr {params.ldref_prefix} \
-            --chr {wildcards.chrom} \
+            --chr chr{wildcards.chrom} \
             --coloc_P 0.0005 \
             --GWASN {params.gwas_n} \
             --PANELN {input.panels}
@@ -131,9 +122,9 @@ rule twas_top:
     """Get significant TWAS hits on one chromosome for one trait"""
     input:
         models = "data/all_models.par",
-        assoc = "data/twas_out/{trait}/{trait}.{chrom}.all.tsv",
+        assoc = "data/twas_out/{trait}/{trait}.chr{chrom}.all.tsv",
     output:
-        top = "data/twas_out/{trait}/{trait}.{chrom}.top.tsv"
+        top = "data/twas_out/{trait}/{trait}.chr{chrom}.top.tsv"
     group: "twas"
     shell:
         """
@@ -144,14 +135,14 @@ rule twas_top:
 rule twas_post:
     """Run post-processing on TWAS hits on one chromosome for one trait"""
     input:
-        top = "data/twas_out/{trait}/{trait}.{chrom}.top.tsv",
+        top = "data/twas_out/{trait}/{trait}.chr{chrom}.top.tsv",
         sumstats = "data/gwas/{trait}/{trait}.{chrom}.sumstats",
-        ldref = multiext(f"{ldref_prefix}{{chrom}}", ".bed", ".bim", ".fam"),
+        ldref = multiext(f"{ldref_prefix}chr{{chrom}}", ".bed", ".bim", ".fam"),
     output:
-        post = "data/twas_out/{trait}/{trait}.{chrom}.post.report",
+        post = "data/twas_out/{trait}/{trait}.chr{chrom}.post.report",
     params:
         ldref_prefix = ldref_prefix,
-        out_prefix = "data/twas_out/{trait}/{trait}.{chrom}.post",
+        out_prefix = "data/twas_out/{trait}/{trait}.chr{chrom}.post",
         max_r2 = 0.85, # default is 0.9, but that was giving errors in solve() in conditional analysis
     group: "twas"
     resources:
@@ -167,7 +158,7 @@ rule twas_post:
                 --out {params.out_prefix} \
                 --minp_input 1 \
                 --ref_ld_chr {params.ldref_prefix} \
-                --chr {wildcards.chrom} \
+                --chr chr{wildcards.chrom} \
                 --locus_win 200e3 \
                 --max_r2 {params.max_r2} \
                 --report
@@ -177,7 +168,7 @@ rule twas_post:
 rule combine_chroms_assoc:
     """Concatenate per-chromosome TWAS results for one trait"""
     input:
-        assocs = expand("data/twas_out/{{trait}}/{{trait}}.{chrom}.all.tsv", chrom=range(1, 21))
+        assocs = expand("data/twas_out/{{trait}}/{{trait}}.chr{chrom}.all.tsv", chrom=range(1, 21))
     output:
         assoc = "data/twas_out/{trait}.all.tsv"
     shell:
@@ -188,7 +179,7 @@ rule combine_chroms_assoc:
 rule combine_chroms_top:
     """Concatenate per-chromosome significant hits for one trait"""
     input:
-        tops = expand("data/twas_out/{{trait}}/{{trait}}.{chrom}.top.tsv", chrom=range(1, 21))
+        tops = expand("data/twas_out/{{trait}}/{{trait}}.chr{chrom}.top.tsv", chrom=range(1, 21))
     output:
         top = "data/twas_out/{trait}.top.tsv"
     shell:
@@ -199,7 +190,7 @@ rule combine_chroms_top:
 rule combine_chroms_post:
     """Concatenate per-chromosome TWAS post-processing reports for one trait"""
     input:
-        posts = expand("data/twas_out/{{trait}}/{{trait}}.{chrom}.post.report", chrom=range(1, 21))
+        posts = expand("data/twas_out/{{trait}}/{{trait}}.chr{chrom}.post.report", chrom=range(1, 21))
     output:
         post = "data/twas_out/{trait}.post.tsv"
     shell:
@@ -231,7 +222,7 @@ rule genes_n_models_info:
         nfo = "data/genes_n_models.nfo"
     shell:
         """
-        tail -n+2 {input.models} | cut -f3 | sed -E 's/[:.].*$//' | sort | uniq -c | awk '{{ print $2,$1 }}' > {output.nfo}
+        tail -n+2 {input.models} | cut -f3 | sed -E 's/__.*$//' | sort | uniq -c | awk '{{ print $2,$1 }}' > {output.nfo}
         """
 
 rule genes_n_assoc_info:
@@ -244,33 +235,85 @@ rule genes_n_assoc_info:
     shell:
         """
         tail -n+2 {input.traits} | awk '{{ print $2 }}' | while read id; do
-            tail -n+2 data/twas_out/$id.top.tsv | cut -f3 | sed -E 's/[:.].*$//' | uniq | sort | uniq
+            tail -n+2 data/twas_out/$id.top.tsv | cut -f3 | sed -E 's/__.*$//' | uniq | sort | uniq
         done | sort | uniq -c | awk '{{ print $2,$1 }}' > {output.nfo}
         """
 
-rule build_jekyll:
-    """Generate the Jekyll files."""
+rule jekyll_trait_page:
+    """Build the Jekyll page for a single trait"""
     input:
         traits = "data/traits.par",
-        traits_info = "data/traits.par.nfo",
-        models = "data/all_models.par",
         panels = "data/panels.par",
-        gene_names = "data/gene_names.tsv",
-        genes_models = "data/genes_n_models.nfo",
-        genes_assoc = "data/genes_n_assoc.nfo",
+        trait_info = "data/traits.par.nfo",
+        assoc = "data/twas_out/{trait}.all.tsv",
+        post = "data/twas_out/{trait}.post.tsv",
     output:
-        panels_tsv = "jekyll/_data/panels.tsv",
-        projects_tsv = "jekyll/_data/projects.tsv",
-        stats_yml = "jekyll/_data/stats.yml",
-        trait_tsv = "jekyll/_data/traits.tsv",
-        genes_json = "jekyll/genes.json",
-        gene_names = "jekyll/_data/gene_names.yml",
-        trait_pages = expand("jekyll/traits/{trait}.md", trait=traits),
-    threads: 16
+        page = "jekyll/traits/{trait}.md",
+        loci = "jekyll/_data/trait_loci/{trait}.tsv",
+        pleio = "jekyll/_data/trait_pleio/{trait}.tsv",
+        panels = "jekyll/_data/trait_panels/{trait}.tsv",
+    shell:
+        "Rscript scripts/site/build_pages_for_trait.R {wildcards.trait}"
+
+rule jekyll_gene_pages:
+    """Build Jekyll pages for all genes
+    
+    Outputs for all genes:
+    - jekyll/genes/{gene}.md
+    - jekyll/_data/gene_models/{gene}.tsv
+    """
+    input:
+        panels = "data/panels.par",
+        all_models = "data/all_models.par",
+        traits = "data/traits.par",
+        traits_info = "data/traits.par.nfo",
+    output:
+        marker = "jekyll/_data/gene_pages.done",
     resources:
         mem_mb = 32000,
     shell:
-        "bash scripts/site/build_jekyll.sh {threads}"
+        """
+        Rscript scripts/site/build_gene_pages.R
+        date > {output.marker}
+        """
+
+rule jekyll_summary_data:
+    """Build summary data files for Jekyll (_data)."""
+    input:
+        traits = "data/traits.par",
+        traits_info = "data/traits.par.nfo",
+        all_models = "data/all_models.par",
+        genes_models = "data/genes_n_models.nfo",
+        genes_assoc = "data/genes_n_assoc.nfo",
+        panels = "data/panels.par",
+    output:
+        traits_tsv = "jekyll/_data/traits.tsv",
+        genes_json = "jekyll/genes.json",
+        stats_yml = "jekyll/_data/stats.yml",
+        panels_tsv = "jekyll/_data/panels.tsv",
+    shell:
+        "Rscript scripts/site/build_summary_data.R"
+
+rule jekyll_cross_species:
+    """Build cross-species JSON for the site"""
+    input:
+        human_models = "data/cross_species/genes.models.nfo",
+        rat_models = "data/genes_n_models.nfo",
+        human_assoc = "data/cross_species/genes.nfo",
+        rat_assoc = "data/genes_n_assoc.nfo",
+    output:
+        json = "jekyll/cross-species.json",
+    shell:
+        "Rscript scripts/site/build_cross_species.R"
+
+rule jekyll_copy_projects:
+    """Copy projects.tsv into Jekyll _data directory"""
+    input:
+        tsv = "data/projects.tsv"
+    output:
+        tsv = "jekyll/_data/projects.tsv"
+    shell:
+        "cp {input.tsv} {output.tsv}"
 
 rule compress_twas_data:
     """Compress TWAS results for site download links"""
@@ -284,6 +327,5 @@ rule compress_twas_data:
     threads: 16
     shell:
         """
-        mkdir -p jekyll/data
         parallel -j{threads} "cd data/twas_out && tar -cjf ../../jekyll/data/{{}}.tar.bz2 {{}}/ {{}}.all.tsv {{}}.post.tsv && cd ../.." ::: {params.traits}
         """

@@ -1,12 +1,11 @@
 # Generate gene pages
 
 # Inputs:
-# data/gene_names.tsv
 # data/panels.par
 # data/all_models.par
 # data/traits.par
 # data/traits.par.nfo
-# data/{trait}.par (for each trait listed in traits.par)
+# data/twas_out/{trait}.all.tsv (for each trait listed in traits.par)
 
 # Outputs:
 # jekyll/genes/{gene}.md
@@ -16,14 +15,19 @@ suppressPackageStartupMessages(library(tidyverse))
 
 gene_id <- function(pheno_id) {
   # Extract gene ID from RNA phenotype ID
-  stringr::str_extract(pheno_id, "^[^:.]+")
+  stringr::str_replace(pheno_id, "__.+$", "")
 }
 
 shorten_ids <- function(pheno_id, modality) {
   # Remove extra information from RNA phenotype IDs
+  # alternative TSS/polyA:            {gene_id}__grp_{grp#}_{up|down}stream_{transcript_id}      -> {transcript_id}
+  # gene expression & mRNA stability: {gene_id}                                                  -> {gene_id}
+  # intron excision ratio:            {gene_id}__{chrom}_{pos1}_{pos2}_clu_{cluster_id}_{strand} -> {chrom}_{pos1}_{pos2}
+  # isoform ratio:                    {gene_id}__{transcript_id}                                 -> {transcript_id}
   dplyr::case_when(
-    modality %in% c("alternative polyA", "alternative TSS", "isoform ratio") ~ stringr::str_extract(pheno_id, "[^:.]+$"),
-    modality == "intron excision ratio" ~ stringr::str_c("chr", pheno_id |> stringr::str_replace("^[^:]+:", "") |> stringr::str_replace(":[^:]+$", "")),
+    modality %in% c("alternative TSS", "alternative polyA") ~ pheno_id |> stringr::str_replace("^.+stream_", ""),
+    modality == "intron excision ratio" ~ pheno_id |> stringr::str_replace("^.+__", "") |> stringr::str_replace("_clu_.+$", ""),
+    modality == "isoform ratio" ~ pheno_id |> stringr::str_replace("^.+__", ""),
     .default = pheno_id
   )
 }
@@ -58,7 +62,7 @@ cat(str_glue("Loaded {scales::comma(nrow(tbl_zscores))} trait-model rows for {le
 
 tbl_panels <- read_tsv("data/panels.par", col_types = "-c-cc-")
 
-tbl_models <- read_tsv("data/all_models.par", col_types = "ccciiiiddddddddddddd") |>
+tbl_models <- read_tsv("data/all_models.par", col_types = "cccciiiddddddddddddd") |>
   rename(pheno_id = ID) |>
   left_join(tbl_panels, by = "PANEL", relationship = "many-to-one") |>
   mutate(gene_id = gene_id(pheno_id)) |>
@@ -134,12 +138,6 @@ tbl_genes_traits <- tbl_zscores |>
 
 all_genes <- sort(unique(tbl_models$gene_id))
 
-# Load gene names since Ensembl IDs were used for TWAS
-gene_names <- read_tsv("data/gene_names.tsv", col_types = "cc") |>
-  tidyr::complete(ID = all_genes) |>
-  mutate(NAME = if_else(is.na(NAME), ID, NAME)) |>
-  tibble::deframe()
-
 for (i in seq_along(all_genes)) {
   g_id <- all_genes[i]
   fout_page <- str_glue("jekyll/genes/{g_id}.md")
@@ -150,7 +148,7 @@ for (i in seq_along(all_genes)) {
 
   c(
     "---",
-    str_glue('title: "{gene_names[g_id]}"'),
+    str_glue('title: "{g_id}"'),
     str_glue("permalink: genes/{g_id}/"),
     "layout: gene",
     str_glue("id: {g_id}"),

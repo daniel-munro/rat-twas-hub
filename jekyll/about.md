@@ -5,7 +5,7 @@ permalink: about/
 
 # About
 
-TWAS measures the genetic association between a transcriptomic phenotype such as gene expression and a complex phenotype using only GWAS summary-level data (see: [Gusev et al. 2016 *Nature Genetics*](https://www.ncbi.nlm.nih.gov/pubmed/26854917)). The TWAS central dogma is that associated genes are more likely to be causal mediators of the trait and thus informative of the trait's biological nature or as targets for experimental follow-up. 
+TWAS measures the genetic association between a transcriptomic phenotype such as gene expression and a complex phenotype using only GWAS summary-level data (see: [Gusev et al. 2016 *Nature Genetics*](https://www.ncbi.nlm.nih.gov/pubmed/26854917)). The TWAS central dogma is that associated genes are more likely to be causal mediators of the trait and thus informative of the trait's biological nature or as targets for experimental follow-up.
 
 Rat TWAS Hub is an interactive browser of results from integrative analyses of GWAS and functional data.
 The aim is facilitate the investigation of individual TWAS associations; pleiotropic trait associations for a given gene of interest; predicted gene associations for a given trait of interest with detailed per-locus statistics; and pleiotropic relationships between traits based on shared associated genes. See the [USAGE](/usage){: .border} tab for detailed examples of each analysis type.
@@ -26,17 +26,17 @@ All code is available [on GitHub](https://github.com/daniel-munro/rat-twas-hub),
 
 Please read this [blog post](http://sashagusev.github.io/2017-10/twas-vulnerabilities.html) for much more about interpreting TWAS signals and the relationship between TWAS, other methods, and complex trait architectures.
 
-#### Predictive models and weights.
+#### Predictive models and weights
 
 The predictive models for all analyses were generated using the default [Pantry (Pan-transcriptomic phenotyping) pipeline](https://github.com/PejLab/Pantry). Weights were generated from all available RNA phenotypes, and multiple RNA phenotype PCs and genotype PCs were used as covariates. See the [RatGTEx Portal](https://ratgtex.org) for information on the RNA-seq data sources and processing.
 
-#### Interpretation of low significance models.
+#### Interpretation of low significance models
 
 All analyses include weakly predictive models up to a heritability P-value of 0.01. This means you will sometimes see models with negative cross-validation (adjusted) R<sup>2</sup> values because the heritable signal is not predictive after reducing 4/5 folds. These models are included primarily for individual gene look-up where the multiple-testing burden is negligible and weakly significant models may still be informative (alternatively, if you don't see a model for a gene it's because there wasn't a hint of signal in the data). For genomewide scans we recommend interpreting these models with caution.
 
-#### Interpretation of the conditional analysis.
+#### Interpretation of the conditional analysis
 
-The conditional analysis is a simple summary based step-wise model selection process that iteratively adds predictors to the model in decreasing order of conditional TWAS significance until no significant associations remain. Across models, conditional results should be interpreted as estimating the number of jointly significant models, but the selected models are not necessarily more likely to be causal than unselected features (either due to high correlation or different levels of noise). Rather, we recommend using a formal fine-mapping procedure (e.g. [FOCUS](https://github.com/bogdanlab/focus)).
+The conditional analysis is a simple summary based step-wise model selection process that iteratively adds predictors to the model in decreasing order of conditional TWAS significance until no significant associations remain. Across models, conditional results should be interpreted as estimating the number of jointly significant models, but the selected models are not necessarily more likely to be causal than unselected features (either due to high correlation or different levels of noise). Rather, we recommend using a formal fine-mapping procedure (e.g. [FOCUS](https://github.com/mancusolab/ma-focus)).
 
 Additionally, the SNP conditioning analysis (and Manhattan plots) provides an estimate of variance in the locus explained by the predicted model. A small fraction of variance explained is a strong indicator that the predicted model is tagging another causal feature (or there are multiple causal features in the locus). A large fraction of variance explained is consistent with the predicted model explaining all of the genetic effect - necessary but not sufficient for this to be the single causal mediator.
 
@@ -46,7 +46,7 @@ The conditional analysis uses an LD-reference panel and is therefore approximate
 
 All transcriptome-wide significant associations are run through the `coloc` colocalization model, with posterior probabilities PP3 (distinct causal variant) and PP4 (shared causal variant) reported in the locus view. `coloc` assumes a single causal variant model while TWAS directly models multiple xQTLs so we tend to use low PP3 as an indicator of colocalization rather than high PP4 (as done in [Raj et al. 2018 *Nature Genetics*](https://www.nature.com/articles/s41588-018-0238-1)).
 
-# Acknowledgments
+# Acknowledgements
 
 HS Rat RNA-seq datasets used for the transcriptomic models were produced by multiple studies coordinated by the [NIDA Center of Excellence for Genetics, Genomics, and Epigenetics of Substance Use Disorders in Outbred Rats](https://ratgenes.org). See the [RatGTEx homepage](https://ratgtex.org) for a list of investigators, funding, and data access. GWAS summary data was also processed by the center for the [projects listed here](/projects).
 
@@ -65,6 +65,7 @@ HS Rat RNA-seq datasets used for the transcriptomic models were produced by mult
 
 ## Change Log
 
+| 2025-09-23 | Upgraded data to RatGTEx v3 (RefSeq annotations, new tissues) |
 | 2025-09-08 | Added tag-based trait filtering and GWAS source publications |
 | 2025-05-09 | Improved UI and table info, added cross-species gene search |
 | 2025-02-12 | Added traits (281 total), improved trait metadata, and merged same-tissue datasets |
