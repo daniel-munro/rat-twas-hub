@@ -3,7 +3,8 @@ layout: base
 ---
 
 <p class="breadcrumb">
-  <a href="{{ site.baseurl }}">Hub</a> : <a href="{{ site.baseurl }}genes">Genes</a>
+  <a href="{{ site.baseurl }}">Hub</a> :
+  <a href="{{ site.baseurl }}genes">Genes</a>
 </p>
 
 <h1>{{ page.title }}</h1>
@@ -11,32 +12,123 @@ layout: base
 <h3>Models</h3>
 
 <p>
-  All models for this gene with <strong>cis-heritability P-value &lt;0.01</strong> were tested and are shown here.  In each tissue, a gene can have zero, one, or multiple RNA phenotypes for each RNA modality.  After the heritability statistics, subsequent columns show cross-validation performance (R<sup>2</sup> and P-value) of each modeling method.  The best-performing method for each models is used for TWAS.
+  All models for this gene with
+  <strong>cis-heritability P-value &lt;0.01</strong> were tested and are shown
+  here. In each tissue, a gene can have zero, one, or multiple RNA phenotypes
+  for each RNA modality. After the heritability statistics, subsequent columns
+  show cross-validation performance (R<sup>2</sup> and P-value) of each modeling
+  method. The best-performing method for each models is used for TWAS.
 </p>
- 
+
 <table id="models">
   <thead>
     <tr>
-      <th data-bs-toggle="tooltip" data-bs-placement="top" title="Model number (sorted by decreasing mean Z<sup>2</sup>)">#</th>
-      <th data-bs-toggle="tooltip" data-bs-placement="top" title="Tissue">Tissue</th>
-      <th data-bs-toggle="tooltip" data-bs-placement="top" title="Modality of RNA variation">Modality</th>
-      <th data-bs-toggle="tooltip" data-bs-placement="top" title="RNA phenotype, e.g. the affected isoform or splice junction">RNA phenotype</th>
-      <th data-bs-toggle="tooltip" data-bs-placement="top" title="Heritability estimate for the RNA phenotype">h<sup>2</sup></th>
-      <th data-bs-toggle="tooltip" data-bs-placement="top" title="Standard error of the heritability estimate">h<sup>2</sup> SE</th>
-      <th data-bs-toggle="tooltip" data-bs-placement="top" title="P-value of the heritability estimate">h<sup>2</sup> P</th>
-      <th data-bs-toggle="tooltip" data-bs-placement="top" title="xQTL method R<sup>2</sup>">xQTL R<sup>2</sup></th>
-      <th data-bs-toggle="tooltip" data-bs-placement="top" title="BLUP method R<sup>2</sup>">BLUP R<sup>2</sup></th>
-      <th data-bs-toggle="tooltip" data-bs-placement="top" title="ENET method R<sup>2</sup>">ENET R<sup>2</sup></th>
-      <th data-bs-toggle="tooltip" data-bs-placement="top" title="LASSO method R<sup>2</sup>">LASSO R<sup>2</sup></th>
-      <th data-bs-toggle="tooltip" data-bs-placement="top" title="xQTL method P-value">xQTL P</th>
-      <th data-bs-toggle="tooltip" data-bs-placement="top" title="BLUP method P-value">BLUP P</th>
-      <th data-bs-toggle="tooltip" data-bs-placement="top" title="ENET method P-value">ENET P</th>
-      <th data-bs-toggle="tooltip" data-bs-placement="top" title="LASSO method P-value">LASSO P</th>
+      <th
+        data-bs-toggle="tooltip"
+        data-bs-placement="top"
+        title="Model number (sorted by decreasing mean Z<sup>2</sup>)"
+      >
+        #
+      </th>
+      <th data-bs-toggle="tooltip" data-bs-placement="top" title="Tissue">
+        Tissue
+      </th>
+      <th
+        data-bs-toggle="tooltip"
+        data-bs-placement="top"
+        title="Modality of RNA variation"
+      >
+        Modality
+      </th>
+      <th
+        data-bs-toggle="tooltip"
+        data-bs-placement="top"
+        title="RNA phenotype, e.g. the affected isoform or splice junction"
+      >
+        RNA phenotype
+      </th>
+      <th
+        data-bs-toggle="tooltip"
+        data-bs-placement="top"
+        title="Heritability estimate for the RNA phenotype"
+      >
+        h<sup>2</sup>
+      </th>
+      <th
+        data-bs-toggle="tooltip"
+        data-bs-placement="top"
+        title="Standard error of the heritability estimate"
+      >
+        h<sup>2</sup> SE
+      </th>
+      <th
+        data-bs-toggle="tooltip"
+        data-bs-placement="top"
+        title="P-value of the heritability estimate"
+      >
+        h<sup>2</sup> P
+      </th>
+      <th
+        data-bs-toggle="tooltip"
+        data-bs-placement="top"
+        title="xQTL method R<sup>2</sup>"
+      >
+        xQTL R<sup>2</sup>
+      </th>
+      <th
+        data-bs-toggle="tooltip"
+        data-bs-placement="top"
+        title="BLUP method R<sup>2</sup>"
+      >
+        BLUP R<sup>2</sup>
+      </th>
+      <th
+        data-bs-toggle="tooltip"
+        data-bs-placement="top"
+        title="ENET method R<sup>2</sup>"
+      >
+        ENET R<sup>2</sup>
+      </th>
+      <th
+        data-bs-toggle="tooltip"
+        data-bs-placement="top"
+        title="LASSO method R<sup>2</sup>"
+      >
+        LASSO R<sup>2</sup>
+      </th>
+      <th
+        data-bs-toggle="tooltip"
+        data-bs-placement="top"
+        title="xQTL method P-value"
+      >
+        xQTL P
+      </th>
+      <th
+        data-bs-toggle="tooltip"
+        data-bs-placement="top"
+        title="BLUP method P-value"
+      >
+        BLUP P
+      </th>
+      <th
+        data-bs-toggle="tooltip"
+        data-bs-placement="top"
+        title="ENET method P-value"
+      >
+        ENET P
+      </th>
+      <th
+        data-bs-toggle="tooltip"
+        data-bs-placement="top"
+        title="LASSO method P-value"
+      >
+        LASSO P
+      </th>
     </tr>
   </thead>
   <tbody>
-    {% assign models = site.data.gene_models[page.id] %}
-    {% for model in models %}
+    {% assign models = site.data.gene_models[page.id] %} {% for model in models
+    %}
     <tr>
       <td>{{ model.model_num }}</td>
       <td>{{ model.tissue }}</td>
@@ -61,131 +153,166 @@ layout: base
 <h3>Trait associations</h3>
 
 <p>
-  The numbered columns correspond to the <strong>numbered models</strong> in the table above.
-  They contain the <strong>TWAS Z-score</strong> for each trait-model pair.
-  <strong>Colors</strong> indicate strength of Z-scores: cells with lower negative Z-scores are darker blue, cells with higher positive Z-scores are darker red. Significant associations have white and <strong>bolded</strong> text.
+  The numbered columns correspond to the <strong>numbered models</strong> in the
+  table above. They contain the <strong>TWAS Z-score</strong> for each
+  trait-model pair. <strong>Colors</strong> indicate strength of Z-scores: cells
+  with lower negative Z-scores are darker blue, cells with higher positive
+  Z-scores are darker red. Significant associations have white and
+  <strong>bolded</strong> text.
 </p>
 
 <table id="assoc">
   <thead>
     <tr>
-      <th data-bs-toggle="tooltip" data-bs-placement="top" title="Trait">Trait</th>
-      <th data-bs-toggle="tooltip" data-bs-placement="top" title="Mean chi<sup>2</sup> across all models for this gene, divided by the mean chi<sup>2</sup> across all models for all genes">Avg chi<sup>2</sup> ratio</th>
-      <th data-bs-toggle="tooltip" data-bs-placement="top" title="Mean chi<sup>2</sup> across all models for this gene">Avg chi<sup>2</sup></th>
-      <th data-bs-toggle="tooltip" data-bs-placement="top" title="Highest chi<sup>2</sup> across all models for this gene">Max chi<sup>2</sup></th>
+      <th data-bs-toggle="tooltip" data-bs-placement="top" title="Trait">
+        Trait
+      </th>
+      <th
+        data-bs-toggle="tooltip"
+        data-bs-placement="top"
+        title="Mean chi<sup>2</sup> across all models for this gene, divided by the mean chi<sup>2</sup> across all models for all genes"
+      >
+        Avg chi<sup>2</sup> ratio
+      </th>
+      <th
+        data-bs-toggle="tooltip"
+        data-bs-placement="top"
+        title="Mean chi<sup>2</sup> across all models for this gene"
+      >
+        Avg chi<sup>2</sup>
+      </th>
+      <th
+        data-bs-toggle="tooltip"
+        data-bs-placement="top"
+        title="Highest chi<sup>2</sup> across all models for this gene"
+      >
+        Max chi<sup>2</sup>
+      </th>
       {% for model in models %}
-      <th data-bs-toggle="tooltip" data-bs-placement="top" title="{{ model.tissue }}: {{ model.modality }}: {{ model.pheno_id }}">{{ model.model_num }}</th>
+      <th
+        data-bs-toggle="tooltip"
+        data-bs-placement="top"
+        title="{{ model.tissue }}: {{ model.modality }}: {{ model.pheno_id }}"
+      >
+        {{ model.model_num }}
+      </th>
       {% endfor %}
     </tr>
   </thead>
   <tbody>
     {{ content }}
-</tbody>
+  </tbody>
 </table>
 
 <script type="text/javascript" class="init">
-    $(document).ready(function () {
-        // Helper functions for continuous color mapping of Z-scores
-        const BLUE = [5, 48, 97];
-        const WHITE = [255, 255, 255];
-        const RED = [135, 3, 20];
+  $(document).ready(function () {
+    // Helper functions for continuous color mapping of Z-scores
+    const BLUE = [5, 48, 97];
+    const WHITE = [255, 255, 255];
+    const RED = [135, 3, 20];
 
-        function lerp(a, b, t) {
-            return a + (b - a) * t;
-        }
+    function lerp(a, b, t) {
+      return a + (b - a) * t;
+    }
 
-        function interpRgb(c1, c2, t) {
-            return [
-                Math.round(lerp(c1[0], c2[0], t)),
-                Math.round(lerp(c1[1], c2[1], t)),
-                Math.round(lerp(c1[2], c2[2], t))
-            ];
-        }
+    function interpRgb(c1, c2, t) {
+      return [
+        Math.round(lerp(c1[0], c2[0], t)),
+        Math.round(lerp(c1[1], c2[1], t)),
+        Math.round(lerp(c1[2], c2[2], t)),
+      ];
+    }
 
-        // Map Z-score to an RGB color array using continuous gradients:
-        // [-Infinity, -10] -> BLUE; [-10, 0] BLUE->WHITE; [0, 10] WHITE->RED; [10, +Infinity] -> RED
-        function zToRgb(z) {
-            if (z <= -10) return BLUE;
-            if (z >= 10) return RED;
-            if (z < 0) {
-                const t = (z + 10) / 10; // -10..0 -> 0..1
-                return interpRgb(BLUE, WHITE, t);
-            } else { // 0..10
-                const t = z / 10; // 0..1
-                return interpRgb(WHITE, RED, t);
-            }
-        }
+    // Map Z-score to an RGB color array using continuous gradients:
+    // [-Infinity, -10] -> BLUE; [-10, 0] BLUE->WHITE; [0, 10] WHITE->RED; [10, +Infinity] -> RED
+    function zToRgb(z) {
+      if (z <= -10) return BLUE;
+      if (z >= 10) return RED;
+      if (z < 0) {
+        const t = (z + 10) / 10; // -10..0 -> 0..1
+        return interpRgb(BLUE, WHITE, t);
+      } else {
+        // 0..10
+        const t = z / 10; // 0..1
+        return interpRgb(WHITE, RED, t);
+      }
+    }
 
-        $('table#models').DataTable({
-            lengthChange: false,
-            paging: false,
-            info: false,
-            searching: true,
-            scrollX: true,
-            language: {
-                search: '<i class="fa fa-search" aria-hidden="true"></i>'
-            },
-            layout: {
-                topStart: function() {
-                    let div = document.createElement('div');
-                    div.className = 'small';
-                    div.innerHTML = '<i class="fas fa-info-circle"></i> Hover over column headers to see descriptions';
-                    return div;
-                }
-            },
-            columnDefs: [
-                { className: "dt-left dt-head-left", targets: [0, 1, 2, 3] },
-                { className: "dt-right dt-head-right", targets: [4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14] },
-            ]
-        });
-        $('table#assoc').DataTable({
-            lengthChange: false,
-            paging: false,
-            info: false,
-            searching: true,
-            scrollX: true,
-            scrollY: 400,
-            order: [[1, 'desc']],
-            language: {
-                search: '<i class="fa fa-search" aria-hidden="true"></i>'
-            },
-            layout: {
-                topStart: function() {
-                    let div = document.createElement('div');
-                    div.className = 'small';
-                    div.innerHTML = '<i class="fas fa-info-circle"></i> Hover over column headers to see descriptions';
-                    return div;
-                }
-            },
-            columnDefs: [
-                {
-                    targets: [0, 1, 2, 3],
-                    createdCell: function (td, cellData, rowData, row, col) {
-                        $(td).css('background-color', 'white')
-                    }
-                },
-                {
-                    targets: '_all',
-                    createdCell: function (td, cellData, rowData, row, col) {
-                        // Extract numeric value even if cell contains HTML (e.g., <b>7.8</b>)
-                        const text = $(td).text();
-                        const z = parseFloat(text);
-
-                        if (isNaN(z)) {
-                            $(td).css({ 'background-color': 'white', 'color': '' });
-                            return;
-                        }
-
-                        const rgb = zToRgb(z);
-                        const bg = `rgb(${rgb[0]}, ${rgb[1]}, ${rgb[2]})`;
-                        // Determine text color from significance (z-score wrapped in <b>)
-                        const isBold = $(td).find('b').length > 0;
-                        const fg = isBold ? 'white' : 'black';
-                        $(td).css({ 'background-color': bg, 'color': fg });
-                    }
-                },
-                { className: "dt-left dt-head-left", targets: 0 },
-            ]
-        });
+    $("table#models").DataTable({
+      lengthChange: false,
+      paging: false,
+      info: false,
+      searching: true,
+      scrollX: true,
+      language: {
+        search: '<i class="fa fa-search" aria-hidden="true"></i>',
+      },
+      layout: {
+        topStart: function () {
+          let div = document.createElement("div");
+          div.className = "small";
+          div.innerHTML =
+            '<i class="fas fa-info-circle"></i> Hover over column headers to see descriptions';
+          return div;
+        },
+      },
+      columnDefs: [
+        { className: "dt-left dt-head-left", targets: [0, 1, 2, 3] },
+        {
+          className: "dt-right dt-head-right",
+          targets: [4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14],
+        },
+      ],
     });
+    $("table#assoc").DataTable({
+      lengthChange: false,
+      paging: false,
+      info: false,
+      searching: true,
+      scrollX: true,
+      scrollY: 400,
+      order: [[1, "desc"]],
+      language: {
+        search: '<i class="fa fa-search" aria-hidden="true"></i>',
+      },
+      layout: {
+        topStart: function () {
+          let div = document.createElement("div");
+          div.className = "small";
+          div.innerHTML =
+            '<i class="fas fa-info-circle"></i> Hover over column headers to see descriptions';
+          return div;
+        },
+      },
+      columnDefs: [
+        {
+          targets: [0, 1, 2, 3],
+          createdCell: function (td, cellData, rowData, row, col) {
+            $(td).css("background-color", "white");
+          },
+        },
+        {
+          targets: "_all",
+          createdCell: function (td, cellData, rowData, row, col) {
+            // Extract numeric value even if cell contains HTML (e.g., <b>7.8</b>)
+            const text = $(td).text();
+            const z = parseFloat(text);
+
+            if (isNaN(z)) {
+              $(td).css({ "background-color": "white", color: "" });
+              return;
+            }
+
+            const rgb = zToRgb(z);
+            const bg = `rgb(${rgb[0]}, ${rgb[1]}, ${rgb[2]})`;
+            // Determine text color from significance (z-score wrapped in <b>)
+            const isBold = $(td).find("b").length > 0;
+            const fg = isBold ? "white" : "black";
+            $(td).css({ "background-color": bg, color: fg });
+          },
+        },
+        { className: "dt-left dt-head-left", targets: 0 },
+      ],
+    });
+  });
 </script>

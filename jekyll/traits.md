@@ -5,7 +5,7 @@ layout: base
 ---
 
 {: .text-center }
-### **{{ site.data.stats.n_traits }}** traits &middot; **{{ site.data.stats.n_loci }}** associated loci &middot; **{{ site.data.stats.n_gene_trait_assocs }}**  gene/trait associations
+### **{{ site.data.stats.n_traits }}** traits &middot; **{{ site.data.stats.n_loci }}** associated loci &middot; **{{ site.data.stats.n_gene_trait_assocs }}** gene/trait associations
 
 <div id="tag-filter-bar" class="mb-3">
   <div class="small text-muted mb-1">

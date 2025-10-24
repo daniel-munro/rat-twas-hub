@@ -1,4 +1,7 @@
-html, body { height: 100%; }
+html,
+body {
+  height: 100%;
+}
 
 .navbar-brand {
   font-size: 1.6rem;
@@ -84,14 +87,15 @@ td em a:hover {
   color: #0e4aa3;
 }
 
-:target, :target td {
+:target,
+:target td {
   background-color: #fff3cd !important;
   transition: background-color 0.5s ease;
 }
 
 .description {
   float: right;
-  font: italic 14px/1.4em Georgia,serif;
+  font: italic 14px/1.4em Georgia, serif;
   color: #aaa;
 }
 
@@ -128,18 +132,18 @@ table {
 }
 
 table td {
-	white-space: nowrap;
+  white-space: nowrap;
 }
 
 table#projects td {
   white-space: normal;
 }
 
-tr>td {
+tr > td {
   border-top: 1px solid #eaeaea;
 }
 
-tr:nth-child(odd)>td {
+tr:nth-child(odd) > td {
   background: #fcfcfc;
 }
 
@@ -164,4 +168,3 @@ tr:nth-child(odd)>td {
 .breadcrumb a:hover {
   background-color: rgba(110, 71, 23, 0.1);
 }
-

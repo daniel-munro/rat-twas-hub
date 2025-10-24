@@ -24,7 +24,7 @@ description: >- # this means to ignore newlines until "baseurl:"
   Candidate susceptibility genes for complex traits in outbred rats
 baseurl: "/" # the subpath of your site, e.g. /blog
 url: "https://twas.ratgtex.org" # the base hostname & protocol for your site, e.g. http://example.com
-google_analytics: 'G-0JMW6JE577'
+google_analytics: "G-0JMW6JE577"
 github_username: daniel-munro
 author: Daniel Munro
 
@@ -70,5 +70,5 @@ exclude:
   - package-lock.json
   - package.json
   - README.md
-  - data/   # Large, upload directly instead
+  - data/ # Large, upload directly instead
   # - genes/  # Exclude for testing

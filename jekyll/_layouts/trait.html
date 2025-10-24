@@ -5,7 +5,8 @@ layout: base
 {% assign trait = site.data.traits | where: "ID", page.id | first %}
 
 <p class="breadcrumb">
-  <a href="{{ site.baseurl }}">Hub</a> : <a href="{{ site.baseurl }}traits/">Traits</a>
+  <a href="{{ site.baseurl }}">Hub</a> :
+  <a href="{{ site.baseurl }}traits/">Traits</a>
 </p>
 
 <h1>{{ trait.NAME }}</h1>
@@ -16,16 +17,23 @@ layout: base
 
 <p>Tags: {{ trait.TAGS | replace: ",", " · " }}</p>
 
-<p>Project: <a href="{{ site.baseurl }}projects/#{{ trait.PROJECT }}">{{ trait.PROJECT }}</a></p>
+<p>
+  Project:
+  <a href="{{ site.baseurl }}projects/#{{ trait.PROJECT }}"
+    >{{ trait.PROJECT }}</a
+  >
+</p>
 
-{% assign num_loci = trait.NUM_LOCI | plus: 0 %}
-{% assign num_joint_genes = trait.NUM_JOINT_GENES | plus: 0 %}
-{% assign num_genes = trait.NUM_GENES | plus: 0 %}
+{% assign num_loci = trait.NUM_LOCI | plus: 0 %} {% assign num_joint_genes =
+trait.NUM_JOINT_GENES | plus: 0 %} {% assign num_genes = trait.NUM_GENES | plus:
+0 %}
 
 <p class="text-center">
-  <strong>{{ trait.NUM_LOCI }}</strong> {% if num_loci == 1 %}locus{% else %}loci{% endif %} · 
-  <strong>{{ trait.NUM_JOINT_GENES }}</strong> gene{% if num_joint_genes != 1 %}s{% endif %} with independent associations · 
-  <strong>{{ trait.NUM_GENES }}</strong> total associated gene{% if num_genes != 1 %}s{% endif %}
+  <strong>{{ trait.NUM_LOCI }}</strong> {% if num_loci == 1 %}locus{% else
+  %}loci{% endif %} · <strong>{{ trait.NUM_JOINT_GENES }}</strong> gene{% if
+  num_joint_genes != 1 %}s{% endif %} with independent associations ·
+  <strong>{{ trait.NUM_GENES }}</strong> total associated gene{% if num_genes !=
+  1 %}s{% endif %}
 </p>
 
 <h3>Significant Loci</h3>
@@ -33,23 +41,86 @@ layout: base
 <table id="loci">
   <thead>
     <tr>
-      <th data-bs-toggle="tooltip" data-bs-placement="top" title="Locus number (sorted by genomic position)">#</th>
-      <th data-bs-toggle="tooltip" data-bs-placement="top" title="Chromosome">Chr</th>
-      <th data-bs-toggle="tooltip" data-bs-placement="top" title="Physical position of the start of the locus">Start pos</th>
-      <th data-bs-toggle="tooltip" data-bs-placement="top" title="Physical position of the end of the locus">End pos</th>
-      <th data-bs-toggle="tooltip" data-bs-placement="top" title="Number of genes with significant associations in this locus"># assoc genes</th>
-      <th data-bs-toggle="tooltip" data-bs-placement="top" title="Number of transcriptomic models selected by step-wise conditional analysis"># joint models</th>
-      <th data-bs-toggle="tooltip" data-bs-placement="top" title="Lowest TWAS P-value across all models in this locus">Best TWAS P</th>
-      <th data-bs-toggle="tooltip" data-bs-placement="top" title="Lowest GWAS P-value across all models in this locus">Best GWAS P</th>
-      <th data-bs-toggle="tooltip" data-bs-placement="top" title="Lowest GWAS P-value after conditioning on the TWAS associations in this locus">Cond GWAS P</th>
-      <th data-bs-toggle="tooltip" data-bs-placement="top" title="Genes selected by step-wise conditional analysis">Joint genes</th>
-    </tr>  
-  </thead>  
+      <th
+        data-bs-toggle="tooltip"
+        data-bs-placement="top"
+        title="Locus number (sorted by genomic position)"
+      >
+        #
+      </th>
+      <th data-bs-toggle="tooltip" data-bs-placement="top" title="Chromosome">
+        Chr
+      </th>
+      <th
+        data-bs-toggle="tooltip"
+        data-bs-placement="top"
+        title="Physical position of the start of the locus"
+      >
+        Start pos
+      </th>
+      <th
+        data-bs-toggle="tooltip"
+        data-bs-placement="top"
+        title="Physical position of the end of the locus"
+      >
+        End pos
+      </th>
+      <th
+        data-bs-toggle="tooltip"
+        data-bs-placement="top"
+        title="Number of genes with significant associations in this locus"
+      >
+        # assoc genes
+      </th>
+      <th
+        data-bs-toggle="tooltip"
+        data-bs-placement="top"
+        title="Number of transcriptomic models selected by step-wise conditional analysis"
+      >
+        # joint models
+      </th>
+      <th
+        data-bs-toggle="tooltip"
+        data-bs-placement="top"
+        title="Lowest TWAS P-value across all models in this locus"
+      >
+        Best TWAS P
+      </th>
+      <th
+        data-bs-toggle="tooltip"
+        data-bs-placement="top"
+        title="Lowest GWAS P-value across all models in this locus"
+      >
+        Best GWAS P
+      </th>
+      <th
+        data-bs-toggle="tooltip"
+        data-bs-placement="top"
+        title="Lowest GWAS P-value after conditioning on the TWAS associations in this locus"
+      >
+        Cond GWAS P
+      </th>
+      <th
+        data-bs-toggle="tooltip"
+        data-bs-placement="top"
+        title="Genes selected by step-wise conditional analysis"
+      >
+        Joint genes
+      </th>
+    </tr>
+  </thead>
   <tbody>
-    {% assign loci = site.data.trait_loci[page.id] %}
-    {% for locus in loci %}
+    {% assign loci = site.data.trait_loci[page.id] %} {% for locus in loci %}
     <tr>
-      <td><em><a href="{{ site.baseurl }}traits/{{ page.id }}/{{ locus.locus_num }}">{{ locus.locus_num }}</a></em></td>
+      <td>
+        <em>
+          <a
+            href="{{ site.baseurl }}traits/{{ page.id }}/{{ locus.locus_num }}"
+          >
+            {{ locus.locus_num }}
+          </a>
+        </em>
+      </td>
       <td>{{ locus.chr }}</td>
       <td>{{ locus.p0 }}</td>
       <td>{{ locus.p1 }}</td>
@@ -60,39 +131,89 @@ layout: base
       <td>{{ locus.cond_snp_p }}</td>
       <td>
         <em>
-          {% assign gene_ids = locus.genes | split: ',' %}
-          {% for gene_id in gene_ids %}
-            <a href="{{ site.baseurl }}genes/{{ gene_id }}">{{ gene_id }}</a>
-            {% unless forloop.last %} {% endunless %}
-          {% endfor %}  
-        </em>  
-      </td>  
-    </tr>  
+          {% assign gene_ids = locus.genes | split: ',' %} {% for gene_id in
+          gene_ids %}
+          <a href="{{ site.baseurl }}genes/{{ gene_id }}">{{ gene_id }}</a>
+          {% unless forloop.last %} {% endunless %} {% endfor %}
+        </em>
+      </td>
+    </tr>
     {% endfor %}
-  </tbody>  
-</table>  
+  </tbody>
+</table>
 
 <h3>Pleiotropic Associations</h3>
 
 <table id="pleiotropic">
   <thead>
     <tr>
-      <th data-bs-toggle="tooltip" data-bs-placement="top" title="Trait being compared to this page's trait">Trait</th>
-      <th data-bs-toggle="tooltip" data-bs-placement="top" title="Average Chi<sup>2</sup> statistic for the selected genes in the secondary trait, divided by the average statistic for all genes in the secondary trait.">Chi<sup>2</sup> ratio</th>
-      <th data-bs-toggle="tooltip" data-bs-placement="top" title="Number of shared significant genes at Bonferroni significance"># genes<sup>+</sup></th>
-      <th data-bs-toggle="tooltip" data-bs-placement="top" title="Number of shared significant genes at transcriptome-wide significance"># genes<sup>++</sup></th>
-      <th data-bs-toggle="tooltip" data-bs-placement="top" title="Number of [++] genes as a percentage of primary trait's total joint genes.">% genes<sup>++</sup></th>
-      <th data-bs-toggle="tooltip" data-bs-placement="top" title="Correlation of effect sizes across the [+] genes">Corr</th>
-      <th data-bs-toggle="tooltip" data-bs-placement="top" title="P-value for correlation of effect sizes across the [+] genes">Corr P</th>
-      <th data-bs-toggle="tooltip" data-bs-placement="top" title="Shared significant genes at Bonferroni significance">Genes</th>
+      <th
+        data-bs-toggle="tooltip"
+        data-bs-placement="top"
+        title="Trait being compared to this page's trait"
+      >
+        Trait
+      </th>
+      <th
+        data-bs-toggle="tooltip"
+        data-bs-placement="top"
+        title="Average Chi<sup>2</sup> statistic for the selected genes in the secondary trait, divided by the average statistic for all genes in the secondary trait."
+      >
+        Chi<sup>2</sup> ratio
+      </th>
+      <th
+        data-bs-toggle="tooltip"
+        data-bs-placement="top"
+        title="Number of shared significant genes at Bonferroni significance"
+      >
+        # genes<sup>+</sup>
+      </th>
+      <th
+        data-bs-toggle="tooltip"
+        data-bs-placement="top"
+        title="Number of shared significant genes at transcriptome-wide significance"
+      >
+        # genes<sup>++</sup>
+      </th>
+      <th
+        data-bs-toggle="tooltip"
+        data-bs-placement="top"
+        title="Number of [++] genes as a percentage of primary trait's total joint genes."
+      >
+        % genes<sup>++</sup>
+      </th>
+      <th
+        data-bs-toggle="tooltip"
+        data-bs-placement="top"
+        title="Correlation of effect sizes across the [+] genes"
+      >
+        Corr
+      </th>
+      <th
+        data-bs-toggle="tooltip"
+        data-bs-placement="top"
+        title="P-value for correlation of effect sizes across the [+] genes"
+      >
+        Corr P
+      </th>
+      <th
+        data-bs-toggle="tooltip"
+        data-bs-placement="top"
+        title="Shared significant genes at Bonferroni significance"
+      >
+        Genes
+      </th>
     </tr>
   </thead>
   <tbody>
-    {% assign pleio = site.data.trait_pleio[page.id] %}
-    {% for row in pleio %}
+    {% assign pleio = site.data.trait_pleio[page.id] %} {% for row in pleio %}
     {% assign trait2 = site.data.traits | where: "ID", row.trait_id | first %}
     <tr>
-      <td><a href="{{ site.baseurl }}traits/{{ row.trait_id }}">{{ trait2.NAME }}</a></td>
+      <td>
+        <a href="{{ site.baseurl }}traits/{{ row.trait_id }}">
+          {{ trait2.NAME }}
+        </a>
+      </td>
       <td>{{ row.chisq_ratio }}</td>
       <td>{{ row.num_genes }}</td>
       <td>{{ row.num_genes_twas }}</td>
@@ -101,11 +222,10 @@ layout: base
       <td>{{ row.p_val }}</td>
       <td>
         <em>
-          {% assign gene_ids = row.genes | split: ',' %}
-          {% for gene_id in gene_ids %}
+          {% assign gene_ids = row.genes | split: ',' %} {% for gene_id in
+          gene_ids %}
           <a href="{{ site.baseurl }}genes/{{ gene_id }}">{{ gene_id }}</a>
-            {% unless forloop.last %} {% endunless %}
-          {% endfor %}
+          {% unless forloop.last %} {% endunless %} {% endfor %}
         </em>
       </td>
     </tr>
@@ -118,16 +238,42 @@ layout: base
 <table id="panels">
   <thead>
     <tr>
-      <th data-bs-toggle="tooltip" data-bs-placement="top" title="Tissue">Tissue</th>
-      <th data-bs-toggle="tooltip" data-bs-placement="top" title="Modality of RNA variation">RNA modality</th>
-      <th data-bs-toggle="tooltip" data-bs-placement="top" title="Number of hits for this trait across all models in this panel"># hits</th>
-      <th data-bs-toggle="tooltip" data-bs-placement="top" title="Percentage of models with hits (out of 100)">% hits/tests</th>
-      <th data-bs-toggle="tooltip" data-bs-placement="top" title="Average Chi<sup>2</sup> (squared Z-score) across all models in this panel for this trait">Avg chisq</th>
+      <th data-bs-toggle="tooltip" data-bs-placement="top" title="Tissue">
+        Tissue
+      </th>
+      <th
+        data-bs-toggle="tooltip"
+        data-bs-placement="top"
+        title="Modality of RNA variation"
+      >
+        RNA modality
+      </th>
+      <th
+        data-bs-toggle="tooltip"
+        data-bs-placement="top"
+        title="Number of hits for this trait across all models in this panel"
+      >
+        # hits
+      </th>
+      <th
+        data-bs-toggle="tooltip"
+        data-bs-placement="top"
+        title="Percentage of models with hits (out of 100)"
+      >
+        % hits/tests
+      </th>
+      <th
+        data-bs-toggle="tooltip"
+        data-bs-placement="top"
+        title="Average Chi<sup>2</sup> (squared Z-score) across all models in this panel for this trait"
+      >
+        Avg chisq
+      </th>
     </tr>
   </thead>
   <tbody>
-    {% assign panels = site.data.trait_panels[page.id] %}
-    {% for row in panels %}
+    {% assign panels = site.data.trait_panels[page.id] %} {% for row in panels
+    %}
     <tr>
       <td>{{ row.tissue }}</td>
       <td>{{ row.modality }}</td>
@@ -140,77 +286,83 @@ layout: base
 </table>
 
 <script type="text/javascript" class="init">
-    $(document).ready(function () {
-        $('table#loci').DataTable({
-            lengthChange: false,
-            paging: false,
-            info: false,
-            searching: true,
-            scrollX: true,
-            language: {
-                search: '<i class="fa fa-search" aria-hidden="true"></i>'
-            },
-            layout: {
-                topStart: function() {
-                    let div = document.createElement('div');
-                    div.className = 'small';
-                    div.innerHTML = '<i class="fas fa-info-circle"></i> Hover over column headers to see descriptions';
-                    return div;
-                }
-            },
-            columnDefs: [
-                { className: "dt-left dt-head-left", targets: [0, 9] },
-                { className: "dt-right dt-head-right", targets: [1, 2, 3, 4, 5, 6, 7, 8] },
-            ],
-            order: [[0, 'asc']],
-        });
-        $('table#pleiotropic').DataTable({
-            lengthChange: false,
-            paging: false,
-            info: false,
-            searching: true,
-            scrollX: true,
-            scrollY: 400,
-            autoWidth: false,
-            language: {
-                search: '<i class="fa fa-search" aria-hidden="true"></i>'
-            },
-            layout: {
-                topStart: function() {
-                    let div = document.createElement('div');
-                    div.className = 'small';
-                    div.innerHTML = '<i class="fas fa-info-circle"></i> Hover over column headers to see descriptions';
-                    return div;
-                }
-            },
-            columnDefs: [
-                { className: "dt-left dt-head-left", targets: [0, 7] },
-                { className: "dt-right dt-head-right", targets: [1, 2, 3, 4, 5, 6] },
-            ],
-            order: [[6, 'asc']],
-        });
-        $('table#panels').DataTable({
-            lengthChange: false,
-            paging: false,
-            info: false,
-            searching: true,
-            scrollY: 400,
-            language: {
-                search: '<i class="fa fa-search" aria-hidden="true"></i>'
-            },
-            layout: {
-                topStart: function() {
-                    let div = document.createElement('div');
-                    div.className = 'small';
-                    div.innerHTML = '<i class="fas fa-info-circle"></i> Hover over column headers to see descriptions';
-                    return div;
-                }
-            },
-            columnDefs: [
-                { className: "dt-left dt-head-left", targets: [0, 1] },
-                { className: "dt-right dt-head-right", targets: [2, 3, 4] },
-            ],
-            order: [[4, 'des']],
-        });
+  $(document).ready(function () {
+    $("table#loci").DataTable({
+      lengthChange: false,
+      paging: false,
+      info: false,
+      searching: true,
+      scrollX: true,
+      language: {
+        search: '<i class="fa fa-search" aria-hidden="true"></i>',
+      },
+      layout: {
+        topStart: function () {
+          let div = document.createElement("div");
+          div.className = "small";
+          div.innerHTML =
+            '<i class="fas fa-info-circle"></i> Hover over column headers to see descriptions';
+          return div;
+        },
+      },
+      columnDefs: [
+        { className: "dt-left dt-head-left", targets: [0, 9] },
+        {
+          className: "dt-right dt-head-right",
+          targets: [1, 2, 3, 4, 5, 6, 7, 8],
+        },
+      ],
+      order: [[0, "asc"]],
     });
+    $("table#pleiotropic").DataTable({
+      lengthChange: false,
+      paging: false,
+      info: false,
+      searching: true,
+      scrollX: true,
+      scrollY: 400,
+      autoWidth: false,
+      language: {
+        search: '<i class="fa fa-search" aria-hidden="true"></i>',
+      },
+      layout: {
+        topStart: function () {
+          let div = document.createElement("div");
+          div.className = "small";
+          div.innerHTML =
+            '<i class="fas fa-info-circle"></i> Hover over column headers to see descriptions';
+          return div;
+        },
+      },
+      columnDefs: [
+        { className: "dt-left dt-head-left", targets: [0, 7] },
+        { className: "dt-right dt-head-right", targets: [1, 2, 3, 4, 5, 6] },
+      ],
+      order: [[6, "asc"]],
+    });
+    $("table#panels").DataTable({
+      lengthChange: false,
+      paging: false,
+      info: false,
+      searching: true,
+      scrollY: 400,
+      language: {
+        search: '<i class="fa fa-search" aria-hidden="true"></i>',
+      },
+      layout: {
+        topStart: function () {
+          let div = document.createElement("div");
+          div.className = "small";
+          div.innerHTML =
+            '<i class="fas fa-info-circle"></i> Hover over column headers to see descriptions';
+          return div;
+        },
+      },
+      columnDefs: [
+        { className: "dt-left dt-head-left", targets: [0, 1] },
+        { className: "dt-right dt-head-right", targets: [2, 3, 4] },
+      ],
+      order: [[4, "des"]],
+    });
+  });
 </script>

@@ -5,7 +5,7 @@ permalink: about/
 
 # About
 
-TWAS measures the genetic association between a transcriptomic phenotype such as gene expression and a complex phenotype using only GWAS summary-level data (see: [Gusev et al. 2016 *Nature Genetics*](https://www.ncbi.nlm.nih.gov/pubmed/26854917)). The TWAS central dogma is that associated genes are more likely to be causal mediators of the trait and thus informative of the trait's biological nature or as targets for experimental follow-up.
+TWAS measures the genetic association between a transcriptomic phenotype such as gene expression and a complex phenotype using only GWAS summary-level data (see: [Gusev et al. 2016 _Nature Genetics_](https://www.ncbi.nlm.nih.gov/pubmed/26854917)). The TWAS central dogma is that associated genes are more likely to be causal mediators of the trait and thus informative of the trait's biological nature or as targets for experimental follow-up.
 
 Rat TWAS Hub is an interactive browser of results from integrative analyses of GWAS and functional data.
 The aim is facilitate the investigation of individual TWAS associations; pleiotropic trait associations for a given gene of interest; predicted gene associations for a given trait of interest with detailed per-locus statistics; and pleiotropic relationships between traits based on shared associated genes. See the [USAGE](/usage){: .border} tab for detailed examples of each analysis type.
@@ -44,7 +44,7 @@ The conditional analysis uses an LD-reference panel and is therefore approximate
 
 #### Interpretation of coloc posteriors
 
-All transcriptome-wide significant associations are run through the `coloc` colocalization model, with posterior probabilities PP3 (distinct causal variant) and PP4 (shared causal variant) reported in the locus view. `coloc` assumes a single causal variant model while TWAS directly models multiple xQTLs so we tend to use low PP3 as an indicator of colocalization rather than high PP4 (as done in [Raj et al. 2018 *Nature Genetics*](https://www.nature.com/articles/s41588-018-0238-1)).
+All transcriptome-wide significant associations are run through the `coloc` colocalization model, with posterior probabilities PP3 (distinct causal variant) and PP4 (shared causal variant) reported in the locus view. `coloc` assumes a single causal variant model while TWAS directly models multiple xQTLs so we tend to use low PP3 as an indicator of colocalization rather than high PP4 (as done in [Raj et al. 2018 _Nature Genetics_](https://www.nature.com/articles/s41588-018-0238-1)).
 
 # Acknowledgements
 

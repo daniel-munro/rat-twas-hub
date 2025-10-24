@@ -2,18 +2,26 @@
 layout: base
 ---
 
-{% assign trait = site.data.traits | where: "ID", page.trait_id | first %}
-{% assign loci = site.data.trait_loci[page.trait_id] %}
-{% assign locus = loci | where: "locus_num", page.locus_num | first %}
+{% assign trait = site.data.traits | where: "ID", page.trait_id | first %} {%
+assign loci = site.data.trait_loci[page.trait_id] %} {% assign locus = loci |
+where: "locus_num", page.locus_num | first %}
 
 <p class="breadcrumb">
-  <a href="{{ site.baseurl }}">Hub</a> : <a href="{{ site.baseurl }}traits/">Traits</a>
-  : <a href="{{ site.baseurl }}traits/{{ trait.ID }}">{{ trait.NAME }}</a>
-  {% if page.locus_num > 1 %}
-  : <a href="{{ site.baseurl }}traits/{{ trait.ID }}/{{ page.locus_num | minus: 1 }}">←</a>
-  {% endif %}
-  {% if page.locus_num < loci.size %}
-  : <a href="{{ site.baseurl }}traits/{{ trait.ID }}/{{ page.locus_num | plus: 1 }}">→</a>
+  <a href="{{ site.baseurl }}">Hub</a> :
+  <a href="{{ site.baseurl }}traits/">Traits</a> :
+  <a href="{{ site.baseurl }}traits/{{ trait.ID }}">{{ trait.NAME }}</a> {% if
+  page.locus_num > 1 %} :
+  <a
+    href="{{ site.baseurl }}traits/{{ trait.ID }}/{{ page.locus_num | minus: 1 }}"
+  >
+    ←
+  </a>
+  {% endif %} {% if page.locus_num < loci.size %} :
+  <a
+    href="{{ site.baseurl }}traits/{{ trait.ID }}/{{ page.locus_num | plus: 1 }}"
+  >
+    →
+  </a>
   {% endif %}
 </p>
 
@@ -22,8 +30,10 @@ layout: base
 <h2>Trait: {{ trait.NAME }}</h2>
 
 <p class="text-center">
-  Best TWAS P=<strong>{{ locus.best_twas_p }}</strong> · 
-  Best GWAS P=<strong>{{ locus.best_snp_p }}</strong> conditioned to <strong>{{ locus.cond_snp_p }}</strong>
+  Best TWAS P = <strong> {{ locus.best_twas_p }} </strong> · Best GWAS P=<strong>
+    {{ locus.best_snp_p }}
+  </strong>
+  conditioned to <strong> {{ locus.cond_snp_p }} </strong>
 </p>
 
 <div id="graph"></div>
@@ -33,27 +43,89 @@ layout: base
 <table id="models">
   <thead>
     <tr>
-      <th data-bs-toggle="tooltip" data-bs-placement="top" title="Tissue">Tissue</th>
-      <th data-bs-toggle="tooltip" data-bs-placement="top" title="Gene">Gene</th>
-      <th data-bs-toggle="tooltip" data-bs-placement="top" title="Modality of RNA variation">RNA modality</th>
-      <th data-bs-toggle="tooltip" data-bs-placement="top" title="RNA phenotype, e.g. the affected isoform or splice junction">RNA phenotype</th>
-      <th data-bs-toggle="tooltip" data-bs-placement="top" title="Heritability estimate for the RNA phenotype">h<sup>2</sup></th>
-      <th data-bs-toggle="tooltip" data-bs-placement="top" title="Number of variants used in the transcriptomic prediction model"># weights</th>
-      <th data-bs-toggle="tooltip" data-bs-placement="top" title="Cross-validation R<sup>2</sup> of the transcriptomic prediction model">Model R<sup>2</sup></th>
-      <th data-bs-toggle="tooltip" data-bs-placement="top" title="Cross-validation P-value of the transcriptomic prediction model">Model R<sup>2</sup> P</th>
-      <th data-bs-toggle="tooltip" data-bs-placement="top" title="TWAS Z-score">TWAS Z</th>
-      <th data-bs-toggle="tooltip" data-bs-placement="top" title="TWAS P-value">TWAS P</th>
-      <th data-bs-toggle="tooltip" data-bs-placement="top" title="Posterior probability of a single shared causal variant (PP4 from coloc)">Coloc P</th>
-      <th data-bs-toggle="tooltip" data-bs-placement="top" title="Whether the RNA phenotype was selected in the joint model">Joint</th>
+      <th data-bs-toggle="tooltip" data-bs-placement="top" title="Tissue">
+        Tissue
+      </th>
+      <th data-bs-toggle="tooltip" data-bs-placement="top" title="Gene">
+        Gene
+      </th>
+      <th
+        data-bs-toggle="tooltip"
+        data-bs-placement="top"
+        title="Modality of RNA variation"
+      >
+        RNA modality
+      </th>
+      <th
+        data-bs-toggle="tooltip"
+        data-bs-placement="top"
+        title="RNA phenotype, e.g. the affected isoform or splice junction"
+      >
+        RNA phenotype
+      </th>
+      <th
+        data-bs-toggle="tooltip"
+        data-bs-placement="top"
+        title="Heritability estimate for the RNA phenotype"
+      >
+        h<sup>2</sup>
+      </th>
+      <th
+        data-bs-toggle="tooltip"
+        data-bs-placement="top"
+        title="Number of variants used in the transcriptomic prediction model"
+      >
+        # weights
+      </th>
+      <th
+        data-bs-toggle="tooltip"
+        data-bs-placement="top"
+        title="Cross-validation R<sup>2</sup> of the transcriptomic prediction model"
+      >
+        Model R<sup>2</sup>
+      </th>
+      <th
+        data-bs-toggle="tooltip"
+        data-bs-placement="top"
+        title="Cross-validation P-value of the transcriptomic prediction model"
+      >
+        Model R<sup>2</sup> P
+      </th>
+      <th data-bs-toggle="tooltip" data-bs-placement="top" title="TWAS Z-score">
+        TWAS Z
+      </th>
+      <th data-bs-toggle="tooltip" data-bs-placement="top" title="TWAS P-value">
+        TWAS P
+      </th>
+      <th
+        data-bs-toggle="tooltip"
+        data-bs-placement="top"
+        title="Posterior probability of a single shared causal variant (PP4 from coloc)"
+      >
+        Coloc P
+      </th>
+      <th
+        data-bs-toggle="tooltip"
+        data-bs-placement="top"
+        title="Whether the RNA phenotype was selected in the joint model"
+      >
+        Joint
+      </th>
     </tr>
   </thead>
   <tbody>
-    {% assign locus_num_str = page.locus_num | append: "" %}
-    {% assign models = site.data.locus_models[page.trait_id][locus_num_str] %}
-    {% for model in models %}
+    {% assign locus_num_str = page.locus_num | append: "" %} {% assign models =
+    site.data.locus_models[page.trait_id][locus_num_str] %} {% for model in
+    models %}
     <tr>
       <td>{{ model.tissue }}</td>
-      <td><em><a href="{{ site.baseurl }}genes/{{ model.gene_id }}">{{ model.gene_id }}</a></em></td>
+      <td>
+        <em>
+          <a href="{{ site.baseurl }}genes/{{ model.gene_id }}">
+            {{ model.gene_id }}
+          </a>
+        </em>
+      </td>
       <td>{{ model.modality }}</td>
       <td>{{ model.id }}</td>
       <td>{{ model.hsq }}</td>
@@ -71,35 +143,39 @@ layout: base
 
 <script src="{{ site.baseurl }}assets/js/manhattan.js"></script>
 <script type="text/javascript" class="init">
-    fetch("../{{ page.locus_num }}.cond.csv")
-        .then(response => response.text())
-        .then(csvText => {
-            const data = d3.csvParse(csvText);
-            processData(data);
-        });
-    $(document).ready(function () {
-        $('table#models').DataTable({
-            lengthChange: false,
-            paging: false,
-            info: false,
-            searching: true,
-            scrollX: true,
-            language: {
-                search: '<i class="fa fa-search" aria-hidden="true"></i>'
-            },
-            layout: {
-                topStart: function() {
-                    let div = document.createElement('div');
-                    div.className = 'small';
-                    div.innerHTML = '<i class="fas fa-info-circle"></i> Hover over column headers to see descriptions';
-                    return div;
-                }
-            },
-            columnDefs: [
-                { className: "dt-left dt-head-left", targets: [0, 1, 2, 3, 11] },
-                { className: "dt-right dt-head-right", targets: [4, 5, 6, 7, 8, 9, 10] },
-            ],
-            order: [[9, 'asc']],
-        });
+  fetch("../{{ page.locus_num }}.cond.csv")
+    .then((response) => response.text())
+    .then((csvText) => {
+      const data = d3.csvParse(csvText);
+      processData(data);
     });
+  $(document).ready(function () {
+    $("table#models").DataTable({
+      lengthChange: false,
+      paging: false,
+      info: false,
+      searching: true,
+      scrollX: true,
+      language: {
+        search: '<i class="fa fa-search" aria-hidden="true"></i>',
+      },
+      layout: {
+        topStart: function () {
+          let div = document.createElement("div");
+          div.className = "small";
+          div.innerHTML =
+            '<i class="fas fa-info-circle"></i> Hover over column headers to see descriptions';
+          return div;
+        },
+      },
+      columnDefs: [
+        { className: "dt-left dt-head-left", targets: [0, 1, 2, 3, 11] },
+        {
+          className: "dt-right dt-head-right",
+          targets: [4, 5, 6, 7, 8, 9, 10],
+        },
+      ],
+      order: [[9, "asc"]],
+    });
+  });
 </script>
