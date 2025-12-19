@@ -168,3 +168,10 @@ tr:nth-child(odd) > td {
 .breadcrumb a:hover {
   background-color: rgba(110, 71, 23, 0.1);
 }
+
+.porcupine {
+  width: 100%;
+  max-width: 1000px;
+  display: block;
+  margin: 0 auto;
+}

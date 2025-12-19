@@ -4,6 +4,7 @@
 data/
 jekyll/_data/
 jekyll/_site/
+jekyll/assets/images/porcupine/
 jekyll/data/
 jekyll/cross-species.json
 jekyll/genes/

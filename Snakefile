@@ -39,6 +39,7 @@ rule all:
         "jekyll/_data/traits.tsv",
         expand("jekyll/data/{trait}.tar.bz2", trait=traits),
         expand("jekyll/traits/{trait}.md", trait=traits),
+        expand("jekyll/assets/images/porcupine/{trait}.png", trait=traits),
         "jekyll/cross-species.json",
         "jekyll/_data/gene_pages.done",
 
@@ -254,6 +255,19 @@ rule jekyll_trait_page:
         panels = "jekyll/_data/trait_panels/{trait}.tsv",
     shell:
         "Rscript scripts/site/build_pages_for_trait.R {wildcards.trait}"
+
+rule porcupine_plots:
+    """Generate porcupine plots for each trait."""
+    input:
+        traits = "data/traits.par",
+        chroms = "data/sequence_report.tsv",
+        all_models = "data/all_models.par",
+        assoc = expand("data/twas_out/{trait}.all.tsv", trait=traits),
+        post = expand("data/twas_out/{trait}.post.tsv", trait=traits),
+    output:
+        png = expand("jekyll/assets/images/porcupine/{trait}.png", trait=traits),
+    shell:
+        "Rscript scripts/site/porcupine_plots.R"
 
 rule jekyll_gene_pages:
     """Build Jekyll pages for all genes
