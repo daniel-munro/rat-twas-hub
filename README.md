@@ -1,20 +1,78 @@
 # Rat TWAS Hub
 
-Code to generate the data and website for Rat TWAS Hub
+Code to generate the data and website for Rat TWAS Hub.
 
-Code for running large-scale multi-modal TWAS analyses in rat and producing static Markdown reports. This repository contains scripts that compute TWAS statistics for many traits, merge and annotate them, produce reports, and generate an interactive website. This code is adapted from the (human) [TWAS HUB](https://github.com/gusevlab/TWAS_HUB). It extends gene expression-based TWAS to multimodal RNA phenotypes (xTWAS) using [Pantry](https://github.com/PejLab/Pantry) to generate the transcriptome models.
+This repository runs large-scale, multi-modal TWAS analyses in rat and produces static Markdown reports plus a Jekyll site. It is adapted from the (human) [TWAS HUB](https://github.com/gusevlab/TWAS_HUB) and extends gene expression-based TWAS to multi-modal RNA phenotypes (xTWAS) using [Pantry](https://github.com/PejLab/Pantry) to generate phenotypes for the transcriptome models.
 
-## Parameter files
+## Requirements
 
-The code uses the following parameter files:
+- Python 3 with `snakemake` and `pandas`.
+- R (4.x recommended) with packages:
+  - required: `tidyverse`, `yaml`, `biomaRt`, `optparse`, `plink2R`, `RColorBrewer`, `coloc`
+- GNU core tools (`awk`, `sed`, `join`, `tar`, `gzip`) and `parallel`.
+- Ruby + `bundler` for Jekyll site builds (see `jekyll/Gemfile`).
+- `rsync` + `ssh` for deployment (optional).
 
-- `panels.par`: Statistics on the transcriptome reference panels used. A `MODALITY` column has been added for xTWAS.
-- `all_models.par`: Statistics on each of the predictive models. The `Snakefile` assembles this from the FUSION profiler script outputs.
-- `traits.par`: Information on each of the traits/TWAS studies performed. Important, the `OUTPUT` column must to point to the merged results from all chromosomes for that trait.
-- `gene_names.tsv`: Lookup table to convert the Ensembl IDs in the results to gene symbols for the site. The `Snakefile` assembles this from a gene annotation GTF file.
+Notes:
+
+- The cross-species step uses Ensembl via `biomaRt` and requires network access.
+- TWAS runs require binary PLINK reference panels (see inputs below).
+
+## Inputs and parameter files
+
+The pipeline expects the following inputs under `data/`:
+
+- `panels.par`: Transcriptome panel metadata (columns include `PANEL`, `TISSUE`, `MODALITY`, `N`).
+- `traits.par`: Trait metadata (columns include `OUTPUT`, `ID`, `N`, `PROJECT`, `TAGS`, `NAME`, `DESCRIPTION`).
+- `projects.tsv`: Project metadata used for the site.
+- `sequence_report.tsv`: Chromosome sizes for porcupine plots.
+- `WEIGHTS/<tissue>/<modality>.pos` and `<modality>.profile`: FUSION profiler outputs used to build `data/all_models.par`.
+- `LDREF/Brain_v3.chr{chrom}.{bed,bim,fam}`: PLINK reference LD panels used by FUSION.
+- `gwas_original/sumstats/{project}/regressedlr_{trait}_chrgwas{chrom}.mlma.gz`: GWAS summary statistics (GCTA output).
+- `gwas_original/traits.tsv`: Project + trait metadata used by `scripts/prepare/prepare_trait_table.R` (columns: `project_id`, `trait_id`, `tags`, `name`, `description`).
+- `cross_species/genes.models.nfo` and `cross_species/genes.nfo`: Human reference lists for the cross-species table.
+
+Generated outputs live in:
+
+- `data/all_models.par`, `data/twas_out/`, `data/traits.par.nfo`, `data/genes_n_models.nfo`, `data/genes_n_assoc.nfo`
+- `jekyll/` (traits, genes, and `_data` assets consumed by the site)
 
 ## Workflow
 
-- Use Snakemake with the included `Snakefile` to run TWAS ([FUSION](https://github.com/gusevlab/fusion_twas)) and post-processing.
-- Run `scripts/build_jekyll.sh` to generate the Jekyll template.
-- `cd jekyll` and then `bundle exec jekyll build` to generate the site.
+1. Prepare trait metadata (optional, if starting from raw GWAS):
+
+```bash
+scripts/prepare/prepare_traits.sh
+```
+
+This reads `data/gwas_original/traits.tsv` and GCTA logs to produce `data/traits.par`.
+
+2. Run TWAS + post-processing + site data build:
+
+```bash
+snakemake -j 8
+```
+
+If running on HPC, be sure to run in a job, or have snakemake run steps as jobs using, e.g., [snakemake-executor-plugin-slurm](https://github.com/snakemake/snakemake-executor-plugin-slurm).
+
+3. Build the Jekyll site:
+
+```bash
+cd jekyll
+bundle install
+bundle exec jekyll build
+```
+
+4. Deploy (optional, requires SSH access to the target host):
+
+```bash
+scripts/site/deploy.sh
+```
+
+## Repository layout
+
+- `Snakefile`: Main workflow (TWAS, post-processing, and site data generation).
+- `scripts/twas/`: FUSION TWAS and post-processing scripts.
+- `scripts/site/`: Jekyll data builders and plot generation.
+- `scripts/prepare/`: Trait table helpers for GWAS inputs.
+- `jekyll/`: Site templates and assets.
