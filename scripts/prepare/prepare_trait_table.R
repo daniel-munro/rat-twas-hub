@@ -15,4 +15,4 @@ df <- read_tsv("data/gwas_original/traits.tsv", col_types = "ccccc") |>
          NAME = name,
          DESCRIPTION = description)
 
-write_tsv(df, "data/traits.par")
+write_tsv(df, "data/traits.tsv")

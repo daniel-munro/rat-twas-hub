@@ -1,9 +1,9 @@
 # Create porcupine plot for each trait's TWAS hits
 
 # Inputs:
-# data/traits.par
+# data/traits.tsv
 # data/sequence_report.tsv
-# data/all_models.par
+# data/all_models.tsv
 # data/twas_out/{trait}.all.tsv
 # data/twas_out/{trait}.post.tsv
 
@@ -60,7 +60,7 @@ porcupine_plot <- function(df_all, df_loci, chr_len, pval_threshold) {
     labs(fill = "Signif.\ngenes\nin locus")
 }
 
-traits <- read_tsv("data/traits.par", col_types = "-c-----") |> pull()
+traits <- read_tsv("data/traits.tsv", col_types = "-c-----") |> pull()
 
 chrom_lengths <- read_tsv(
   "data/sequence_report.tsv",
@@ -73,7 +73,7 @@ chrom_lengths <- read_tsv(
 
 # This is similar to row count of TWAS output, but some phenotypes are missing
 # from output, and p-value threshold is calculated from all models.
-n_models <- length(read_lines("data/all_models.par")) - 1
+n_models <- length(read_lines("data/all_models.tsv")) - 1
 
 for (trait in traits) {
   df_all <- read_tsv(

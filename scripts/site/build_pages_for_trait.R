@@ -1,9 +1,9 @@
 # Load the results of a single trait and generate the basic markdown pages (frontmatter only) for the trait page and each of its hit loci, along with data tables for Jekyll to render in the pages.
 
 # Inputs:
-# data/traits.par
-# data/panels.par
-# data/traits.par.nfo
+# data/traits.tsv
+# data/panels.tsv
+# data/traits.summary.tsv
 # data/twas_out/{trait}.all.tsv
 # data/twas_out/{trait}.post.tsv
 # data/twas_out/{trait}/{trait}.{chrom}.post.loc_{locus}.cond.csv
@@ -41,18 +41,18 @@ shorten_ids <- function(pheno_id, modality) {
 arg <- commandArgs(trailingOnly = TRUE)
 trait <- as.character(arg[1])
 
-traits_nfo <- read_tsv("data/traits.par.nfo", col_types = "ciiid")
+traits_nfo <- read_tsv("data/traits.summary.tsv", col_types = "ciiid")
 
-tbl_traits <- read_tsv("data/traits.par", col_types = "ccicccc") |>
+tbl_traits <- read_tsv("data/traits.tsv", col_types = "ccicccc") |>
   left_join(traits_nfo, by = "ID")
 
 # Determine the index of the requested trait_id and validate
 i_trait <- match(trait, tbl_traits$ID)
 if (is.na(i_trait)) {
-  stop(stringr::str_glue("Trait ID '{trait}' not found in data/traits.par"))
+  stop(stringr::str_glue("Trait ID '{trait}' not found in data/traits.tsv"))
 }
 
-tbl_panels <- read_tsv("data/panels.par", col_types = "ccccci")
+tbl_panels <- read_tsv("data/panels.tsv", col_types = "ccccci")
 
 cat("reading", tbl_traits$OUTPUT[i_trait], "\n")
 trait_assocs <- read_tsv(

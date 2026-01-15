@@ -2,9 +2,9 @@
 
 # Inputs:
 # data/cross_species/genes.models.nfo    human: gene symbol and model count (space-separated)
-# data/genes_n_models.nfo                rat: gene symbol and model count (space-separated)
+# data/genes_n_models.tsv                rat: gene symbol and model count (tab-separated)
 # data/cross_species/genes.nfo           human: gene symbol and association count (space-separated)
-# data/genes_n_assoc.nfo                 rat: gene symbol and association count (space-separated)
+# data/genes_n_assoc.tsv                 rat: gene symbol and association count (tab-separated)
 
 # Outputs:
 # jekyll/cross-species.json
@@ -21,9 +21,10 @@ human_genes <- read_delim(
 
 # Rat inputs are now gene symbols end-to-end
 rat_models <- read_delim(
-  "data/genes_n_models.nfo",
+  "data/genes_n_models.tsv",
   col_names = c("rat_symbol", "count"),
-  col_types = "ci"
+  col_types = "ci",
+  delim = "\t"
 )
 
 human_assoc <- read_delim(
@@ -33,9 +34,10 @@ human_assoc <- read_delim(
 )
 
 rat_assoc <- read_delim(
-  "data/genes_n_assoc.nfo",
+  "data/genes_n_assoc.tsv",
   col_names = c("rat_symbol", "rat_assoc"),
-  col_types = "ci"
+  col_types = "ci",
+  delim = "\t"
 )
 
 # Set up biomaRt connections

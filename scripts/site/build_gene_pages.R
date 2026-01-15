@@ -1,11 +1,11 @@
 # Generate gene pages
 
 # Inputs:
-# data/panels.par
-# data/all_models.par
-# data/traits.par
-# data/traits.par.nfo
-# data/twas_out/{trait}.all.tsv (for each trait listed in traits.par)
+# data/panels.tsv
+# data/all_models.tsv
+# data/traits.tsv
+# data/traits.summary.tsv
+# data/twas_out/{trait}.all.tsv (for each trait listed in traits.tsv)
 
 # Outputs:
 # jekyll/genes/{gene}.md
@@ -32,9 +32,9 @@ shorten_ids <- function(pheno_id, modality) {
   )
 }
 
-traits_nfo <- read_tsv("data/traits.par.nfo", col_types = "ciiid")
+traits_nfo <- read_tsv("data/traits.summary.tsv", col_types = "ciiid")
 
-tbl_traits <- read_tsv("data/traits.par", col_types = "ccicccc") |>
+tbl_traits <- read_tsv("data/traits.tsv", col_types = "ccicccc") |>
   mutate(link = str_glue("<a href='{{{{ site.baseurl }}}}traits/{ID}'>{NAME}</a>")) |>
   left_join(traits_nfo, by = "ID", relationship = "one-to-one")
 
@@ -60,9 +60,9 @@ model_order <- tbl_zscores |>
 
 cat(str_glue("Loaded {scales::comma(nrow(tbl_zscores))} trait-model rows for {length(unique(tbl_zscores$trait_id))} traits."),"\n")
 
-tbl_panels <- read_tsv("data/panels.par", col_types = "-c-cc-")
+tbl_panels <- read_tsv("data/panels.tsv", col_types = "-c-cc-")
 
-tbl_models <- read_tsv("data/all_models.par", col_types = "cccciiiddddddddddddd") |>
+tbl_models <- read_tsv("data/all_models.tsv", col_types = "cccciiiddddddddddddd") |>
   rename(pheno_id = ID) |>
   left_join(tbl_panels, by = "PANEL", relationship = "many-to-one") |>
   mutate(gene_id = gene_id(pheno_id)) |>

@@ -1,12 +1,12 @@
 # Load the data and generate summary stats and other reference data.
 
 # Inputs:
-# data/traits.par
-# data/traits.par.nfo
-# data/all_models.par
-# data/genes_n_assoc.nfo
-# data/genes_n_models.nfo
-# data/panels.par
+# data/traits.tsv
+# data/traits.summary.tsv
+# data/all_models.tsv
+# data/genes_n_assoc.tsv
+# data/genes_n_models.tsv
+# data/panels.tsv
 
 # Outputs:
 # jekyll/_data/traits.tsv
@@ -24,9 +24,9 @@ gene_id <- function(pheno_id) {
 
 ## Print trait index
 
-traits_nfo <- read_tsv("data/traits.par.nfo", col_types = "ciiid")
+traits_nfo <- read_tsv("data/traits.summary.tsv", col_types = "ciiid")
 
-tbl_traits <- read_tsv("data/traits.par", col_types = "ccicccc") |>
+tbl_traits <- read_tsv("data/traits.tsv", col_types = "ccicccc") |>
   left_join(traits_nfo, by = "ID")
 
 tbl_traits |>
@@ -35,12 +35,12 @@ tbl_traits |>
 
 ## Make genes.json
 
-all_genes <- read_tsv("data/all_models.par", col_types = cols(ID = "c", .default = "-")) |>
+all_genes <- read_tsv("data/all_models.tsv", col_types = cols(ID = "c", .default = "-")) |>
   mutate(gene_id = gene_id(ID)) |>
   with(sort(unique(gene_id)))
-genes_n_assoc <- read_delim("data/genes_n_assoc.nfo", delim = " ", col_types = "ci", col_names = FALSE) |>
+genes_n_assoc <- read_tsv("data/genes_n_assoc.tsv", col_types = "ci", col_names = FALSE) |>
   deframe()
-genes_n_models <- read_delim("data/genes_n_models.nfo", delim = " ", col_types = "ci", col_names = FALSE) |>
+genes_n_models <- read_tsv("data/genes_n_models.tsv", col_types = "ci", col_names = FALSE) |>
   deframe()
 
 df_genes <- tibble(gene_id = all_genes) |>
@@ -71,10 +71,10 @@ yaml::write_yaml(gene_stats, file = "jekyll/_data/stats.yml")
 
 ## Make panels.tsv with model counts
 
-panels <- readr::read_tsv("data/panels.par", col_types = "cccccc")
+panels <- readr::read_tsv("data/panels.tsv", col_types = "cccccc")
 
 panel_counts <- read_tsv(
-  "data/all_models.par", col_types = cols(PANEL = "c", .default = "-")
+  "data/all_models.tsv", col_types = cols(PANEL = "c", .default = "-")
 ) |>
   count(PANEL, name = "N_MODELS")
 

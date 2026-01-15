@@ -22,19 +22,19 @@ Notes:
 
 The pipeline expects the following inputs under `data/`:
 
-- `panels.par`: Transcriptome panel metadata (columns include `PANEL`, `TISSUE`, `MODALITY`, `N`).
-- `traits.par`: Trait metadata (columns include `OUTPUT`, `ID`, `N`, `PROJECT`, `TAGS`, `NAME`, `DESCRIPTION`).
+- `panels.tsv`: Transcriptome panel metadata (columns include `PANEL`, `TISSUE`, `MODALITY`, `N`).
+- `traits.tsv`: Trait metadata (columns include `OUTPUT`, `ID`, `N`, `PROJECT`, `TAGS`, `NAME`, `DESCRIPTION`).
 - `projects.tsv`: Project metadata used for the site.
 - `sequence_report.tsv`: Chromosome sizes for porcupine plots.
-- `WEIGHTS/<tissue>/<modality>.pos` and `<modality>.profile`: FUSION profiler outputs used to build `data/all_models.par`.
-- `LDREF/Brain_v3.chr{chrom}.{bed,bim,fam}`: PLINK reference LD panels used by FUSION.
+- `WEIGHTS/<tissue>/<modality>.pos` and `<modality>.profile`: FUSION profiler outputs used to build `data/all_models.tsv`.
+- `LDREF/Brain_v4.chr{chrom}.{bed,bim,fam}`: PLINK reference LD panels used by FUSION.
 - `gwas_original/sumstats/{project}/regressedlr_{trait}_chrgwas{chrom}.mlma.gz`: GWAS summary statistics (GCTA output).
 - `gwas_original/traits.tsv`: Project + trait metadata used by `scripts/prepare/prepare_trait_table.R` (columns: `project_id`, `trait_id`, `tags`, `name`, `description`).
 - `cross_species/genes.models.nfo` and `cross_species/genes.nfo`: Human reference lists for the cross-species table.
 
 Generated outputs live in:
 
-- `data/all_models.par`, `data/twas_out/`, `data/traits.par.nfo`, `data/genes_n_models.nfo`, `data/genes_n_assoc.nfo`
+- `data/all_models.tsv`, `data/twas_out/`, `data/traits.summary.tsv`, `data/genes_n_models.tsv`, `data/genes_n_assoc.tsv`
 - `jekyll/` (traits, genes, and `_data` assets consumed by the site)
 
 ## Workflow
@@ -45,7 +45,7 @@ Generated outputs live in:
 scripts/prepare/prepare_traits.sh
 ```
 
-This reads `data/gwas_original/traits.tsv` and GCTA logs to produce `data/traits.par`.
+This reads `data/gwas_original/traits.tsv` and GCTA logs to produce `data/traits.tsv`.
 
 2. Run TWAS + post-processing + site data build:
 
