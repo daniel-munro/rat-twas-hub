@@ -210,7 +210,7 @@ df_pleiot <- tibble(
 )
 
 for (i_trait2 in seq_len(nrow(tbl_traits))) {
-  # print(i_trait2)
+  print(i_trait2)
   if ((i_trait2 != i_trait) && length(top_models) > 0) {
     trait2_assocs <- read_tsv(
       tbl_traits$OUTPUT[i_trait2],

@@ -1,10 +1,10 @@
 import pandas as pd
 
-tissues = ["Adipose", "BLA", "Brain", "Eye", "IL", "LHb", "Liver", "NAcc", "OFC", "PL", "pVTA", "RMTg"]
+tissues = ["Adipose", "BLA", "Brain", "Eye", "IC", "IL", "LHb", "Liver", "NAcc", "OFC", "PL", "pVTA", "RMTg"]
 modalities = ["alt_polyA", "alt_TSS", "expression", "isoforms", "splicing", "stability"]
-gtf = "data/GCF_015227675.2_mRatBN7.2_genomic.chr.filt.gtf"
+gtf = "data/GCF_036323735.1_GRCr8_genomic.chr.gtf"
 wgt_dir = "data/WEIGHTS"
-ldref_prefix = "data/LDREF/Brain_v3."
+ldref_prefix = "data/LDREF/Brain_v4."
 
 traits_df = pd.read_csv("data/traits.tsv", sep="\t", index_col=1)
 traits = traits_df.index.tolist()

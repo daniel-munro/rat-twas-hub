@@ -65,6 +65,7 @@ HS Rat RNA-seq datasets used for the transcriptomic models were produced by mult
 
 ## Change Log
 
+| 2026-03-03 | Upgraded data to RatGTEx v4 (GRCr8 genome assembly, more tissues) |
 | 2025-09-23 | Upgraded data to RatGTEx v3 (RefSeq annotations, new tissues) |
 | 2025-09-08 | Added tag-based trait filtering and GWAS source publications |
 | 2025-05-09 | Improved UI and table info, added cross-species gene search |
