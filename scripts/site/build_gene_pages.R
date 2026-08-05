@@ -5,6 +5,7 @@
 # data/all_models.tsv
 # data/traits.tsv
 # data/traits.summary.tsv
+# GTF annotation passed as the first command-line argument
 # data/twas_out/{trait}.all.tsv (for each trait listed in traits.tsv)
 
 # Outputs:
@@ -12,6 +13,19 @@
 # jekyll/_data/gene_models/{gene}.tsv
 
 suppressPackageStartupMessages(library(tidyverse))
+
+args <- commandArgs(trailingOnly = TRUE)
+gtf_file <- args[[1]]
+
+gtf_attributes <- function(attributes, key) {
+  pattern <- as.character(str_glue("(?:^|; )\\Q{key}\\E \\\"([^\\\"]*)\\\""))
+  stringr::str_match(attributes, stringr::regex(pattern))[, 2]
+}
+
+yaml_quote <- function(value) {
+  escaped <- str_replace_all(value, fixed("'"), "''")
+  str_glue("'{escaped}'")
+}
 
 gene_id <- function(pheno_id) {
   # Extract gene ID from RNA phenotype ID
@@ -61,6 +75,22 @@ model_order <- tbl_zscores |>
 cat(str_glue("Loaded {scales::comma(nrow(tbl_zscores))} trait-model rows for {length(unique(tbl_zscores$trait_id))} traits."),"\n")
 
 tbl_panels <- read_tsv("data/panels.tsv", col_types = "-c-cc-")
+
+tbl_gene_annotations <- read_tsv(
+  gtf_file,
+  comment = "#",
+  col_names = c("chrom", "source", "feature", "start", "end", "score", "strand", "frame", "attributes"),
+  col_types = "cccddcccc"
+) |>
+  filter(feature == "gene") |>
+  transmute(
+    gene_id = gtf_attributes(attributes, "gene_id"),
+    full_name = gtf_attributes(attributes, "description"),
+    chrom,
+    start = as.integer(start),
+    end = as.integer(end),
+    strand
+  )
 
 tbl_models <- read_tsv("data/all_models.tsv", col_types = "cccciiiddddddddddddd") |>
   rename(pheno_id = ID) |>
@@ -138,8 +168,19 @@ tbl_genes_traits <- tbl_zscores |>
 
 all_genes <- sort(unique(tbl_models$gene_id))
 
+gene_annotations <- tibble(gene_id = all_genes) |>
+  left_join(tbl_gene_annotations, by = "gene_id", relationship = "one-to-one")
+
+if (anyNA(gene_annotations$chrom)) {
+  stop(str_glue(
+    "GTF annotation is missing for modeled genes: {str_c(gene_annotations$gene_id[is.na(gene_annotations$chrom)], collapse = ', ')}"
+  ))
+}
+
 for (i in seq_along(all_genes)) {
   g_id <- all_genes[i]
+  annotation <- gene_annotations |>
+    filter(gene_id == g_id)
   fout_page <- str_glue("jekyll/genes/{g_id}.md")
   fout_models <- str_glue("jekyll/_data/gene_models/{g_id}.tsv")
 
@@ -152,6 +193,11 @@ for (i in seq_along(all_genes)) {
     str_glue("permalink: genes/{g_id}/"),
     "layout: gene",
     str_glue("id: {g_id}"),
+    if (!is.na(annotation$full_name)) str_glue("full_name: {yaml_quote(annotation$full_name)}"),
+    str_glue("chrom: {yaml_quote(annotation$chrom)}"),
+    str_glue("start: {annotation$start}"),
+    str_glue("end: {annotation$end}"),
+    str_glue("strand: {yaml_quote(annotation$strand)}"),
     "---"
   ) |>
     write_lines(fout_page)

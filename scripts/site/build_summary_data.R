@@ -7,6 +7,7 @@
 # data/genes_n_assoc.tsv
 # data/genes_n_models.tsv
 # data/panels.tsv
+# GTF annotation passed as the first command-line argument
 
 # Outputs:
 # jekyll/_data/traits.tsv
@@ -16,6 +17,18 @@
 
 suppressPackageStartupMessages(library(tidyverse))
 library(yaml)
+
+args <- commandArgs(trailingOnly = TRUE)
+gtf_file <- args[[1]]
+
+gtf_attributes <- function(attributes, key) {
+  pattern <- as.character(str_glue("(?:^|; )\\Q{key}\\E \\\"([^\\\"]*)\\\""))
+  stringr::str_match(attributes, stringr::regex(pattern))[, 2]
+}
+
+html_escape <- function(value) {
+  str_replace_all(value, c("&" = "&amp;", "<" = "&lt;", ">" = "&gt;", "\\\"" = "&quot;", "'" = "&#39;"))
+}
 
 gene_id <- function(pheno_id) {
   # Extract gene ID from RNA phenotype ID
@@ -43,19 +56,39 @@ genes_n_assoc <- read_tsv("data/genes_n_assoc.tsv", col_types = "ci", col_names 
 genes_n_models <- read_tsv("data/genes_n_models.tsv", col_types = "ci", col_names = FALSE) |>
   deframe()
 
+gene_names <- read_tsv(
+  gtf_file,
+  comment = "#",
+  col_names = c("chrom", "source", "feature", "start", "end", "score", "strand", "frame", "attributes"),
+  col_types = "--c-----c"
+) |>
+  filter(feature == "gene") |>
+  transmute(
+    gene_id = gtf_attributes(attributes, "gene_id"),
+    full_name = gtf_attributes(attributes, "description")
+  )
+
 df_genes <- tibble(gene_id = all_genes) |>
+  left_join(gene_names, by = "gene_id", relationship = "one-to-one") |>
   mutate(
     n_assoc = genes_n_assoc[gene_id],
     n_models = genes_n_models[gene_id],
-    gene_link = str_glue('<em><a href=\\"./{gene_id}\\">{gene_id}</a></em>'),
+    gene_link = str_glue('<em><a href="./{gene_id}">{gene_id}</a></em>'),
+    full_name_html = if_else(
+      is.na(full_name),
+      "",
+      str_glue('<span class="gene-full-name" title="{html_escape(full_name)}">{html_escape(full_name)}</span>')
+    )
   ) |>
   replace_na(list(n_assoc = 0, n_models = 0))
 
-cat('{\n"data":[\n',
-    str_c(str_glue('["{df_genes$gene_link}",{df_genes$n_assoc},{df_genes$n_models}]'), collapse = ",\n"),
-    "]\n}",
-    sep = "",
-    file = "jekyll/genes.json")
+gene_rows <- pmap(
+  select(df_genes, gene_link, full_name_html, n_assoc, n_models),
+  \(gene_link, full_name_html, n_assoc, n_models) {
+    list(gene_link, full_name_html, n_assoc, n_models)
+  }
+)
+jsonlite::write_json(list(data = gene_rows), "jekyll/genes.json", auto_unbox = TRUE)
 
 ## Stats for trait and gene index pages
 

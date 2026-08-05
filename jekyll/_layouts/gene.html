@@ -9,6 +9,20 @@ layout: base
 
 <h1>{{ page.title }}</h1>
 
+{% if page.full_name %}
+<p>{{ page.full_name }}</p>
+{% endif %}
+
+<p>
+  {{ page.chrom }}:{{ page.start }}&ndash;{{ page.end }} ({{ page.strand }})
+</p>
+
+<p>
+  <a href="https://ratgtex.org/gene/#{{ page.id }}"
+    >{{ page.id }} RatGTEx page</a
+  >
+</p>
+
 <h3>Models</h3>
 
 <p>

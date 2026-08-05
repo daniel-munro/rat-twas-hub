@@ -281,13 +281,14 @@ rule jekyll_gene_pages:
         all_models = "data/all_models.tsv",
         traits = "data/traits.tsv",
         traits_info = "data/traits.summary.tsv",
+        gtf = gtf,
     output:
         marker = "jekyll/_data/gene_pages.done",
     resources:
         mem_mb = 32000,
     shell:
         """
-        Rscript scripts/site/build_gene_pages.R
+        Rscript scripts/site/build_gene_pages.R {input.gtf}
         date > {output.marker}
         """
 
@@ -300,13 +301,14 @@ rule jekyll_summary_data:
         genes_models = "data/genes_n_models.tsv",
         genes_assoc = "data/genes_n_assoc.tsv",
         panels = "data/panels.tsv",
+        gtf = gtf,
     output:
         traits_tsv = "jekyll/_data/traits.tsv",
         genes_json = "jekyll/genes.json",
         stats_yml = "jekyll/_data/stats.yml",
         panels_tsv = "jekyll/_data/panels.tsv",
     shell:
-        "Rscript scripts/site/build_summary_data.R"
+        "Rscript scripts/site/build_summary_data.R {input.gtf}"
 
 rule jekyll_cross_species:
     """Build cross-species JSON for the site"""
