@@ -177,15 +177,19 @@ if (anyNA(gene_annotations$chrom)) {
   ))
 }
 
+# These directories contain only generated gene outputs. Clear them so genes
+# absent from the current model table do not leave obsolete pages or tables.
+unlink("jekyll/genes", recursive = TRUE)
+unlink("jekyll/_data/gene_models", recursive = TRUE)
+dir.create("jekyll/genes", recursive = TRUE)
+dir.create("jekyll/_data/gene_models", recursive = TRUE)
+
 for (i in seq_along(all_genes)) {
   g_id <- all_genes[i]
   annotation <- gene_annotations |>
     filter(gene_id == g_id)
   fout_page <- str_glue("jekyll/genes/{g_id}.md")
   fout_models <- str_glue("jekyll/_data/gene_models/{g_id}.tsv")
-
-  system(str_glue("mkdir -p jekyll/genes"))
-  system(str_glue("mkdir -p jekyll/_data/gene_models"))
 
   c(
     "---",

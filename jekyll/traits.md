@@ -7,6 +7,8 @@ layout: base
 {: .text-center }
 ### **{{ site.data.stats.n_traits }}** traits &middot; **{{ site.data.stats.n_loci }}** associated loci &middot; **{{ site.data.stats.n_gene_trait_assocs }}** gene/trait associations
 
+<p><a href="{{ site.baseurl }}assets/downloads/traits.tsv" download>Download trait metadata (TSV)</a>, including GWAS sample sizes, project IDs, tags, names, and descriptions.</p>
+
 <div id="tag-filter-bar" class="mb-3">
   <div class="small text-muted mb-1">
     <i class="fas fa-tags"></i> Filter by tag

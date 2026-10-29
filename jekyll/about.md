@@ -65,13 +65,14 @@ HS Rat RNA-seq datasets used for the transcriptomic models were produced by mult
 
 ## Change Log
 
-| 2026-03-03 | Upgraded data to RatGTEx v4 (GRCr8 genome assembly, more tissues) |
-| 2025-09-23 | Upgraded data to RatGTEx v3 (RefSeq annotations, new tissues) |
+| 2026-10-29 | **v4 TWAS revision 1:** Added TWAS results for 27 cocaine-related traits (308 traits total), using RatGTEx v4 models. Added a trait metadata download. |
+| 2026-03-03 | Upgraded data to **RatGTEx v4** (GRCr8 genome assembly, more tissues) |
+| 2025-09-23 | Upgraded data to **RatGTEx v3** (RefSeq annotations, new tissues) |
 | 2025-09-08 | Added tag-based trait filtering and GWAS source publications |
 | 2025-05-09 | Improved UI and table info, added cross-species gene search |
 | 2025-02-12 | Added traits (281 total), improved trait metadata, and merged same-tissue datasets |
 | 2024-09-03 | Added page with table of source projects |
-| 2024-07-26 | Upgraded reference genome to mRatBN7.2 and added traits (123 total) for all RatGTEx tissues |
+| 2024-07-26 | Upgraded reference genome to **mRatBN7.2** and added traits (123 total) for all RatGTEx tissues |
 | 2024-05-31 | Added four RNA modalities that have multiple phenotypes per gene |
 | 2024-04-25 | Initial beta release with 18 traits and expression and RNA stability from whole brain tissue |
 {: .table}

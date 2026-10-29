@@ -76,6 +76,7 @@ rule all:
         "jekyll/_data/projects.tsv",
         "jekyll/_data/stats.yml",
         "jekyll/_data/traits.tsv",
+        "jekyll/assets/downloads/traits.tsv",
         expand("jekyll/data/{trait}.tar.bz2", trait=traits),
         expand("jekyll/traits/{trait}.md", trait=traits),
         expand("jekyll/_data/trait_pleio/{trait}.tsv", trait=traits),
@@ -446,6 +447,16 @@ rule jekyll_cross_species:
         json = "jekyll/cross-species.json",
     shell:
         "Rscript scripts/site/build_cross_species.R"
+
+rule jekyll_trait_metadata:
+    """Publish trait metadata without internal result-file paths."""
+    input:
+        tsv = "data/traits.tsv"
+    output:
+        tsv = "jekyll/assets/downloads/traits.tsv"
+    shell:
+        "cut -f2- {input.tsv:q} > {output.tsv:q}"
+
 
 rule jekyll_copy_projects:
     """Copy projects.tsv into Jekyll _data directory"""
