@@ -130,7 +130,9 @@ missing TWAS results, matching TWAS hit selection and porcupine plots.
 `site_locus_manifest` is a local checkpoint: once all configured traits'
 post-processing reports are available, it writes `data/site_loci.tsv` from their
 rows. This manifest enumerates each trait's expected locus pages, conditional
-CSVs, and model tables. Loci are numbered by chromosome and
+CSVs, and model tables. The local `jekyll_locus_pages` aggregate tracks those
+individual files and writes `jekyll/_data/locus_pages.done`, keeping the final
+target independent of checkpoint expansion. Loci are numbered by chromosome and
 start position, matching the site tables. No file globbing is used to discover
 loci; a header-only report requires no locus pages.
 
@@ -144,3 +146,23 @@ when the report changes, including when the trait no longer has any loci.
 The `.genes` and `.cond.csv` files named in the report are explicit inputs.
 Missing source files fail the build; regenerate the affected chromosome with
 `twas_post` if these original post-processing files have been removed.
+
+## Trait comparisons
+
+`jekyll_pleiotropy` computes all directed trait comparisons in one Slurm job and
+writes `jekyll/_data/trait_pleio/{trait}.tsv` for every configured trait. It declares
+all association tables, trait metadata, summary statistics, and the model table
+as inputs. Trait-page rendering no longer loads other traits' association tables.
+
+The comparison step reads each association table twice: first to identify the
+union of transcriptome-wide significant models, then to retain secondary-trait
+results only for that union. Secondary tables use integer model keys to bound
+memory. Comparisons preserve the existing primary-specific secondary threshold,
+correlations, gene counts, summary denominators, ordering, and TSV formatting.
+Traits without significant models still receive a header-only comparison file.
+
+To validate the statistical edge cases with small synthetic inputs:
+
+```bash
+Rscript tests/test_pleiotropy.R
+```

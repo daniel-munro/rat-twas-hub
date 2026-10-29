@@ -58,6 +58,7 @@ localrules:
     genes_n_models_info,
     jekyll_copy_projects,
     site_locus_manifest,
+    jekyll_locus_pages,
 
 wildcard_constraints:
     trait="[^/.]+"
@@ -77,10 +78,11 @@ rule all:
         "jekyll/_data/traits.tsv",
         expand("jekyll/data/{trait}.tar.bz2", trait=traits),
         expand("jekyll/traits/{trait}.md", trait=traits),
+        expand("jekyll/_data/trait_pleio/{trait}.tsv", trait=traits),
         expand("jekyll/assets/images/porcupine/{trait}.png", trait=traits),
         "jekyll/cross-species.json",
         "jekyll/_data/gene_pages.done",
-        [partial(site_locus_outputs, trait) for trait in traits],
+        "jekyll/_data/locus_pages.done",
 
 rule twas_results:
     """TWAS tables only; optionally select one project with --config project=ID."""
@@ -300,12 +302,37 @@ checkpoint site_locus_manifest:
         "scripts/site/locus_manifest.py"
 
 
+rule jekyll_locus_pages:
+    """Track checkpoint-discovered locus outputs behind a stable aggregate target."""
+    input:
+        [partial(site_locus_outputs, trait) for trait in traits],
+    output:
+        marker = "jekyll/_data/locus_pages.done",
+    shell:
+        "touch {output.marker:q}"
+
+
+rule jekyll_pleiotropy:
+    """Compute all directed trait comparisons in one shared job."""
+    input:
+        traits = "data/traits.tsv",
+        trait_info = "data/traits.summary.tsv",
+        models = "data/all_models.tsv",
+        assocs = expand("data/twas_out/{trait}.all.tsv", trait=traits),
+        renderer = "scripts/site/build_pleiotropy.R",
+    output:
+        pleio = expand("jekyll/_data/trait_pleio/{trait}.tsv", trait=traits),
+    resources:
+        mem_mb = 16000,
+    shell:
+        "Rscript {input.renderer:q}"
+
+
 rule jekyll_trait_page:
     """Build the Jekyll page for a single trait"""
     input:
         traits = "data/traits.tsv",
         panels = "data/panels.tsv",
-        trait_info = "data/traits.summary.tsv",
         assoc = "data/twas_out/{trait}.all.tsv",
         post = "data/twas_out/{trait}.post.tsv",
         models = "data/all_models.tsv",
@@ -314,7 +341,6 @@ rule jekyll_trait_page:
     output:
         page = "jekyll/traits/{trait}.md",
         loci = "jekyll/_data/trait_loci/{trait}.tsv",
-        pleio = "jekyll/_data/trait_pleio/{trait}.tsv",
         panels = "jekyll/_data/trait_panels/{trait}.tsv",
     group: "site_trait_{trait}"
     shell:
