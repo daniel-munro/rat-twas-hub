@@ -1,3 +1,5 @@
+from functools import lru_cache, partial
+
 import pandas as pd
 
 tissues = ["Adipose", "BLA", "Brain", "Eye", "IC", "IL", "LHb", "Liver", "NAcc", "OFC", "PL", "pVTA", "RMTg"]
@@ -8,6 +10,41 @@ ldref_prefix = "data/LDREF/Brain_v4."
 
 traits_df = pd.read_csv("data/traits.tsv", sep="\t", index_col=1)
 traits = traits_df.index.tolist()
+
+
+@lru_cache(maxsize=1)
+def read_site_loci(manifest_path):
+    # Called only after the checkpoint finishes; its manifest is fixed for this run.
+    return pd.read_csv(manifest_path, sep="\t")
+
+
+def trait_loci(trait):
+    manifest_path = checkpoints.site_locus_manifest.get().output.tsv
+    loci = read_site_loci(str(manifest_path))
+    return loci.loc[loci.trait == trait]
+
+
+def locus_inputs(wildcards):
+    loci = trait_loci(wildcards.trait)
+    prefix = loci.iloc[int(wildcards.locus) - 1]["FILE"]
+    return [f"{prefix}.genes", f"{prefix}.cond.csv"]
+
+
+def trait_locus_inputs(wildcards):
+    return [f"{prefix}{suffix}" for prefix in trait_loci(wildcards.trait)["FILE"]
+            for suffix in [".genes", ".cond.csv"]]
+
+
+def site_locus_outputs(trait, wildcards):
+    outputs = []
+    for locus in range(1, len(trait_loci(trait)) + 1):
+        outputs.extend([
+            f"jekyll/traits/{trait}/{locus}.md",
+            f"jekyll/traits/{trait}/{locus}.cond.csv",
+            f"jekyll/_data/locus_models/{trait}/{locus}.tsv",
+        ])
+    return outputs
+
 
 localrules:
     all_models_file,
@@ -20,6 +57,7 @@ localrules:
     genes_n_assoc_info,
     genes_n_models_info,
     jekyll_copy_projects,
+    site_locus_manifest,
 
 wildcard_constraints:
     trait="[^/.]+"
@@ -42,6 +80,17 @@ rule all:
         expand("jekyll/assets/images/porcupine/{trait}.png", trait=traits),
         "jekyll/cross-species.json",
         "jekyll/_data/gene_pages.done",
+        [partial(site_locus_outputs, trait) for trait in traits],
+
+rule twas_results:
+    """TWAS tables only; optionally select one project with --config project=ID."""
+    input:
+        expand(
+            "data/twas_out/{trait}.{table}.tsv",
+            trait=(traits_df.index[traits_df["PROJECT"] == config["project"]].tolist()
+                   if "project" in config else traits),
+            table=["all", "top", "post"],
+        )
 
 rule all_models_file:
     """Create table of all models"""
@@ -240,6 +289,17 @@ rule genes_n_assoc_info:
         done | sort | uniq -c | awk 'BEGIN {{OFS="\\t"}} {{ print $2,$1 }}' > {output.tsv}
         """
 
+checkpoint site_locus_manifest:
+    """Discover site loci once all traits' post-processing reports are ready."""
+    input:
+        traits = "data/traits.tsv",
+        posts = expand("data/twas_out/{trait}.post.tsv", trait=traits),
+    output:
+        tsv = "data/site_loci.tsv",
+    script:
+        "scripts/site/locus_manifest.py"
+
+
 rule jekyll_trait_page:
     """Build the Jekyll page for a single trait"""
     input:
@@ -248,26 +308,54 @@ rule jekyll_trait_page:
         trait_info = "data/traits.summary.tsv",
         assoc = "data/twas_out/{trait}.all.tsv",
         post = "data/twas_out/{trait}.post.tsv",
+        models = "data/all_models.tsv",
+        locus_files = trait_locus_inputs,
+        renderer = "scripts/site/build_pages_for_trait.R",
     output:
         page = "jekyll/traits/{trait}.md",
         loci = "jekyll/_data/trait_loci/{trait}.tsv",
         pleio = "jekyll/_data/trait_pleio/{trait}.tsv",
         panels = "jekyll/_data/trait_panels/{trait}.tsv",
+    group: "site_trait_{trait}"
     shell:
-        "Rscript scripts/site/build_pages_for_trait.R {wildcards.trait}"
+        "Rscript {input.renderer:q} {wildcards.trait:q}"
+
+rule jekyll_locus_page:
+    """Render one locus; grouped with its trait page into one submission."""
+    input:
+        page = "jekyll/traits/{trait}.md",
+        traits = "data/traits.tsv",
+        panels = "data/panels.tsv",
+        post = "data/twas_out/{trait}.post.tsv",
+        locus_files = locus_inputs,
+        renderer = "scripts/site/build_locus_page.R",
+    output:
+        page = "jekyll/traits/{trait}/{locus}.md",
+        cond = "jekyll/traits/{trait}/{locus}.cond.csv",
+        models = "jekyll/_data/locus_models/{trait}/{locus}.tsv",
+    wildcard_constraints:
+        locus = "[1-9][0-9]*",
+    group: "site_trait_{trait}"
+    resources:
+        mem_mb = 512,
+    shell:
+        "Rscript {input.renderer:q} {wildcards.trait:q} {wildcards.locus:q}"
+
 
 rule porcupine_plots:
-    """Generate porcupine plots for each trait."""
+    """Generate one trait plot; batch independent jobs with --group-components."""
     input:
-        traits = "data/traits.tsv",
         chroms = "data/sequence_report.tsv",
         all_models = "data/all_models.tsv",
-        assoc = expand("data/twas_out/{trait}.all.tsv", trait=traits),
-        post = expand("data/twas_out/{trait}.post.tsv", trait=traits),
+        assoc = "data/twas_out/{trait}.all.tsv",
+        post = "data/twas_out/{trait}.post.tsv",
     output:
-        png = expand("jekyll/assets/images/porcupine/{trait}.png", trait=traits),
+        png = "jekyll/assets/images/porcupine/{trait}.png",
+    group: "site_plots"
+    resources:
+        mem_mb = 2000,
     shell:
-        "Rscript scripts/site/porcupine_plots.R"
+        "Rscript scripts/site/porcupine_plots.R {wildcards.trait:q}"
 
 rule jekyll_gene_pages:
     """Build Jekyll pages for all genes
@@ -343,16 +431,17 @@ rule jekyll_copy_projects:
         "cp {input.tsv} {output.tsv}"
 
 rule compress_twas_data:
-    """Compress TWAS results for site download links"""
+    """Compress one trait's results; batch jobs with --group-components."""
     input:
-        assoc = expand("data/twas_out/{trait}.all.tsv", trait=traits),
-        post = expand("data/twas_out/{trait}.post.tsv", trait=traits),
+        assoc = "data/twas_out/{trait}.all.tsv",
+        post = "data/twas_out/{trait}.post.tsv",
     output:
-        tar = expand("jekyll/data/{trait}.tar.bz2", trait=traits),
-    params:
-        traits = " ".join(traits),
-    threads: 16
+        tar = "jekyll/data/{trait}.tar.bz2",
+    group: "site_archives"
+    resources:
+        mem_mb = 512,
     shell:
         """
-        parallel -j{threads} "cd data/twas_out && tar -cjf ../../jekyll/data/{{}}.tar.bz2 {{}}/ {{}}.all.tsv {{}}.post.tsv && cd ../.." ::: {params.traits}
+        tar -cjf {output.tar:q} -C data/twas_out \
+            {wildcards.trait:q}/ {wildcards.trait:q}.all.tsv {wildcards.trait:q}.post.tsv
         """

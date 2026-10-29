@@ -9,7 +9,7 @@ This repository runs large-scale, multi-modal TWAS analyses in rat and produces 
 - Python 3 with `snakemake` and `pandas`.
 - R (4.x recommended) with packages:
   - required: `tidyverse`, `yaml`, `biomaRt`, `optparse`, `plink2R`, `RColorBrewer`, `coloc`
-- GNU core tools (`awk`, `sed`, `join`, `tar`, `gzip`) and `parallel`.
+- GNU core tools (`awk`, `sed`, `join`, `tar`, `gzip`).
 - Ruby + `bundler` for Jekyll site builds (see `jekyll/Gemfile`).
 - `rsync` + `ssh` for deployment (optional).
 
@@ -34,7 +34,7 @@ The pipeline expects the following inputs under `data/`:
 
 Generated outputs live in:
 
-- `data/all_models.tsv`, `data/twas_out/`, `data/traits.summary.tsv`, `data/genes_n_models.tsv`, `data/genes_n_assoc.tsv`
+- `data/all_models.tsv`, `data/twas_out/`, `data/traits.summary.tsv`, `data/genes_n_models.tsv`, `data/genes_n_assoc.tsv`, `data/site_loci.tsv`
 - `jekyll/` (traits, genes, and `_data` assets consumed by the site)
 
 ## Workflow
@@ -54,6 +54,32 @@ snakemake -j 8
 ```
 
 If running on HPC, be sure to run in a job, or have snakemake run steps as jobs using, e.g., [snakemake-executor-plugin-slurm](https://github.com/snakemake/snakemake-executor-plugin-slurm).
+
+To generate only TWAS result tables, without site outputs, use `twas_results`:
+
+```bash
+snakemake --profile slurm --dry-run --printshellcmds twas_results
+snakemake --profile slurm twas_results
+```
+
+This produces `data/twas_out/{trait}.{all,top,post}.tsv` for all traits in
+`data/traits.tsv`. Add `--config project=PROJECT_ID` to select one project.
+The default target builds results and site source data for all traits;
+project selection applies only to `twas_results`.
+
+Plots and download archives are generated per trait. To bundle short jobs into
+fewer Slurm submissions, use [job grouping](https://snakemake.readthedocs.io/en/stable/executing/grouping.html)
+with `--group-components`:
+
+```bash
+snakemake --profile slurm --dry-run --group-components site_archives=16 site_plots=8
+snakemake --profile slurm --group-components site_archives=16 site_plots=8
+```
+
+Each submission contains up to 16 pending archive jobs or 8 pending plot jobs.
+Only traits needing a rebuild are included. Group resource requests account for
+the member jobs; each plot requests 2 GB and each archive 512 MB. Without
+`--group-components`, each trait runs separately. Local execution ignores groups.
 
 3. Build the Jekyll site:
 
@@ -98,3 +124,23 @@ snakemake --profile slurm --forcerun cross_species_orthologs -- cross_species_or
 Trait-page hit counts and transcriptome-wide pleiotropy tests use
 `0.05 / total model count` from `data/all_models.tsv`, including models with
 missing TWAS results, matching TWAS hit selection and porcupine plots.
+
+## Locus pages
+
+`site_locus_manifest` is a local checkpoint: once all configured traits'
+post-processing reports are available, it writes `data/site_loci.tsv` from their
+rows. This manifest enumerates each trait's expected locus pages, conditional
+CSVs, and model tables. Loci are numbered by chromosome and
+start position, matching the site tables. No file globbing is used to discover
+loci; a header-only report requires no locus pages.
+
+Trait pages and their locus pages share a `site_trait_{trait}` job group, so a
+trait rebuild bundles its locus rendering with the trait page. Locus files are
+explicit outputs: a deleted page, CSV, or model table is rebuilt on the next
+full workflow run. The trait-page rule removes that trait's generated locus
+page and model-table directories before rebuilding, so obsolete loci are removed
+when the report changes, including when the trait no longer has any loci.
+
+The `.genes` and `.cond.csv` files named in the report are explicit inputs.
+Missing source files fail the build; regenerate the affected chromosome with
+`twas_post` if these original post-processing files have been removed.

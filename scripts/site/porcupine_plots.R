@@ -1,7 +1,6 @@
-# Create porcupine plot for each trait's TWAS hits
+# Create a porcupine plot for the trait passed as the first argument
 
 # Inputs:
-# data/traits.tsv
 # data/sequence_report.tsv
 # data/all_models.tsv
 # data/twas_out/{trait}.all.tsv
@@ -60,7 +59,7 @@ porcupine_plot <- function(df_all, df_loci, chr_len, pval_threshold) {
     labs(fill = "Signif.\ngenes\nin locus")
 }
 
-traits <- read_tsv("data/traits.tsv", col_types = "-c-----") |> pull()
+trait <- commandArgs(trailingOnly = TRUE)[[1]]
 
 chrom_lengths <- read_tsv(
   "data/sequence_report.tsv",
@@ -75,16 +74,14 @@ chrom_lengths <- read_tsv(
 # from output, and p-value threshold is calculated from all models.
 n_models <- length(read_lines("data/all_models.tsv")) - 1
 
-for (trait in traits) {
-  df_all <- read_tsv(
-    str_glue("data/twas_out/{trait}.all.tsv"),
-    col_types = cols(PANEL = "c", ID = "c", CHR = "c", P0 = "i", TWAS.P = "d", .default = "-")
-  )
-  df_loci <- read_tsv(
-    str_glue("data/twas_out/{trait}.post.tsv"),
-    col_types = cols(CHR = "c", P0 = "i", P1 = "i", HIT.GENES = "i", BEST.TWAS.P = "d", .default = "-")
-  )
-  p <- porcupine_plot(df_all, df_loci, chrom_lengths, 0.05 / n_models)
-  ggsave(str_glue("jekyll/assets/images/porcupine/{trait}.png"), p,
-         width = 8, height = 3, device = png)
-}
+df_all <- read_tsv(
+  str_glue("data/twas_out/{trait}.all.tsv"),
+  col_types = cols(PANEL = "c", ID = "c", CHR = "c", P0 = "i", TWAS.P = "d", .default = "-")
+)
+df_loci <- read_tsv(
+  str_glue("data/twas_out/{trait}.post.tsv"),
+  col_types = cols(CHR = "c", P0 = "i", P1 = "i", HIT.GENES = "i", BEST.TWAS.P = "d", .default = "-")
+)
+p <- porcupine_plot(df_all, df_loci, chrom_lengths, 0.05 / n_models)
+ggsave(str_glue("jekyll/assets/images/porcupine/{trait}.png"), p,
+       width = 8, height = 3, device = png)

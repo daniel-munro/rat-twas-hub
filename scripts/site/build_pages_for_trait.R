@@ -1,4 +1,4 @@
-# Load the results of a single trait and generate the basic markdown pages (frontmatter only) for the trait page and each of its hit loci, along with data tables for Jekyll to render in the pages.
+# Generate a trait page and summary tables; locus pages are rendered separately.
 
 # Inputs:
 # data/traits.tsv
@@ -10,32 +10,15 @@
 
 # Outputs:
 # jekyll/traits/{trait}.md
-# jekyll/traits/{trait}/{locus}.md
-# jekyll/traits/{trait}/{locus}.cond.csv
 # jekyll/_data/trait_loci/{trait}.tsv
 # jekyll/_data/trait_pleio/{trait}.tsv
 # jekyll/_data/trait_panels/{trait}.tsv
-# jekyll/_data/locus_models/{trait}/{locus}.tsv
 
 suppressPackageStartupMessages(library(tidyverse))
 
 pheno_to_gene_id <- function(pheno_id) {
   # Extract gene ID from RNA phenotype ID
   stringr::str_replace(pheno_id, "__.+$", "")
-}
-
-shorten_ids <- function(pheno_id, modality) {
-  # Remove extra information from RNA phenotype IDs
-  # alternative TSS/polyA:            {gene_id}__grp_{grp#}_{up|down}stream_{transcript_id}      -> {transcript_id}
-  # gene expression & mRNA stability: {gene_id}                                                  -> {gene_id}
-  # intron excision ratio:            {gene_id}__{chrom}_{pos1}_{pos2}_clu_{cluster_id}_{strand} -> {chrom}_{pos1}_{pos2}
-  # isoform ratio:                    {gene_id}__{transcript_id}                                 -> {transcript_id}
-  dplyr::case_when(
-    modality %in% c("alternative TSS", "alternative polyA") ~ pheno_id |> stringr::str_replace("^.+stream_", ""),
-    modality == "intron excision ratio" ~ pheno_id |> stringr::str_replace("^.+__", "") |> stringr::str_replace("_clu_.+$", ""),
-    modality == "isoform ratio" ~ pheno_id |> stringr::str_replace("^.+__", ""),
-    .default = pheno_id
-  )
 }
 
 arg <- commandArgs(trailingOnly = TRUE)
@@ -61,7 +44,8 @@ trait_assocs <- read_tsv(
 ) |>
   filter(!is.na(TWAS.P))
 
-n_models <- nrow(trait_assocs)
+# Match TWAS hit selection and plots, including models without a result.
+n_models <- length(read_lines("data/all_models.tsv")) - 1
 top_models <- which(trait_assocs$TWAS.P < 0.05 / n_models)
 top_genes <- unique(pheno_to_gene_id(trait_assocs$ID[top_models]))
 
@@ -79,10 +63,10 @@ fout_loci <- str_glue("jekyll/_data/trait_loci/{trait}.tsv")
 fout_pleio <- str_glue("jekyll/_data/trait_pleio/{trait}.tsv")
 fout_panels <- str_glue("jekyll/_data/trait_panels/{trait}.tsv")
 
-system(str_glue("mkdir -p jekyll/traits/{trait}"))
-system(str_glue("mkdir -p jekyll/_data/trait_loci"))
-system(str_glue("mkdir -p jekyll/_data/trait_pleio"))
-system(str_glue("mkdir -p jekyll/_data/trait_panels"))
+# These directories contain only this trait's generated locus files. Clearing
+# them removes obsolete loci before the downstream locus jobs recreate outputs.
+unlink(str_glue("jekyll/traits/{trait}"), recursive = TRUE)
+unlink(str_glue("jekyll/_data/locus_models/{trait}"), recursive = TRUE)
 
 c(
   "---",
@@ -104,75 +88,16 @@ trait_loci <- read_tsv(
   mutate(locus_num = seq_len(n()),
          genes = "")
 
+# Joint genes are needed for the trait's locus table; locus pages are separate
+# tracked outputs rendered by build_locus_page.R.
 for (i_locus in seq_len(nrow(trait_loci))) {
-  print(i_locus)
-  fout_locus_page <- str_glue("jekyll/traits/{trait}/{i_locus}.md")
-  fout_locus_models <- str_glue("jekyll/_data/locus_models/{trait}/{i_locus}.tsv")
-  
-  system(str_glue("mkdir -p jekyll/_data/locus_models/{trait}"))
-  system(str_glue("cp {trait_loci$FILE[i_locus]}.cond.csv jekyll/traits/{trait}/{i_locus}.cond.csv"))
-  
   locus_models <- read_tsv(
     str_glue("{trait_loci$FILE[i_locus]}.genes"),
-    col_types = "cccciidcdcdddiicdddddddddld"
-  ) |>
-    mutate(num = seq_len(n()),
-           gene_id = pheno_to_gene_id(ID)) |>
-    left_join(select(tbl_panels, PANEL, TISSUE, MODALITY), by = "PANEL")
-  
-  locus_joint_genes <- sort(unique(locus_models$gene_id[locus_models$JOINT]))
-  trait_loci$genes[i_locus] <- str_c(locus_joint_genes, collapse = ",")
-  
-  pos0 <- formatC(trait_loci$P0[i_locus], format = "f", big.mark = ",", drop0trailing = TRUE)
-  pos1 <- formatC(trait_loci$P1[i_locus], format = "f", big.mark = ",", drop0trailing = TRUE)
-  c(
-    "---",
-    str_glue('title: "{tbl_traits$NAME[i_trait]}"'),
-    str_glue("permalink: traits/{trait}/{i_locus}/"),
-    "layout: locus",
-    str_glue("trait_id: {trait}"),
-    str_glue("locus_num: {i_locus}"),
-    str_glue('pos0: "{pos0}"'),
-    str_glue('pos1: "{pos1}"'),
-    "---"
-  ) |>
-    write_lines(fout_locus_page)
-  
-  locus_models |>
-    select(
-      num,
-      tissue = TISSUE,
-      gene_id,
-      modality = MODALITY,
-      id = ID,
-      hsq = HSQ,
-      eqtl_r2 = EQTL.R2,
-      model = MODEL,
-      nwgt = NWGT,
-      modelcv_r2 = MODELCV.R2,
-      modelcv_pv = MODELCV.PV,
-      eqtl_gwas_z = EQTL.GWAS.Z,
-      twas_z = TWAS.Z,
-      twas_p = TWAS.P,
-      top_snp_corr = TOP.SNP.COR,
-      coloc_pp3 = COLOC.PP3,
-      coloc_pp4 = COLOC.PP4,
-      joint = JOINT,
-    ) |>
-    mutate(
-      id = shorten_ids(id, modality),
-      hsq = round(hsq, 2),
-      eqtl_r2 = round(eqtl_r2, 2),
-      modelcv_r2 = round(modelcv_r2, 2),
-      modelcv_pv = format(modelcv_pv, digits = 3, scientific = TRUE),
-      eqtl_gwas_z = round(eqtl_gwas_z, 2),
-      twas_z = round(twas_z, 2),
-      twas_p = format(twas_p, digits = 3, scientific = TRUE),
-      top_snp_corr = round(top_snp_corr, 2),
-      coloc_pp3 = round(coloc_pp3, 2),
-      coloc_pp4 = round(coloc_pp4, 2),
-    ) |>
-    write_tsv(fout_locus_models)
+    col_types = cols(ID = "c", JOINT = "l", .default = "-")
+  )
+  trait_loci$genes[i_locus] <- str_c(
+    sort(unique(pheno_to_gene_id(locus_models$ID[locus_models$JOINT]))), collapse = ","
+  )
 }
 
 trait_loci |>
