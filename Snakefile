@@ -310,9 +310,20 @@ rule jekyll_summary_data:
     shell:
         "Rscript scripts/site/build_summary_data.R {input.gtf}"
 
+rule cross_species_orthologs:
+    """Fetch and save the Ensembl 108 mapping independently of association counts."""
+    input:
+        human_models = ancient("data/cross_species/genes.models.nfo"),
+        rat_models = ancient("data/all_models.tsv"),
+    output:
+        mapping = "data/cross_species/human_rat_orthologs.ensembl108.tsv",
+    shell:
+        "Rscript scripts/site/fetch_orthologs.R"
+
 rule jekyll_cross_species:
     """Build cross-species JSON for the site"""
     input:
+        mapping = "data/cross_species/human_rat_orthologs.ensembl108.tsv",
         human_models = "data/cross_species/genes.models.nfo",
         rat_models = "data/genes_n_models.tsv",
         human_assoc = "data/cross_species/genes.nfo",

@@ -15,7 +15,7 @@ This repository runs large-scale, multi-modal TWAS analyses in rat and produces 
 
 Notes:
 
-- The cross-species step uses Ensembl via `biomaRt` and requires network access.
+- Fetching the cross-species ortholog mapping uses Ensembl via `biomaRt` and requires network access. Routine site updates use the saved mapping.
 - TWAS runs require binary PLINK reference panels (see inputs below).
 
 ## Inputs and parameter files
@@ -76,3 +76,25 @@ scripts/site/deploy.sh
 - `scripts/site/`: Jekyll data builders and plot generation.
 - `scripts/prepare/`: Trait table helpers for GWAS inputs.
 - `jekyll/`: Site templates and assets.
+
+## Cross-species mapping
+
+`data/cross_species/human_rat_orthologs.ensembl108.tsv` stores the ortholog
+mapping separately from association counts. The initial frozen table was
+extracted from the existing `jekyll/cross-species.json`, preserving its mapping
+from the Ensembl 108 (October 2022) lookup. Keep this TSV with the analysis inputs.
+Site updates join the current association counts onto this table without
+contacting Ensembl.
+
+If the mapping is absent, `cross_species_orthologs` fetches it. Model-list
+modification times do not trigger a refresh; when intentionally changing the
+model gene set or refreshing the mapping, save the old table and explicitly run:
+
+```bash
+snakemake --profile slurm --dry-run --forcerun cross_species_orthologs -- cross_species_orthologs
+snakemake --profile slurm --forcerun cross_species_orthologs -- cross_species_orthologs
+```
+
+Trait-page hit counts and transcriptome-wide pleiotropy tests use
+`0.05 / total model count` from `data/all_models.tsv`, including models with
+missing TWAS results, matching TWAS hit selection and porcupine plots.
