@@ -35,7 +35,9 @@ where: "locus_num", page.locus_num | first %}
   Conditional GWAS P at original lead SNP = <strong>{{ locus.cond_snp_p }}</strong>
 </p>
 
-<div id="graph"></div>
+<h3>GWAS before and after conditioning</h3>
+<p>The marginal and conditional plots use the same genomic positions and −log<sub>10</sub> P scale.</p>
+<div id="graph" aria-label="Marginal and conditional GWAS associations"></div>
 
 <h3>Associated models</h3>
 
@@ -46,150 +48,76 @@ where: "locus_num", page.locus_num | first %}
   models for follow-up.
 </p>
 
-<table id="models">
-  <thead>
-    <tr>
-      <th data-bs-toggle="tooltip" data-bs-placement="top" title="Tissue">
-        Tissue
-      </th>
-      <th data-bs-toggle="tooltip" data-bs-placement="top" title="Gene">
-        Gene
-      </th>
-      <th
-        data-bs-toggle="tooltip"
-        data-bs-placement="top"
-        title="Modality of RNA variation"
-      >
-        RNA modality
-      </th>
-      <th
-        data-bs-toggle="tooltip"
-        data-bs-placement="top"
-        title="RNA phenotype, e.g. the affected isoform or splice junction"
-      >
-        RNA phenotype
-      </th>
-      <th
-        data-bs-toggle="tooltip"
-        data-bs-placement="top"
-        title="Heritability estimate for the RNA phenotype"
-      >
-        h<sup>2</sup>
-      </th>
-      <th
-        data-bs-toggle="tooltip"
-        data-bs-placement="top"
-        title="Number of variants used in the transcriptomic prediction model"
-      >
-        # weights
-      </th>
-      <th
-        data-bs-toggle="tooltip"
-        data-bs-placement="top"
-        title="Cross-validation R<sup>2</sup> of the transcriptomic prediction model"
-      >
-        Model R<sup>2</sup>
-      </th>
-      <th
-        data-bs-toggle="tooltip"
-        data-bs-placement="top"
-        title="Cross-validation P-value of the transcriptomic prediction model"
-      >
-        Model R<sup>2</sup> P
-      </th>
-      <th data-bs-toggle="tooltip" data-bs-placement="top" title="TWAS Z-score">
-        TWAS Z
-      </th>
-      <th data-bs-toggle="tooltip" data-bs-placement="top" title="TWAS P-value">
-        TWAS P
-      </th>
-      <th
-        data-bs-toggle="tooltip"
-        data-bs-placement="top"
-        title="Posterior probability that the RNA and GWAS signals share one causal variant under the coloc model"
-      >
-        Shared-variant posterior (PP4)
-      </th>
-      <th
-        data-bs-toggle="tooltip"
-        data-bs-placement="top"
-        title="Posterior probability that the RNA and GWAS signals each have a different causal variant under the coloc model"
-      >
-        Distinct-variant posterior (PP3)
-      </th>
-      <th
-        data-bs-toggle="tooltip"
-        data-bs-placement="top"
-        title="Whether the RNA model was retained by stepwise conditional TWAS"
-      >
-        Joint selection
-      </th>
-    </tr>
-  </thead>
-  <tbody>
-    {% assign locus_num_str = page.locus_num | append: "" %} {% assign models =
-    site.data.locus_models[page.trait_id][locus_num_str] %} {% for model in
-    models %}
-    <tr>
-      <td>{{ model.tissue }}</td>
-      <td>
-        <em>
-          <a href="{{ site.baseurl }}genes/{{ model.gene_id }}">
-            {{ model.gene_id }}
-          </a>
-        </em>
-      </td>
-      <td>{{ model.modality }}</td>
-      <td>{{ model.id }}</td>
-      <td>{{ model.hsq }}</td>
-      <td>{{ model.nwgt }}</td>
-      <td>{{ model.modelcv_r2 }}</td>
-      <td>{{ model.modelcv_pv }}</td>
-      <td>{{ model.twas_z }}</td>
-      <td>{{ model.twas_p }}</td>
-      <td>{{ model.coloc_pp4 }}</td>
-      <td>{{ model.coloc_pp3 }}</td>
-      <td>{{ model.joint }}</td>
-    </tr>
+{% assign locus_num_str = page.locus_num | append: "" %}
+{% assign models = site.data.locus_models[page.trait_id][locus_num_str] %}
+{% assign first_model = models | first %}
+{% if first_model.full_id %}
+<p><a href="../{{ page.locus_num }}.models.tsv" download>Download locus models with full RNA phenotype IDs (TSV)</a></p>
+{% endif %}
+
+<div class="table-responsive">
+  <table id="locus-models" class="table table-sm align-middle">
+    <thead>
+      <tr>
+        <th scope="col">Tissue</th>
+        <th scope="col">RNA modality</th>
+        <th scope="col">RNA feature</th>
+        <th scope="col">TWAS Z</th>
+        <th scope="col">TWAS P</th>
+        <th scope="col">Shared-variant posterior (PP4)</th>
+        <th scope="col">Distinct-variant posterior (PP3)</th>
+        <th scope="col">Cross-validation R<sup>2</sup></th>
+        <th scope="col">Joint selection</th>
+        <th scope="col">Model details</th>
+      </tr>
+    </thead>
+    {% assign gene_groups = models | group_by: "gene_id" | sort: "name" %}
+    {% for group in gene_groups %}
+    <tbody>
+      <tr class="table-light">
+        <th scope="rowgroup" colspan="10"><a href="{{ site.baseurl }}genes/{{ group.name }}">{{ group.name | escape }}</a></th>
+      </tr>
+      {% for model in group.items %}
+      <tr>
+        <td>{{ model.tissue | escape }}</td>
+        <td>{{ model.modality | escape }}</td>
+        <td>{{ model.id | escape }}</td>
+        <td>{% assign z = model.twas_z | plus: 0 %}{% if z > 0 %}+{% endif %}{{ model.twas_z }}</td>
+        <td>{{ model.twas_p }}</td>
+        <td>{{ model.coloc_pp4 }}</td>
+        <td>{{ model.coloc_pp3 }}</td>
+        <td>{{ model.modelcv_r2 }}</td>
+        <td>{% if model.joint == "TRUE" %}Yes{% elsif model.joint == "FALSE" %}No{% else %}—{% endif %}</td>
+        <td>
+          <details>
+            <summary>Show diagnostics</summary>
+            <dl class="mb-0">
+              {% if model.full_id %}
+              <dt>Full RNA phenotype ID</dt><dd><code>{{ model.full_id | escape }}</code></dd>
+              {% endif %}
+              <dt>Predictor</dt><dd>{{ model.model | escape }}</dd>
+              <dt>Number of weights</dt><dd>{{ model.nwgt }}</dd>
+              <dt>Cross-validation P</dt><dd>{{ model.modelcv_pv }}</dd>
+              <dt>Cis-heritability (h<sup>2</sup>)</dt><dd>{{ model.hsq }}</dd>
+            </dl>
+          </details>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
     {% endfor %}
-  </tbody>
-</table>
+  </table>
+</div>
 
 <script src="{{ site.baseurl }}assets/js/manhattan.js"></script>
-<script type="text/javascript" class="init">
+<script>
   fetch("../{{ page.locus_num }}.cond.csv")
-    .then((response) => response.text())
-    .then((csvText) => {
-      const data = d3.csvParse(csvText);
-      processData(data);
+    .then(response => {
+      if (!response.ok) throw new Error(response.statusText);
+      return response.text();
+    })
+    .then(csv => processData(d3.csvParse(csv)))
+    .catch(() => {
+      document.querySelector("#graph").textContent = "The GWAS plot data could not be loaded.";
     });
-  $(document).ready(function () {
-    $("table#models").DataTable({
-      lengthChange: false,
-      paging: false,
-      info: false,
-      searching: true,
-      scrollX: true,
-      language: {
-        search: '<i class="fa fa-search" aria-hidden="true"></i>',
-      },
-      layout: {
-        topStart: function () {
-          let div = document.createElement("div");
-          div.className = "small";
-          div.innerHTML =
-            '<i class="fas fa-info-circle"></i> Hover over column headers to see descriptions';
-          return div;
-        },
-      },
-      columnDefs: [
-        { className: "dt-left dt-head-left", targets: [0, 1, 2, 3, 12] },
-        {
-          className: "dt-right dt-head-right",
-          targets: [4, 5, 6, 7, 8, 9, 10, 11],
-        },
-      ],
-      order: [[9, "asc"]],
-    });
-  });
 </script>

@@ -150,6 +150,8 @@ def main():
             render("build_locus_page.R", trait, str(locus))
         render("porcupine_plots.R", trait)
 
+    render("build_gene_summaries.R", *config["genes"])
+
     subprocess.run(
         ["bundle", "exec", "jekyll", "build", "--config", "_config.yml,_config.preview.yml"],
         cwd=site, check=True,

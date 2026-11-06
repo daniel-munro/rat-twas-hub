@@ -130,8 +130,8 @@ python3 scripts/site/preview_from_archives.py
 The script reads the trait and gene IDs from `jekyll/_config.preview.yml`. It
 restores each selected trait's combined association and post-processing tables
 and the locus model and conditional plot files. It then runs the regular R
-builders for trait pages, locus pages, porcupine plots, and shared xTWAS
-comparisons before building Jekyll. It uses the local model and chromosome
+builders for trait pages, locus pages, porcupine plots, shared xTWAS
+comparisons, and gene summaries before building Jekyll. It uses the local model and chromosome
 tables in `data/`, the published trait metadata, and the snapshot's panel and
 project metadata, gene pages, gene models, and indices. It requires Python
 3.9+, the R site dependencies, and the Jekyll gems.
@@ -140,8 +140,10 @@ Each run prints a fresh workspace under `.snakemake/archive-preview-*`. To
 browse it, run `bundle exec jekyll serve --config _config.yml,_config.preview.yml`
 from the workspace's `jekyll/` directory. Rerun the script from the repository
 root after editing a builder or template. The workspaces retain the extracted
-tables for inspection and can be deleted after use. Comparisons cover the
-selected traits, and the transcriptome-wide cutoff uses the full model table.
+tables for inspection and can be deleted after use. Comparisons and the gene
+lead tables cover the selected traits, and the transcriptome-wide cutoff uses
+the full model table. The full gene heatmaps and method diagnostics come from
+the existing snapshot.
 
 The archives contain published TWAS results and post-processing outputs. Running
 TWAS again requires the upstream GWAS inputs, model weights, and LD reference
@@ -183,7 +185,8 @@ missing TWAS results, matching TWAS hit selection and porcupine plots.
 `site_locus_manifest` is a local checkpoint: once all configured traits'
 post-processing reports are available, it writes `data/site_loci.tsv` from their
 rows. This manifest enumerates each trait's expected locus pages, conditional
-CSVs, and model tables. The local `jekyll_locus_pages` aggregate tracks those
+CSVs, model tables, and downloadable TSVs with full RNA phenotype IDs.
+The local `jekyll_locus_pages` aggregate tracks those
 individual files and writes `jekyll/_data/locus_pages.done`, keeping the final
 target independent of checkpoint expansion. Loci are numbered by chromosome and
 start position, matching the site tables. No file globbing is used to discover
@@ -199,6 +202,12 @@ when the report changes, including when the trait no longer has any loci.
 The `.genes` and `.cond.csv` files named in the report are explicit inputs.
 Missing source files fail the build; regenerate the affected chromosome with
 `twas_post` if these original post-processing files have been removed.
+
+Trait hit tables use the same transcriptome-wide cutoff as the comparison
+tables. Hits are linked to loci by panel, weight file, and full phenotype ID.
+The gene summaries select the lowest-P hit per trait from these same rows.
+The gene model summary uses the predictor and cross-validation R² recorded in
+the first configured trait's TWAS results.
 
 ## Trait comparisons
 

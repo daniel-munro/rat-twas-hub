@@ -11,18 +11,18 @@ layout: base
 
 <h1>{{ trait.NAME }}</h1>
 
+{% assign study = site.data.projects | where: "id", trait.PROJECT | first %}
+<p class="trait-metadata">
+  <strong>GWAS sample size</strong> {{ trait.N }} ·
+  <strong>Study</strong>
+  <a href="{{ site.baseurl }}projects/#{{ trait.PROJECT }}">{{ study.title | default: trait.PROJECT | escape }}</a>
+  · <a href="{% if site.preview %}{{ site.url }}{% endif %}{{ site.baseurl }}data/{{ trait.ID }}.tar.bz2" download>Download {{ trait.NAME | escape }} xTWAS results (tar.bz2)</a>
+</p>
+
 {% if trait.DESCRIPTION != "NA" %}
 <p>{{ trait.DESCRIPTION }}</p>
 {% endif %}
-
 <p>Tags: {{ trait.TAGS | replace: ",", " · " }}</p>
-
-<p>
-  Project:
-  <a href="{{ site.baseurl }}projects/#{{ trait.PROJECT }}"
-    >{{ trait.PROJECT }}</a
-  >
-</p>
 
 {% assign num_loci = trait.NUM_LOCI | plus: 0 %} {% assign num_joint_genes =
 trait.NUM_JOINT_GENES | plus: 0 %} {% assign num_genes = trait.NUM_GENES | plus:
@@ -40,6 +40,60 @@ trait.NUM_JOINT_GENES | plus: 0 %} {% assign num_genes = trait.NUM_GENES | plus:
   src="{{ site.baseurl }}assets/images/porcupine/{{ trait.ID }}.png"
   class="porcupine"
 />
+
+<h3>Significant xTWAS models</h3>
+
+{% assign hits = site.data.trait_hits[page.id] %}
+{% if hits == nil %}
+<p>Significant model results are available after rebuilding the trait data.</p>
+{% elsif hits.size == 0 %}
+<p>No models pass the transcriptome-wide threshold.</p>
+{% else %}
+<p>Each row is one RNA model passing the transcriptome-wide cutoff. A dash indicates no matching locus in the post-processing output.</p>
+<div class="row g-2 mb-2" id="hit-filters">
+  <label class="col-sm">
+    Gene
+    <input type="search" class="form-control form-control-sm" id="hit-gene" placeholder="Search genes">
+  </label>
+  <label class="col-sm">
+    Tissue
+    <select class="form-select form-select-sm" id="hit-tissue"><option value="">All tissues</option></select>
+  </label>
+  <label class="col-sm">
+    RNA modality
+    <select class="form-select form-select-sm" id="hit-modality"><option value="">All modalities</option></select>
+  </label>
+  <label class="col-sm">
+    Locus
+    <select class="form-select form-select-sm" id="hit-locus"><option value="">All loci</option></select>
+  </label>
+</div>
+<table id="trait-hits">
+  <thead>
+    <tr><th>Gene</th><th>Tissue</th><th>RNA modality</th><th>RNA phenotype ID</th><th>TWAS Z</th><th>TWAS P</th><th>Locus</th></tr>
+  </thead>
+  <tbody>
+    {% for hit in hits %}
+    <tr>
+      <td><a href="{{ site.baseurl }}genes/{{ hit.gene_id }}">{{ hit.gene_id | escape }}</a></td>
+      <td>{{ hit.tissue | escape }}</td>
+      <td>{{ hit.modality | escape }}</td>
+      <td>{{ hit.pheno_id | escape }}</td>
+      <td>{{ hit.twas_z }}</td>
+      <td>{{ hit.twas_p }}</td>
+      <td data-search="{{ hit.locus | default: 'Unassigned' }}">
+        {% if hit.locus %}
+          {% assign locus_ids = hit.locus | split: "," %}
+          {% for locus_id in locus_ids %}
+          <a href="{{ site.baseurl }}traits/{{ page.id }}/{{ locus_id }}/">{{ locus_id }}</a>{% unless forloop.last %}, {% endunless %}
+          {% endfor %}
+        {% else %}—{% endif %}
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endif %}
 
 <h3>Significant Loci</h3>
 
@@ -241,55 +295,29 @@ trait.NUM_JOINT_GENES | plus: 0 %} {% assign num_genes = trait.NUM_GENES | plus:
 
 <h3>Associations by panel</h3>
 
+{% assign panels = site.data.trait_panels[page.id] %}
+{% assign first_panel = panels | first %}
+{% if first_panel and first_panel.num_tested == nil %}
+<p>Gene and model counts are available after rebuilding the trait data.</p>
+{% else %}
+<p>Each panel counts distinct genes with a hit and significant models among models with a TWAS P-value.</p>
 <table id="panels">
   <thead>
-    <tr>
-      <th data-bs-toggle="tooltip" data-bs-placement="top" title="Tissue">
-        Tissue
-      </th>
-      <th
-        data-bs-toggle="tooltip"
-        data-bs-placement="top"
-        title="Modality of RNA variation"
-      >
-        RNA modality
-      </th>
-      <th
-        data-bs-toggle="tooltip"
-        data-bs-placement="top"
-        title="Number of hits for this trait across all models in this panel"
-      >
-        # hits
-      </th>
-      <th
-        data-bs-toggle="tooltip"
-        data-bs-placement="top"
-        title="Percentage of models with hits (out of 100)"
-      >
-        % hits/tests
-      </th>
-      <th
-        data-bs-toggle="tooltip"
-        data-bs-placement="top"
-        title="Average Chi<sup>2</sup> (squared Z-score) across all models in this panel for this trait"
-      >
-        Avg chisq
-      </th>
-    </tr>
+    <tr><th>Tissue</th><th>RNA modality</th><th>Genes with hits</th><th>Significant models</th><th>Models tested</th></tr>
   </thead>
   <tbody>
-    {% assign panels = site.data.trait_panels[page.id] %} {% for row in panels
-    %}
+    {% for row in panels %}
     <tr>
-      <td>{{ row.tissue }}</td>
-      <td>{{ row.modality }}</td>
+      <td>{{ row.tissue | escape }}</td>
+      <td>{{ row.modality | escape }}</td>
+      <td>{{ row.hit_genes }}</td>
       <td>{{ row.num_hits }}</td>
-      <td>{{ row.pct_hits }}</td>
-      <td>{{ row.avg_chisq }}</td>
+      <td>{{ row.num_tested }}</td>
     </tr>
     {% endfor %}
   </tbody>
 </table>
+{% endif %}
 
 <script type="text/javascript" class="init">
   $(document).ready(function () {
@@ -356,28 +384,39 @@ trait.NUM_JOINT_GENES | plus: 0 %} {% assign num_genes = trait.NUM_GENES | plus:
       }).columns.adjust();
     });
     $("table#panels").DataTable({
-      lengthChange: false,
       paging: false,
       info: false,
-      searching: true,
+      scrollX: true,
       scrollY: 400,
-      language: {
-        search: '<i class="fa fa-search" aria-hidden="true"></i>',
-      },
-      layout: {
-        topStart: function () {
-          let div = document.createElement("div");
-          div.className = "small";
-          div.innerHTML =
-            '<i class="fas fa-info-circle"></i> Hover over column headers to see descriptions';
-          return div;
-        },
-      },
-      columnDefs: [
-        { className: "dt-left dt-head-left", targets: [0, 1] },
-        { className: "dt-right dt-head-right", targets: [2, 3, 4] },
-      ],
-      order: [[4, "des"]],
+      order: [[2, "desc"], [3, "desc"], [0, "asc"]],
     });
+
+    if (!document.querySelector("#trait-hits")) return;
+    const hits = $("#trait-hits").DataTable({
+      scrollX: true,
+      layout: { topEnd: null },
+      order: [[5, "asc"]],
+      language: { zeroRecords: "No significant models match these filters." },
+    });
+    $("#hit-gene").on("input", function () {
+      hits.column(0).search(this.value).draw();
+    });
+    for (const [selector, index] of [["#hit-tissue", 1], ["#hit-modality", 2], ["#hit-locus", 6]]) {
+      const column = hits.column(index);
+      const select = document.querySelector(selector);
+      const options = new Set();
+      const values = value => index === 6 ? value.split(",") : [value];
+      column.cache("search").each(text => {
+        for (const value of values(text)) {
+          if (value) options.add(value);
+        }
+      });
+      for (const value of [...options].sort((a, b) => a.localeCompare(b, undefined, { numeric: true }))) {
+        select.add(new Option(value, value));
+      }
+      select.addEventListener("change", () => {
+        column.search(select.value ? value => values(value).includes(select.value) : "").draw();
+      });
+    }
   });
 </script>

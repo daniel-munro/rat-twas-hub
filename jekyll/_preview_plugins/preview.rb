@@ -47,6 +47,11 @@ module PortalPreview
       @data_reader.read_data_file(input("_data/#{relative_path}"))
     end
 
+    def optional_data(relative_path)
+      path = site.in_source_dir("_data/#{relative_path}")
+      @data_reader.read_data_file(path) if File.file?(path)
+    end
+
     def selected_files
       traits = data("traits.tsv").select { |row| @traits.include?(row["ID"]) }
       missing = @traits - traits.map { |row| row.fetch("ID") }
@@ -58,6 +63,8 @@ module PortalPreview
         "projects" => data("projects.tsv"),
         "stats" => data("stats.yml"),
         "gene_models" => {},
+        "gene_summaries" => {},
+        "trait_hits" => {},
         "trait_loci" => {},
         "trait_panels" => {},
         "trait_pleio" => {},
@@ -67,6 +74,7 @@ module PortalPreview
       files = []
       @traits.each do |id|
         files.concat(["traits/#{id}.md", "assets/images/porcupine/#{id}.png"])
+        @preview_data["trait_hits"][id] = optional_data("trait_hits/#{id}.tsv")
         @preview_data["trait_panels"][id] = data("trait_panels/#{id}.tsv")
         @preview_data["trait_pleio"][id] = data("trait_pleio/#{id}.tsv")
           .select { |row| @traits.include?(row["trait_id"]) }
@@ -75,12 +83,19 @@ module PortalPreview
         @preview_data["locus_models"][id] = loci.to_h do |locus|
           number = locus.fetch("locus_num")
           files.concat(["traits/#{id}/#{number}.md", "traits/#{id}/#{number}.cond.csv"])
+          export = "traits/#{id}/#{number}.models.tsv"
+          files << export if File.file?(site.in_source_dir(export))
           [number, data("locus_models/#{id}/#{number}.tsv")]
         end
       end
       @genes.each do |id|
         files << "genes/#{id}.md"
         key = @data_reader.sanitize_filename(id)
+        summary = optional_data("gene_summaries/#{id}.json")
+        if summary
+          summary["hits"].select! { |hit| @traits.include?(hit["trait_id"]) }
+          @preview_data["gene_summaries"][key] = summary
+        end
         @preview_data["gene_models"][key] = data("gene_models/#{id}.tsv")
       end
       files.each { |file| input(file) }

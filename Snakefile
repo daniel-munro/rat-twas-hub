@@ -41,6 +41,7 @@ def site_locus_outputs(trait, wildcards):
         outputs.extend([
             f"jekyll/traits/{trait}/{locus}.md",
             f"jekyll/traits/{trait}/{locus}.cond.csv",
+            f"jekyll/traits/{trait}/{locus}.models.tsv",
             f"jekyll/_data/locus_models/{trait}/{locus}.tsv",
         ])
     return outputs
@@ -83,6 +84,7 @@ rule all:
         expand("jekyll/assets/images/porcupine/{trait}.png", trait=traits),
         "jekyll/cross-species.json",
         "jekyll/_data/gene_pages.done",
+        "jekyll/_data/gene_summaries",
         "jekyll/_data/locus_pages.done",
 
 rule twas_results:
@@ -343,6 +345,7 @@ rule jekyll_trait_page:
         page = "jekyll/traits/{trait}.md",
         loci = "jekyll/_data/trait_loci/{trait}.tsv",
         panels = "jekyll/_data/trait_panels/{trait}.tsv",
+        hits = "jekyll/_data/trait_hits/{trait}.tsv",
     group: "site_trait_{trait}"
     shell:
         "Rscript {input.renderer:q} {wildcards.trait:q}"
@@ -359,6 +362,7 @@ rule jekyll_locus_page:
     output:
         page = "jekyll/traits/{trait}/{locus}.md",
         cond = "jekyll/traits/{trait}/{locus}.cond.csv",
+        download = "jekyll/traits/{trait}/{locus}.models.tsv",
         models = "jekyll/_data/locus_models/{trait}/{locus}.tsv",
     wildcard_constraints:
         locus = "[1-9][0-9]*",
@@ -383,6 +387,21 @@ rule porcupine_plots:
         mem_mb = 2000,
     shell:
         "Rscript scripts/site/porcupine_plots.R {wildcards.trait:q}"
+
+rule jekyll_gene_summaries:
+    """Build gene leads from the same significant model rows as the trait pages."""
+    input:
+        traits = "data/traits.tsv",
+        panels = "data/panels.tsv",
+        models = "data/all_models.tsv",
+        reference = f"data/twas_out/{traits[0]}.all.tsv",
+        hits = expand("jekyll/_data/trait_hits/{trait}.tsv", trait=traits),
+        renderer = "scripts/site/build_gene_summaries.R",
+    output:
+        summaries = directory("jekyll/_data/gene_summaries"),
+    shell:
+        "Rscript {input.renderer:q}"
+
 
 rule jekyll_gene_pages:
     """Build Jekyll pages for all genes

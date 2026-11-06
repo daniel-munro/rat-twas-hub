@@ -11,6 +11,7 @@
 # jekyll/traits/{trait}.md
 # jekyll/_data/trait_loci/{trait}.tsv
 # jekyll/_data/trait_panels/{trait}.tsv
+# jekyll/_data/trait_hits/{trait}.tsv
 
 suppressPackageStartupMessages(library(tidyverse))
 
@@ -33,19 +34,23 @@ if (is.na(i_trait)) {
 tbl_panels <- read_tsv("data/panels.tsv", col_types = "ccccci")
 
 cat("reading", tbl_traits$OUTPUT[i_trait], "\n")
+# Preserve the source representation of very small P-values in the hit table.
 trait_assocs <- read_tsv(
   tbl_traits$OUTPUT[i_trait],
-  col_types = cols(PANEL = "c", FILE = "c", ID = "c", TWAS.Z = "d", TWAS.P = "d", .default = "-")
+  col_types = cols(PANEL = "c", FILE = "c", ID = "c", TWAS.Z = "d", TWAS.P = "c", .default = "-")
 ) |>
-  filter(!is.na(TWAS.P))
+  mutate(p = as.numeric(TWAS.P)) |>
+  filter(!is.na(p)) |>
+  mutate(gene_id = pheno_to_gene_id(ID))
 
 # Match TWAS hit selection and plots, including models without a result.
 n_models <- length(read_lines("data/all_models.tsv")) - 1
+threshold <- 0.05 / n_models
 
 trait_panels <- trait_assocs |>
-  summarise(avg_chisq = mean(TWAS.Z^2, na.rm = TRUE),
-            num_hits = sum(TWAS.P < 0.05 / n_models, na.rm = TRUE),
-            pct_hits = 100 * mean(TWAS.P < 0.05 / n_models, na.rm = TRUE),
+  summarise(hit_genes = n_distinct(gene_id[p < threshold]),
+            num_hits = sum(p < threshold),
+            num_tested = n(),
             .by = PANEL) |>
   left_join(tbl_panels, by = "PANEL")
 
@@ -72,7 +77,7 @@ c(
 
 # ---- Get clumped and conditional loci
 trait_loci <- read_tsv(
-  str_replace(tbl_traits$OUTPUT[i_trait], ".all.tsv", ".post.tsv"), col_types = "cciiiidddd"
+  str_replace(tbl_traits$OUTPUT[i_trait], ".all.tsv", ".post.tsv"), col_types = "cciiiicccd"
 ) |>
   mutate(chr_num = as.integer(str_replace(CHR, "chr", ""))) |>
   arrange(chr_num, P0) |>
@@ -82,15 +87,34 @@ trait_loci <- read_tsv(
 
 # Joint genes are needed for the trait's locus table; locus pages are separate
 # tracked outputs rendered by build_locus_page.R.
+locus_keys <- vector("list", nrow(trait_loci))
 for (i_locus in seq_len(nrow(trait_loci))) {
   locus_models <- read_tsv(
     str_glue("{trait_loci$FILE[i_locus]}.genes"),
-    col_types = cols(ID = "c", JOINT = "l", .default = "-")
+    col_types = cols(PANEL = "c", FILE = "c", ID = "c", JOINT = "l", .default = "-")
   )
   trait_loci$genes[i_locus] <- str_c(
     sort(unique(pheno_to_gene_id(locus_models$ID[locus_models$JOINT]))), collapse = ","
   )
+  locus_keys[[i_locus]] <- distinct(locus_models, PANEL, FILE, ID) |>
+    mutate(locus = i_locus)
 }
+
+# Match exact model rows rather than assigning a hit by the gene's coordinates.
+# Some significant models have no post-processing locus.
+hit_loci <- bind_rows(tibble(PANEL = character(), FILE = character(), ID = character(),
+                             locus = integer()), bind_rows(locus_keys)) |>
+  summarise(locus = paste(sort(unique(locus)), collapse = ","), .by = c(PANEL, FILE, ID))
+trait_hits <- trait_assocs |>
+  filter(p < threshold) |>
+  left_join(hit_loci, by = c("PANEL", "FILE", "ID"), relationship = "many-to-one") |>
+  left_join(select(tbl_panels, PANEL, TISSUE, MODALITY),
+            by = "PANEL", relationship = "many-to-one") |>
+  arrange(p, desc(abs(TWAS.Z)), PANEL, ID, FILE) |>
+  select(gene_id, tissue = TISSUE, modality = MODALITY, pheno_id = ID,
+         twas_z = TWAS.Z, twas_p = TWAS.P, locus)
+dir.create("jekyll/_data/trait_hits", showWarnings = FALSE, recursive = TRUE)
+write_tsv(trait_hits, str_glue("jekyll/_data/trait_hits/{trait}.tsv"), na = "")
 
 trait_loci |>
   select(
@@ -107,9 +131,8 @@ trait_loci |>
     genes,
   ) |>
   mutate(
-    best_twas_p = format(best_twas_p, digits = 3, scientific = TRUE),
-    best_snp_p = format(best_snp_p, digits = 3, scientific = TRUE),
-    cond_snp_p = format(cond_snp_p, digits = 3, scientific = TRUE),
+    across(c(best_twas_p, best_snp_p, cond_snp_p),
+           ~ format(as.numeric(.x), digits = 3, scientific = TRUE)),
     var_exp = round(var_exp * 100, 0),
   ) |>
   write_tsv(fout_loci)
@@ -118,12 +141,8 @@ trait_panels |>
   select(
     tissue = TISSUE,
     modality = MODALITY,
+    hit_genes,
     num_hits,
-    pct_hits,
-    avg_chisq,
-  ) |>
-  mutate(
-    pct_hits = round(pct_hits, 1),
-    avg_chisq = round(avg_chisq, 2),
+    num_tested,
   ) |>
   write_tsv(fout_panels)

@@ -39,7 +39,11 @@ stopifnot(file.copy(
 
 locus_models <- read_tsv(
   str_glue("{trait_loci$FILE[i_locus]}.genes"),
-  col_types = "cccciidcdcdddiicdddddddddld", num_threads = 1
+  col_types = cols(PANEL = "c", ID = "c", HSQ = "d", EQTL.R2 = "d", MODEL = "c",
+                   NWGT = "i", MODELCV.R2 = "d", MODELCV.PV = "d", EQTL.GWAS.Z = "d",
+                   TWAS.Z = "d", TWAS.P = "c", TOP.SNP.COR = "d", COLOC.PP3 = "d",
+                   COLOC.PP4 = "d", JOINT = "l", .default = "-"),
+  num_threads = 1
 ) |>
   mutate(num = seq_len(n()),
          gene_id = pheno_to_gene_id(ID)) |>
@@ -67,6 +71,7 @@ locus_models |>
     gene_id,
     modality = MODALITY,
     id = ID,
+    full_id = ID,
     hsq = HSQ,
     eqtl_r2 = EQTL.R2,
     model = MODEL,
@@ -81,6 +86,7 @@ locus_models |>
     coloc_pp4 = COLOC.PP4,
     joint = JOINT,
   ) |>
+  arrange(gene_id, as.numeric(twas_p)) |>
   mutate(
     id = shorten_ids(id, modality),
     hsq = round(hsq, 2),
@@ -89,9 +95,12 @@ locus_models |>
     modelcv_pv = format(modelcv_pv, digits = 3, scientific = TRUE),
     eqtl_gwas_z = round(eqtl_gwas_z, 2),
     twas_z = round(twas_z, 2),
-    twas_p = format(twas_p, digits = 3, scientific = TRUE),
+    twas_p = format(as.numeric(twas_p), digits = 3, scientific = TRUE),
     top_snp_corr = round(top_snp_corr, 2),
     coloc_pp3 = round(coloc_pp3, 2),
     coloc_pp4 = round(coloc_pp4, 2),
   ) |>
   write_tsv(fout_locus_models)
+
+stopifnot(file.copy(fout_locus_models, str_glue("jekyll/traits/{trait}/{i_locus}.models.tsv"),
+                    overwrite = TRUE))
