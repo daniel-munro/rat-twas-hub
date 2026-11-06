@@ -30,15 +30,21 @@ where: "locus_num", page.locus_num | first %}
 <h2>Trait: {{ trait.NAME }}</h2>
 
 <p class="text-center">
-  Best TWAS P = <strong> {{ locus.best_twas_p }} </strong> · Best GWAS P=<strong>
-    {{ locus.best_snp_p }}
-  </strong>
-  conditioned to <strong> {{ locus.cond_snp_p }} </strong>
+  Best TWAS P = <strong>{{ locus.best_twas_p }}</strong> ·
+  Marginal GWAS P at lead SNP = <strong>{{ locus.best_snp_p }}</strong> ·
+  Conditional GWAS P at original lead SNP = <strong>{{ locus.cond_snp_p }}</strong>
 </p>
 
 <div id="graph"></div>
 
 <h3>Associated models</h3>
+
+<p>
+  Joint selection records which RNA models the stepwise conditional TWAS
+  retained. Colocalization separately compares the local RNA and GWAS signals
+  for evidence of a shared or distinct causal variant. Both can help prioritize
+  models for follow-up.
+</p>
 
 <table id="models">
   <thead>
@@ -100,16 +106,23 @@ where: "locus_num", page.locus_num | first %}
       <th
         data-bs-toggle="tooltip"
         data-bs-placement="top"
-        title="Posterior probability of a single shared causal variant (PP4 from coloc)"
+        title="Posterior probability that the RNA and GWAS signals share one causal variant under the coloc model"
       >
-        Coloc P
+        Shared-variant posterior (PP4)
       </th>
       <th
         data-bs-toggle="tooltip"
         data-bs-placement="top"
-        title="Whether the RNA phenotype was selected in the joint model"
+        title="Posterior probability that the RNA and GWAS signals each have a different causal variant under the coloc model"
       >
-        Joint
+        Distinct-variant posterior (PP3)
+      </th>
+      <th
+        data-bs-toggle="tooltip"
+        data-bs-placement="top"
+        title="Whether the RNA model was retained by stepwise conditional TWAS"
+      >
+        Joint selection
       </th>
     </tr>
   </thead>
@@ -135,6 +148,7 @@ where: "locus_num", page.locus_num | first %}
       <td>{{ model.twas_z }}</td>
       <td>{{ model.twas_p }}</td>
       <td>{{ model.coloc_pp4 }}</td>
+      <td>{{ model.coloc_pp3 }}</td>
       <td>{{ model.joint }}</td>
     </tr>
     {% endfor %}
@@ -169,10 +183,10 @@ where: "locus_num", page.locus_num | first %}
         },
       },
       columnDefs: [
-        { className: "dt-left dt-head-left", targets: [0, 1, 2, 3, 11] },
+        { className: "dt-left dt-head-left", targets: [0, 1, 2, 3, 12] },
         {
           className: "dt-right dt-head-right",
-          targets: [4, 5, 6, 7, 8, 9, 10],
+          targets: [4, 5, 6, 7, 8, 9, 10, 11],
         },
       ],
       order: [[9, "asc"]],

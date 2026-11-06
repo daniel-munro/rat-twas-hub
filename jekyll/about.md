@@ -38,13 +38,13 @@ All analyses include weakly predictive models up to a heritability P-value of 0.
 
 The conditional analysis is a simple summary based step-wise model selection process that iteratively adds predictors to the model in decreasing order of conditional TWAS significance until no significant associations remain. Across models, conditional results should be interpreted as estimating the number of jointly significant models, but the selected models are not necessarily more likely to be causal than unselected features (either due to high correlation or different levels of noise). Rather, we recommend using a formal fine-mapping procedure (e.g. [FOCUS](https://github.com/mancusolab/ma-focus)).
 
-Additionally, the SNP conditioning analysis (and Manhattan plots) provides an estimate of variance in the locus explained by the predicted model. A small fraction of variance explained is a strong indicator that the predicted model is tagging another causal feature (or there are multiple causal features in the locus). A large fraction of variance explained is consistent with the predicted model explaining all of the genetic effect - necessary but not sufficient for this to be the single causal mediator.
+The SNP conditioning analysis compares GWAS statistics before and after accounting for the jointly selected RNA models. The reported conditional GWAS P uses the original lead SNP, defined as the SNP with the lowest marginal GWAS P in the locus. The Manhattan plots show the marginal and conditional associations across the locus.
 
 The conditional analysis uses an LD-reference panel and is therefore approximate, so you may see loci that behave unusually (for example, becoming extremely significant after conditioning). These are most likely instances of LD mismatch between reference and GWAS data.
 
 #### Interpretation of coloc posteriors
 
-All transcriptome-wide significant associations are run through the `coloc` colocalization model, with posterior probabilities PP3 (distinct causal variant) and PP4 (shared causal variant) reported in the locus view. `coloc` assumes a single causal variant model while TWAS directly models multiple xQTLs so we tend to use low PP3 as an indicator of colocalization rather than high PP4 (as done in [Raj et al. 2018 _Nature Genetics_](https://www.nature.com/articles/s41588-018-0238-1)).
+The locus view reports posterior probabilities from `coloc` when available. PP4 measures support for one causal variant shared by the RNA phenotype and the GWAS trait. PP3 measures support for two distinct causal variants, one for each. The model also allows for local associations with just one phenotype or with neither, so both PP3 and PP4 can be low. Joint selection comes from the stepwise TWAS analysis and colocalization comes from comparing local variant associations. Each provides separate evidence for prioritizing RNA models for follow-up. [Giambartolomei et al., 2014](https://journals.plos.org/plosgenetics/article?id=10.1371%2Fjournal.pgen.1004383)
 
 # Acknowledgements
 

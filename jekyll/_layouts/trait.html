@@ -31,7 +31,7 @@ trait.NUM_JOINT_GENES | plus: 0 %} {% assign num_genes = trait.NUM_GENES | plus:
 <p class="text-center">
   <strong>{{ trait.NUM_LOCI }}</strong> {% if num_loci == 1 %}locus{% else
   %}loci{% endif %} · <strong>{{ trait.NUM_JOINT_GENES }}</strong> gene{% if
-  num_joint_genes != 1 %}s{% endif %} with independent associations ·
+  num_joint_genes != 1 %}s{% endif %} with models selected in the joint analysis ·
   <strong>{{ trait.NUM_GENES }}</strong> total associated gene{% if num_genes !=
   1 %}s{% endif %}
 </p>
@@ -94,21 +94,21 @@ trait.NUM_JOINT_GENES | plus: 0 %} {% assign num_genes = trait.NUM_GENES | plus:
       <th
         data-bs-toggle="tooltip"
         data-bs-placement="top"
-        title="Lowest GWAS P-value across all models in this locus"
+        title="Lowest marginal GWAS P-value among SNPs in this locus"
       >
         Best GWAS P
       </th>
       <th
         data-bs-toggle="tooltip"
         data-bs-placement="top"
-        title="Lowest GWAS P-value after conditioning on the TWAS associations in this locus"
+        title="GWAS P-value at the SNP with the lowest marginal GWAS P, after conditioning on the selected RNA models"
       >
-        Cond GWAS P
+        Conditional GWAS P at original lead SNP
       </th>
       <th
         data-bs-toggle="tooltip"
         data-bs-placement="top"
-        title="Genes selected by step-wise conditional analysis"
+        title="Genes with an RNA model retained by stepwise conditional TWAS"
       >
         Joint genes
       </th>
