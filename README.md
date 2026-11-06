@@ -118,6 +118,36 @@ files and rebuilds the preview on save. The preview writes to `_site-preview`.
 To build the full site for deployment, run the usual
 `bundle exec jekyll build` from `jekyll/`, which writes to `_site`.
 
+### Rebuild the preview from downloaded results
+
+With the trait archives under `jekyll/data/` and the existing site snapshot in
+place, run the preview script from the repository root.
+
+```bash
+python3 scripts/site/preview_from_archives.py
+```
+
+The script reads the trait and gene IDs from `jekyll/_config.preview.yml`. It
+restores each selected trait's combined association and post-processing tables
+and the locus model and conditional plot files. It then runs the regular R
+builders for trait pages, locus pages, porcupine plots, and shared xTWAS
+comparisons before building Jekyll. It uses the local model and chromosome
+tables in `data/`, the published trait metadata, and the snapshot's panel and
+project metadata, gene pages, gene models, and indices. It requires Python
+3.9+, the R site dependencies, and the Jekyll gems.
+
+Each run prints a fresh workspace under `.snakemake/archive-preview-*`. To
+browse it, run `bundle exec jekyll serve --config _config.yml,_config.preview.yml`
+from the workspace's `jekyll/` directory. Rerun the script from the repository
+root after editing a builder or template. The workspaces retain the extracted
+tables for inspection and can be deleted after use. Comparisons cover the
+selected traits, and the transcriptome-wide cutoff uses the full model table.
+
+The archives contain published TWAS results and post-processing outputs. Running
+TWAS again requires the upstream GWAS inputs, model weights, and LD reference
+files. Rebuilding the gene and cross-species data also requires inputs outside
+the trait archives, including the GTF and ortholog mapping.
+
 ## Repository layout
 
 - `Snakefile`: Main workflow (TWAS, post-processing, and site data generation).
@@ -144,7 +174,7 @@ snakemake --profile slurm --dry-run --forcerun cross_species_orthologs -- cross_
 snakemake --profile slurm --forcerun cross_species_orthologs -- cross_species_orthologs
 ```
 
-Trait-page hit counts and transcriptome-wide pleiotropy tests use
+Trait-page hit counts and shared xTWAS signals use
 `0.05 / total model count` from `data/all_models.tsv`, including models with
 missing TWAS results, matching TWAS hit selection and porcupine plots.
 
@@ -172,7 +202,7 @@ Missing source files fail the build; regenerate the affected chromosome with
 
 ## Trait comparisons
 
-`jekyll_pleiotropy` computes all directed trait comparisons in one Slurm job and
+`jekyll_pleiotropy` computes shared signals and directional tests in one Slurm job and
 writes `jekyll/_data/trait_pleio/{trait}.tsv` for every configured trait. It declares
 all association tables, trait metadata, summary statistics, and the model table
 as inputs. Trait-page rendering no longer loads other traits' association tables.
@@ -180,9 +210,12 @@ as inputs. Trait-page rendering no longer loads other traits' association tables
 The comparison step reads each association table twice: first to identify the
 union of transcriptome-wide significant models, then to retain secondary-trait
 results only for that union. Secondary tables use integer model keys to bound
-memory. Comparisons preserve the existing primary-specific secondary threshold,
-correlations, gene counts, summary denominators, ordering, and TSV formatting.
-Traits without significant models still receive a header-only comparison file.
+memory. Shared signal counts use models that pass the transcriptome-wide cutoff
+in both traits, matching by weight file and full RNA phenotype ID. The directional
+test uses 0.05 divided by the number of significant primary-trait models as the
+secondary cutoff. Skipped correlations and their P-values are blank in the TSV.
+Traits without comparisons still receive a header-only file. Rebuild these
+files with `jekyll_pleiotropy` before publishing the updated trait layout.
 
 To validate the statistical edge cases with small synthetic inputs:
 

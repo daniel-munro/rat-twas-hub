@@ -147,96 +147,97 @@ trait.NUM_JOINT_GENES | plus: 0 %} {% assign num_genes = trait.NUM_GENES | plus:
   </tbody>
 </table>
 
-<h3>Pleiotropic Associations</h3>
+<h3>Shared xTWAS signals</h3>
 
-<table id="pleiotropic">
+<p>
+  Genes and matching RNA models with transcriptome-wide significant associations
+  in both traits. A gene is counted once if at least one of its models passes in
+  both traits. See the <a href="{{ site.baseurl }}usage/">Usage guide</a> for the calculation.
+</p>
+
+{% assign comparisons = site.data.trait_pleio[page.id] %}
+{% assign first_comparison = comparisons | first %}
+{% assign comparisons_unavailable = false %}
+{% if comparisons == nil %}
+  {% assign comparisons_unavailable = true %}
+{% elsif first_comparison and first_comparison.num_models_twas == nil %}
+  {% assign comparisons_unavailable = true %}
+{% endif %}
+{% if comparisons_unavailable %}
+<p>Shared xTWAS results are unavailable until the trait comparisons are rebuilt.</p>
+{% else %}
+<table id="shared-xtwas">
   <thead>
     <tr>
-      <th
-        data-bs-toggle="tooltip"
-        data-bs-placement="top"
-        title="Trait being compared to this page's trait"
-      >
-        Trait
-      </th>
-      <th
-        data-bs-toggle="tooltip"
-        data-bs-placement="top"
-        title="Average Chi<sup>2</sup> statistic for the selected genes in the secondary trait, divided by the average statistic for all genes in the secondary trait."
-      >
-        Chi<sup>2</sup> ratio
-      </th>
-      <th
-        data-bs-toggle="tooltip"
-        data-bs-placement="top"
-        title="Number of shared significant genes at Bonferroni significance"
-      >
-        # genes<sup>+</sup>
-      </th>
-      <th
-        data-bs-toggle="tooltip"
-        data-bs-placement="top"
-        title="Number of shared significant genes at transcriptome-wide significance"
-      >
-        # genes<sup>++</sup>
-      </th>
-      <th
-        data-bs-toggle="tooltip"
-        data-bs-placement="top"
-        title="Number of [++] genes as a percentage of primary trait's total joint genes."
-      >
-        % genes<sup>++</sup>
-      </th>
-      <th
-        data-bs-toggle="tooltip"
-        data-bs-placement="top"
-        title="Correlation of effect sizes across the [+] genes"
-      >
-        Corr
-      </th>
-      <th
-        data-bs-toggle="tooltip"
-        data-bs-placement="top"
-        title="P-value for correlation of effect sizes across the [+] genes"
-      >
-        Corr P
-      </th>
-      <th
-        data-bs-toggle="tooltip"
-        data-bs-placement="top"
-        title="Shared significant genes at Bonferroni significance"
-      >
-        Genes
-      </th>
+      <th>Trait</th>
+      <th>Shared genes</th>
+      <th>Matching models</th>
+      <th>Genes</th>
     </tr>
   </thead>
   <tbody>
-    {% assign pleio = site.data.trait_pleio[page.id] %} {% for row in pleio %}
+    {% for row in comparisons %}
+    {% assign shared_models = row.num_models_twas | plus: 0 %}
+    {% if shared_models > 0 %}
     {% assign trait2 = site.data.traits | where: "ID", row.trait_id | first %}
     <tr>
-      <td>
-        <a href="{{ site.baseurl }}traits/{{ row.trait_id }}">
-          {{ trait2.NAME }}
-        </a>
-      </td>
-      <td>{{ row.chisq_ratio }}</td>
-      <td>{{ row.num_genes }}</td>
+      <td><a href="{{ site.baseurl }}traits/{{ row.trait_id }}">{{ trait2.NAME }}</a></td>
       <td>{{ row.num_genes_twas }}</td>
-      <td>{{ row.pct_genes_twas }}</td>
-      <td>{{ row.corr }}</td>
-      <td>{{ row.p_val }}</td>
+      <td>{{ row.num_models_twas }}</td>
       <td>
-        <em>
-          {% assign gene_ids = row.genes | split: ',' %} {% for gene_id in
-          gene_ids %}
-          <a href="{{ site.baseurl }}genes/{{ gene_id }}">{{ gene_id }}</a>
-          {% unless forloop.last %} {% endunless %} {% endfor %}
-        </em>
+        {% assign gene_ids = row.genes_twas | split: ',' %}
+        {% for gene_id in gene_ids %}
+        <a href="{{ site.baseurl }}genes/{{ gene_id }}">{{ gene_id }}</a>
+        {% endfor %}
       </td>
     </tr>
+    {% endif %}
     {% endfor %}
   </tbody>
 </table>
+
+<details id="secondary-trait-details">
+  <summary>Directional secondary-trait test</summary>
+  <p>
+    This test starts with all transcriptome-wide significant models for this trait.
+    The secondary-trait cutoff is 0.05 divided by the number of those models.
+    A dash marks a missing statistic.
+  </p>
+  <table id="secondary-trait-test">
+    <thead>
+      <tr>
+        <th>Secondary trait</th>
+        <th>Genes passing the test</th>
+        <th title="Mean squared Z for passing models divided by the secondary trait's overall mean squared Z">Chi<sup>2</sup> ratio</th>
+        <th title="Pearson correlation of paired model Z-scores">Z-score r</th>
+        <th>Correlation P</th>
+        <th>Genes</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in comparisons %}
+      {% assign directional_genes = row.num_genes | plus: 0 %}
+      {% if directional_genes > 0 %}
+      {% assign trait2 = site.data.traits | where: "ID", row.trait_id | first %}
+      <tr>
+        <td><a href="{{ site.baseurl }}traits/{{ row.trait_id }}">{{ trait2.NAME }}</a></td>
+        <td>{{ row.num_genes }}</td>
+        <td>{{ row.chisq_ratio | default: "—" }}</td>
+        <td>{{ row.corr | default: "—" }}</td>
+        <td>{{ row.p_val | default: "—" }}</td>
+        <td>
+          {% assign gene_ids = row.genes | split: ',' %}
+          {% for gene_id in gene_ids %}
+          <a href="{{ site.baseurl }}genes/{{ gene_id }}">{{ gene_id }}</a>
+          {% endfor %}
+        </td>
+      </tr>
+      {% endif %}
+      {% endfor %}
+    </tbody>
+  </table>
+</details>
+{% endif %}
 
 <h3>Associations by panel</h3>
 
@@ -319,31 +320,40 @@ trait.NUM_JOINT_GENES | plus: 0 %} {% assign num_genes = trait.NUM_GENES | plus:
       ],
       order: [[0, "asc"]],
     });
-    $("table#pleiotropic").DataTable({
-      lengthChange: false,
+    const comparisonOptions = {
       paging: false,
       info: false,
-      searching: true,
       scrollX: true,
       scrollY: 400,
-      autoWidth: false,
       language: {
         search: '<i class="fa fa-search" aria-hidden="true"></i>',
       },
-      layout: {
-        topStart: function () {
-          let div = document.createElement("div");
-          div.className = "small";
-          div.innerHTML =
-            '<i class="fas fa-info-circle"></i> Hover over column headers to see descriptions';
-          return div;
-        },
+    };
+    $("table#shared-xtwas").DataTable({
+      ...comparisonOptions,
+      language: {
+        ...comparisonOptions.language,
+        emptyTable: "No matching models pass the transcriptome-wide threshold in both traits.",
       },
       columnDefs: [
-        { className: "dt-left dt-head-left", targets: [0, 7] },
-        { className: "dt-right dt-head-right", targets: [1, 2, 3, 4, 5, 6] },
+        { className: "dt-right dt-head-right", targets: [1, 2] },
       ],
-      order: [[6, "asc"]],
+      order: [[1, "desc"], [2, "desc"], [0, "asc"]],
+    });
+    $("#secondary-trait-details").on("toggle", function () {
+      if (!this.open) return;
+      $("table#secondary-trait-test").DataTable({
+        ...comparisonOptions,
+        retrieve: true,
+        language: {
+          ...comparisonOptions.language,
+          emptyTable: "No matching models pass the directional test.",
+        },
+        columnDefs: [
+          { className: "dt-right dt-head-right", targets: [1, 2, 3, 4] },
+        ],
+        order: [[2, "desc"]],
+      }).columns.adjust();
     });
     $("table#panels").DataTable({
       lengthChange: false,

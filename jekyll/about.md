@@ -8,7 +8,7 @@ permalink: about/
 TWAS measures the genetic association between a transcriptomic phenotype such as gene expression and a complex phenotype using only GWAS summary-level data (see: [Gusev et al. 2016 _Nature Genetics_](https://www.ncbi.nlm.nih.gov/pubmed/26854917)). The TWAS central dogma is that associated genes are more likely to be causal mediators of the trait and thus informative of the trait's biological nature or as targets for experimental follow-up.
 
 Rat TWAS Hub is an interactive browser of results from integrative analyses of GWAS and functional data.
-The aim is facilitate the investigation of individual TWAS associations; pleiotropic trait associations for a given gene of interest; predicted gene associations for a given trait of interest with detailed per-locus statistics; and pleiotropic relationships between traits based on shared associated genes. See the [USAGE](/usage){: .border} tab for detailed examples of each analysis type.
+The hub lets you explore individual TWAS associations, associations across traits for a given gene, detailed locus statistics for a trait, and shared xTWAS signals across traits. See the [USAGE](/usage){: .border} tab for detailed examples of each analysis type.
 
 Rat TWAS Hub is managed in the labs of [Abraham Palmer](https://palmerlab.org/) at UC San Diego and [Pejman Mohammadi](https://pejlab.org/) at Seattle Children's Research Institute and University of Washington. It was adapted from the (human) TWAS hub developed in the [Gusev Lab](http://gusevlab.org) at the Dana-Farber Cancer Institute and Harvard Medical School. For questions or comments about Rat TWAS Hub, please contact the developer and maintainer Daniel Munro at [dmunro@health.ucsd.edu](mailto:dmunro@health.ucsd.edu).
 
