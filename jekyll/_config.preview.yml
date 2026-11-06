@@ -1,0 +1,16 @@
+destination: _site-preview
+plugins_dir: _preview_plugins
+disable_disk_cache: true
+
+# IDs from _data/traits.tsv and filenames in genes/ (without .md).
+preview:
+  traits:
+    - novelty_seeking_test_total_velocity
+    - novelty_seeking_test_total_distance
+    - mg_g_cd
+  genes:
+    - Ctsc
+    - Grm5
+    - Homer2
+    - Retreg2
+    - Tyr

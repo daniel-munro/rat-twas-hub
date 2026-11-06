@@ -39,7 +39,7 @@ layout: base
         <td>{{ trait.NUM_JOINT_GENES }}</td>
         <td>{{ trait.NUM_GENES }}</td>
         <td><a href="{{ site.baseurl }}projects/#{{ trait.PROJECT }}">{{ trait.PROJECT }}</a></td>
-        <td><a href="{{ site.baseurl }}data/{{ trait.ID }}.tar.bz2"><i class="far fa-file-archive" aria-hidden="true"></i></a></td>
+        <td>{% if site.preview %}&mdash;{% else %}<a href="{{ site.baseurl }}data/{{ trait.ID }}.tar.bz2"><i class="far fa-file-archive" aria-hidden="true"></i></a>{% endif %}</td>
       </tr>
       {% endfor %}
     </tbody>

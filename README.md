@@ -95,6 +95,29 @@ bundle exec jekyll build
 scripts/site/deploy.sh
 ```
 
+## Fast local preview
+
+Run this from the repository root after generating the site inputs and installing the Jekyll gems.
+
+```bash
+cd jekyll
+bundle exec jekyll serve --config _config.yml,_config.preview.yml --livereload
+```
+
+Edit `jekyll/_config.preview.yml` to choose trait IDs and gene page IDs, then
+restart Jekyll. The defaults cover the example in the usage guide, another
+related trait, and a trait with no significant loci. The preview builds the
+selected trait pages, all their loci and plots, and the selected gene pages.
+The trait and gene listings and trait comparisons show the sample. The models
+and association results shown for each selected record use the original
+analysis, and references to omitted details appear as plain text. Bulk trait
+archives are omitted.
+
+Edit the usual files in `jekyll/` while the preview runs. Jekyll watches those
+files and rebuilds the preview on save. The preview writes to `_site-preview`.
+To build the full site for deployment, run the usual
+`bundle exec jekyll build` from `jekyll/`, which writes to `_site`.
+
 ## Repository layout
 
 - `Snakefile`: Main workflow (TWAS, post-processing, and site data generation).

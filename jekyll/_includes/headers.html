@@ -15,6 +15,7 @@
   crossorigin="anonymous"
 />
 <link rel="stylesheet" href="{{ site.baseurl }}assets/css/style.css" />
+{% unless site.preview %}
 <!-- Google tag (gtag.js) -->
 <script
   async
@@ -28,6 +29,7 @@
   gtag("js", new Date());
   gtag("config", "{{ site.google_analytics }}");
 </script>
+{% endunless %}
 <script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
 <script src="https://cdn.plot.ly/plotly-3.0.1.min.js" charset="utf-8"></script>
 <script

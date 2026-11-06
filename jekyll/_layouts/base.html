@@ -6,7 +6,14 @@
   <body>
     {% include navigation.html %}
 
-    <div class="container">{{ content }} {% include footer.html %}</div>
+    <div class="container">
+      {% if site.preview %}
+      <p class="alert alert-info">
+        Local preview with selected traits and genes. Summary totals refer to the full portal.
+      </p>
+      {% endif %}
+      {{ content }} {% include footer.html %}
+    </div>
     {% include scripts.html %}
   </body>
 </html>

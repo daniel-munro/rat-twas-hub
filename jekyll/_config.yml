@@ -71,4 +71,5 @@ exclude:
   - package.json
   - README.md
   - data/ # Large, upload directly instead
-  # - genes/  # Exclude for testing
+  - _site/
+  - _site-preview/
